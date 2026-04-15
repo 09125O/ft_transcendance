@@ -1,6 +1,6 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-04-07)
+Version: v1 (etat actuel de `dev` au 2026-04-15)
 Scope: contrat front-back MVP pour auth, users, rooms, game, scores
 
 ## Etat de persistance (important)
@@ -9,19 +9,20 @@ Scope: contrat front-back MVP pour auth, users, rooms, game, scores
   - `auth` (login/register/session/logout via `User`)
   - `users` (`/users/me`, `/users/:id`)
   - `quizzes` (`/quizzes`, `/quizzes/:quizId`)
-- Encore en service memoire (pas encore Prisma):
+- Encore hors Prisma (store runtime JSON):
   - `rooms`
   - `game`
   - `scores`
 
 Consequence:
-- Les routes `rooms/game/scores` sont valides pour integration front MVP,
-  mais les donnees ne sont pas persistantes entre redemarrages pour l'instant.
+- Les routes `rooms/game/scores` sont valides pour integration front MVP.
+- Les donnees sont persistees localement dans `backend/.runtime/*.json`
+  (pas encore dans PostgreSQL/Prisma).
 
 ## Base URL et proxy
 
-- Backend direct: `http://localhost:4000`
-- Front dev server: `http://localhost:3000`
+- Backend direct: `https://localhost:4000`
+- Front dev server: `https://localhost:3000`
 - En dev, le front peut appeler directement:
   - `/auth`
   - `/users`
@@ -138,6 +139,7 @@ type SubmitAnswerResult = {
   selectedAnswerIndex: number;
   isCorrect: boolean;
   scoreDelta: number;
+  userTotalScore: number;
   totalAnswers: number;
 };
 ```
@@ -164,7 +166,6 @@ type Quiz = {
     id: number;
     questionText: string;
     answers: string[];
-    correctAnswer: string;
     position: number;
     points: number;
     createdAt: string;
@@ -251,6 +252,7 @@ type Quiz = {
   - `404 NOT_FOUND` si room absente
 
 `POST /rooms`
+- Auth: cookie `access_token` requis
 - Body:
 
 ```json
@@ -283,11 +285,11 @@ type Quiz = {
   - Le schema Prisma `Room` ne les inclut pas encore dans l'etat actuel.
 
 `POST /rooms/:roomId/join`
+- Auth: cookie `access_token` requis
 - Body:
 
 ```json
 {
-  "userId": 1,
   "password": "room1234"
 }
 ```
@@ -308,12 +310,12 @@ type Quiz = {
   - `404 NOT_FOUND` si room absente
 
 `POST /game/answer`
+- Auth: cookie `access_token` requis
 - Body:
 
 ```json
 {
   "roomId": 1,
-  "userId": 1,
   "questionId": 101,
   "answerIndex": 1
 }
@@ -321,7 +323,6 @@ type Quiz = {
 
 - Validation:
   - `roomId`: int >= 1
-  - `userId`: int >= 1
   - `questionId`: int >= 1
   - `answerIndex`: int 0..3
 - Reponse: `201`, `ApiResponse<SubmitAnswerResult>`
