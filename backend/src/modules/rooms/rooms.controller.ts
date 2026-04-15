@@ -1,5 +1,8 @@
 import { ApiExceptionFilter } from "@/common/http/api-exception.filter";
 import { ok, type ApiResponse } from "@/common/http/api-response";
+import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
+import { AuthGuard } from "@/modules/auth/guards/auth.guard";
+import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
 import {
   Body,
   Controller,
@@ -8,6 +11,7 @@ import {
   ParseIntPipe,
   Post,
   UseFilters,
+  UseGuards,
 } from "@nestjs/common";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
@@ -19,27 +23,38 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Get()
-  list(): ApiResponse<Array<Omit<Room, "password">>> {
+  list(): ApiResponse<Array<Omit<Room, "passwordHash">>> {
     return ok(this.roomsService.list());
   }
 
   @Get(":roomId")
   getById(
     @Param("roomId", ParseIntPipe) roomId: number,
-  ): ApiResponse<Omit<Room, "password">> {
+  ): ApiResponse<Omit<Room, "passwordHash">> {
     return ok(this.roomsService.getById(roomId));
   }
 
   @Post()
-  create(@Body() dto: CreateRoomDto): ApiResponse<Omit<Room, "password">> {
-    return ok(this.roomsService.create(dto));
+  @UseGuards(AuthGuard)
+  create(
+    @Body() dto: CreateRoomDto,
+    @CurrentUser() auth: AuthPayload,
+  ): ApiResponse<Omit<Room, "passwordHash">> {
+    return ok(
+      this.roomsService.create({
+        ...dto,
+        ownerUserId: auth.sub,
+      }),
+    );
   }
 
   @Post(":roomId/join")
+  @UseGuards(AuthGuard)
   join(
     @Param("roomId", ParseIntPipe) roomId: number,
     @Body() dto: JoinRoomDto,
-  ): ApiResponse<Omit<Room, "password">> {
-    return ok(this.roomsService.join(roomId, dto));
+    @CurrentUser() auth: AuthPayload,
+  ): ApiResponse<Omit<Room, "passwordHash">> {
+    return ok(this.roomsService.join(roomId, auth.sub, dto.password));
   }
 }

@@ -34,6 +34,7 @@ type GoogleTokenResponse = {
 type GoogleUserInfoResponse = {
   sub: string;
   email?: string;
+  email_verified?: boolean;
   name?: string;
 };
 
@@ -72,6 +73,45 @@ export class AuthService {
   private sanitizeUser(user: User): SafeUser {
     const { password, ...safeUser } = user;
     return safeUser;
+  }
+
+  private normalizeOauthUsername(value: string | undefined, fallback: string): string {
+    const cleanedValue = value?.trim();
+    if (cleanedValue && cleanedValue.length >= 2) {
+      return cleanedValue.slice(0, 32);
+    }
+
+    const cleanedFallback = fallback.trim();
+    if (cleanedFallback.length >= 2) {
+      return cleanedFallback.slice(0, 32);
+    }
+
+    return `user-${randomUUID().slice(0, 8)}`;
+  }
+
+  private async findOrCreateOauthUser(params: {
+    providerEmail: string;
+    username: string;
+  }): Promise<User> {
+    let user = await this.usersService.findUserByEmail(params.providerEmail);
+
+    if (!user) {
+      return this.usersService.createUser({
+        email: params.providerEmail,
+        username: params.username,
+        password: await bcrypt.hash(randomUUID(), 10),
+        createdAt: new Date(),
+      });
+    }
+
+    if (user.username !== params.username) {
+      user = await this.usersService.updateUser({
+        where: { id: user.id },
+        data: { username: params.username },
+      });
+    }
+
+    return user;
   }
 
   private getAuthCookieOptions(): CookieOptions {
@@ -313,18 +353,15 @@ export class AuthService {
       throw new BadGatewayException("42 profile is invalid");
     }
 
-    const email = profile.email || `42-${profile.id}@oauth.local`;
-    const username = profile.login;
-    let user = await this.usersService.findUserByEmail(email);
-
-    if (!user) {
-      user = await this.usersService.createUser({
-        email,
-        username,
-        password: await bcrypt.hash(randomUUID(), 10),
-        createdAt: new Date(),
-      });
-    }
+    const providerEmail = `42-${profile.id}@oauth.local`;
+    const username = this.normalizeOauthUsername(
+      profile.login,
+      `FortyTwo-${profile.id}`,
+    );
+    const user = await this.findOrCreateOauthUser({
+      providerEmail,
+      username,
+    });
 
     res.clearCookie(
       AuthService.OAUTH_42_STATE_COOKIE,
@@ -391,19 +428,19 @@ export class AuthService {
       throw new BadGatewayException("Google profile is invalid");
     }
 
-    const email = profile.email || `google-${profile.sub}@oauth.local`;
-    const username =
-      profile.name?.trim().slice(0, 32) || `Google-${profile.sub.slice(0, 8)}`;
-    let user = await this.usersService.findUserByEmail(email);
-
-    if (!user) {
-      user = await this.usersService.createUser({
-        email,
-        username,
-        password: await bcrypt.hash(randomUUID(), 10),
-        createdAt: new Date(),
-      });
+    if (profile.email && profile.email_verified !== true) {
+      throw new UnauthorizedException("Google account email is not verified");
     }
+
+    const providerEmail = `google-${profile.sub}@oauth.local`;
+    const username = this.normalizeOauthUsername(
+      profile.name,
+      `Google-${profile.sub.slice(0, 8)}`,
+    );
+    const user = await this.findOrCreateOauthUser({
+      providerEmail,
+      username,
+    });
 
     this.clearOauthGoogleState(res);
     return this.login(user, res);

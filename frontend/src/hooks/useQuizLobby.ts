@@ -57,7 +57,6 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
 
       try {
         const joinedRoom = await joinRoom(room.id, {
-          userId,
           ...(password ? { password } : {}),
         });
         setCurrentRoom(joinedRoom);

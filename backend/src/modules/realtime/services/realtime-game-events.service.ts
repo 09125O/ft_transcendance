@@ -1,5 +1,5 @@
-import { SubmitAnswerDto } from "@/modules/game/dto/submit-answer.dto";
 import { GameService } from "@/modules/game/game.service";
+import { GameAnswerEventDto } from "@/modules/realtime/dto/game-answer-event.dto";
 import { RoomsService } from "@/modules/rooms/rooms.service";
 import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
@@ -20,7 +20,7 @@ export class RealtimeGameEventsService {
   ) {}
 
   handleGameAnswer(rawPayload: unknown, client: Socket, server: Server): void {
-    const payload = this.validation.validatePayload(SubmitAnswerDto, rawPayload);
+    const payload = this.validation.validatePayload(GameAnswerEventDto, rawPayload);
     const userId = this.presence.resolveSocketUser(client.id, payload.userId);
 
     const room = this.roomsService.getById(payload.roomId);
@@ -33,7 +33,7 @@ export class RealtimeGameEventsService {
 
     this.gameRuntime.ensureActiveQuestion(payload.roomId, payload.questionId);
 
-    const answer = this.gameService.submitAnswer({ ...payload, userId });
+    const answer = this.gameService.submitAnswer(payload, userId);
     const gameState = this.gameService.getRoomState(payload.roomId);
     const leaderboard = this.gameService.getRoomLeaderboard(payload.roomId);
     const channel = this.roomChannel(payload.roomId);
@@ -47,4 +47,3 @@ export class RealtimeGameEventsService {
     return `room:${roomId}`;
   }
 }
-

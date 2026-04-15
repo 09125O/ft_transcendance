@@ -49,10 +49,14 @@ export class RealtimeRoomEventsService {
 
   handleRoomJoin(rawPayload: unknown, client: Socket, server: Server): void {
     const payload = this.validation.validatePayload(RoomJoinEventDto, rawPayload);
-    const room = this.roomsService.join(payload.roomId, {
-      userId: this.presence.resolveSocketUser(client.id, payload.userId),
-      password: payload.password,
-    });
+    const userId = this.presence.resolveSocketUser(client.id, payload.userId);
+    const existingRoom = this.roomsService.getById(payload.roomId);
+    const isAlreadyMember = existingRoom.players.some(
+      (player) => player.userId === userId,
+    );
+    const room = isAlreadyMember
+      ? existingRoom
+      : this.roomsService.join(payload.roomId, userId, payload.password);
 
     client.join(this.roomChannel(payload.roomId));
     client.emit("room:joined", this.response.ok(room));

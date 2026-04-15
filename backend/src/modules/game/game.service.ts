@@ -1,5 +1,10 @@
 import { RoomsService } from "@/modules/rooms/rooms.service";
 import {
+  getRuntimeFilePath,
+  readRuntimeJson,
+  writeRuntimeJson,
+} from "@/common/runtime/runtime-store";
+import {
   BadRequestException,
   ConflictException,
   Injectable,
@@ -53,12 +58,31 @@ type RoomRuntime = {
   totalAnswers: number;
 };
 
+type RoomRuntimeSnapshot = {
+  roomId: number;
+  answeredByQuestion: Array<{
+    questionId: number;
+    userIds: number[];
+  }>;
+  scoresByUser: Array<{
+    userId: number;
+    score: number;
+  }>;
+  totalAnswers: number;
+};
+
+type GameStore = {
+  roomStates: GameState[];
+  roomRuntime: RoomRuntimeSnapshot[];
+};
+
 type QuestionEntry = PublicQuestion & {
   correctAnswerIndex: number;
 };
 
 @Injectable()
 export class GameService {
+  private readonly storePath = getRuntimeFilePath("game-store.json");
   private readonly roomStates = new Map<number, GameState>();
   private readonly roomRuntime = new Map<number, RoomRuntime>();
   private readonly questionBank = new Map<number, QuestionEntry>([
@@ -91,7 +115,9 @@ export class GameService {
     ],
   ]);
 
-  constructor(private readonly roomsService: RoomsService) {}
+  constructor(private readonly roomsService: RoomsService) {
+    this.loadStore();
+  }
 
   getRoomState(roomId: number): GameState {
     const room = this.roomsService.getById(roomId);
@@ -108,6 +134,7 @@ export class GameService {
       if (existing.status === "finished" && existing.winnerUserId === null) {
         existing.winnerUserId = existing.leaderboard[0]?.userId ?? null;
       }
+      this.persistStore();
       return existing;
     }
 
@@ -131,6 +158,7 @@ export class GameService {
     };
 
     this.roomStates.set(roomId, state);
+    this.persistStore();
     return state;
   }
 
@@ -164,6 +192,7 @@ export class GameService {
     state.endedAt = null;
     state.updatedAt = now;
 
+    this.persistStore();
     return state;
   }
 
@@ -188,22 +217,24 @@ export class GameService {
     state.answersForCurrentQuestion = 0;
     state.updatedAt = params.startsAt;
 
+    this.persistStore();
     return state;
   }
 
   markQuestionTimedOut(roomId: number): GameState {
     const state = this.getRoomState(roomId);
     state.updatedAt = new Date().toISOString();
+    this.persistStore();
     return state;
   }
 
-  submitAnswer(dto: SubmitAnswerDto): SubmitAnswerResult {
+  submitAnswer(dto: SubmitAnswerDto, userId: number): SubmitAnswerResult {
     const room = this.roomsService.getById(dto.roomId);
     if (room.status !== "playing") {
       throw new ConflictException("Game is not running for this room");
     }
 
-    if (!room.players.some((player) => player.userId === dto.userId)) {
+    if (!room.players.some((player) => player.userId === userId)) {
       throw new UnauthorizedException("User is not in this room");
     }
 
@@ -220,28 +251,29 @@ export class GameService {
 
     const answeredUsers =
       runtime.answeredByQuestion.get(dto.questionId) || new Set<number>();
-    if (answeredUsers.has(dto.userId)) {
+    if (answeredUsers.has(userId)) {
       throw new ConflictException("User already answered this question");
     }
 
-    answeredUsers.add(dto.userId);
+    answeredUsers.add(userId);
     runtime.answeredByQuestion.set(dto.questionId, answeredUsers);
     runtime.totalAnswers += 1;
 
     const isCorrect = question.correctAnswerIndex === dto.answerIndex;
     const scoreDelta = isCorrect ? 100 : 0;
-    const previousScore = runtime.scoresByUser.get(dto.userId) || 0;
+    const previousScore = runtime.scoresByUser.get(userId) || 0;
     const userTotalScore = previousScore + scoreDelta;
-    runtime.scoresByUser.set(dto.userId, userTotalScore);
+    runtime.scoresByUser.set(userId, userTotalScore);
 
     state.answersForCurrentQuestion = answeredUsers.size;
     state.totalAnswers = runtime.totalAnswers;
     state.leaderboard = this.buildLeaderboard(runtime);
     state.updatedAt = new Date().toISOString();
+    this.persistStore();
 
     return {
       roomId: dto.roomId,
-      userId: dto.userId,
+      userId,
       questionId: dto.questionId,
       selectedAnswerIndex: dto.answerIndex,
       isCorrect,
@@ -261,6 +293,7 @@ export class GameService {
     state.endedAt = room.finishedAt ?? new Date().toISOString();
     state.updatedAt = state.endedAt;
 
+    this.persistStore();
     return state;
   }
 
@@ -286,6 +319,7 @@ export class GameService {
   clearRoomState(roomId: number): void {
     this.roomStates.delete(roomId);
     this.roomRuntime.delete(roomId);
+    this.persistStore();
   }
 
   private getRoomRuntime(roomId: number): RoomRuntime {
@@ -332,5 +366,85 @@ export class GameService {
       throw new ConflictException(`Question ${questionId} not configured`);
     }
     return question;
+  }
+
+  private loadStore(): void {
+    const fallback: GameStore = {
+      roomStates: [],
+      roomRuntime: [],
+    };
+    const snapshot = readRuntimeJson<GameStore>(this.storePath, fallback);
+
+    if (Array.isArray(snapshot.roomStates)) {
+      for (const state of snapshot.roomStates) {
+        if (typeof state.roomId !== "number") {
+          continue;
+        }
+        this.roomStates.set(state.roomId, state);
+      }
+    }
+
+    if (Array.isArray(snapshot.roomRuntime)) {
+      for (const runtime of snapshot.roomRuntime) {
+        if (typeof runtime.roomId !== "number") {
+          continue;
+        }
+
+        const answeredByQuestion = new Map<number, Set<number>>();
+        for (const entry of runtime.answeredByQuestion || []) {
+          if (
+            typeof entry.questionId !== "number" ||
+            !Array.isArray(entry.userIds)
+          ) {
+            continue;
+          }
+          answeredByQuestion.set(entry.questionId, new Set(entry.userIds));
+        }
+
+        const scoresByUser = new Map<number, number>();
+        for (const entry of runtime.scoresByUser || []) {
+          if (
+            typeof entry.userId !== "number" ||
+            typeof entry.score !== "number"
+          ) {
+            continue;
+          }
+          scoresByUser.set(entry.userId, entry.score);
+        }
+
+        this.roomRuntime.set(runtime.roomId, {
+          answeredByQuestion,
+          scoresByUser,
+          totalAnswers: runtime.totalAnswers || 0,
+        });
+      }
+    }
+  }
+
+  private persistStore(): void {
+    const roomStates = [...this.roomStates.values()];
+    const roomRuntime: RoomRuntimeSnapshot[] = [...this.roomRuntime.entries()].map(
+      ([roomId, runtime]) => ({
+        roomId,
+        answeredByQuestion: [...runtime.answeredByQuestion.entries()].map(
+          ([questionId, userIds]) => ({
+            questionId,
+            userIds: [...userIds.values()],
+          }),
+        ),
+        scoresByUser: [...runtime.scoresByUser.entries()].map(
+          ([userId, score]) => ({
+            userId,
+            score,
+          }),
+        ),
+        totalAnswers: runtime.totalAnswers,
+      }),
+    );
+
+    writeRuntimeJson<GameStore>(this.storePath, {
+      roomStates,
+      roomRuntime,
+    });
   }
 }

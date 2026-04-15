@@ -7,10 +7,6 @@ export class SubmitAnswerDto {
 
   @IsInt()
   @Min(1)
-  userId: number;
-
-  @IsInt()
-  @Min(1)
   questionId: number;
 
   @IsInt()
@@ -18,4 +14,3 @@ export class SubmitAnswerDto {
   @Max(3)
   answerIndex: number;
 }
-
