@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-const backendTarget = process.env.BACKEND_TARGET || "https://backend:4000";
+const backendTarget = process.env.BACKEND_TARGET || "https://localhost:4000";
 const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://localhost:3000";
 const shouldUseHttps = frontendOrigin.startsWith("https://");
 const tlsKeyPath = process.env.TLS_KEY_FILE || "/certs/dev-localhost.key";

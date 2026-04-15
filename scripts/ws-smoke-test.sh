@@ -37,7 +37,7 @@ trap cleanup EXIT
 cleanup_ws_smoke_users
 
 if [ -n "${WS_BASE_URL:-}" ]; then
-	compose exec -T -e WS_BASE_URL="$WS_BASE_URL" backend sh -lc 'node scripts/ws-smoke-test.mjs'
+	compose exec -T -e WS_BASE_URL="$WS_BASE_URL" backend sh -lc 'NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs'
 else
 	compose exec -T backend sh -lc 'npm run test:ws-smoke'
 fi

@@ -39,26 +39,37 @@ export function waitForEvent(
   timeoutMs = EVENT_TIMEOUT_MS,
 ) {
   return new Promise((resolve, reject) => {
+    let lastConnectErrorMessage = null;
+
+    const onConnectError = (error) => {
+      lastConnectErrorMessage = error?.message || "unknown error";
+    };
+
     const onEvent = (payload) => {
       if (!predicate(payload)) {
         return;
       }
 
-      clearTimeout(timer);
-      socket.off(eventName, onEvent);
+      cleanup();
       resolve(payload);
     };
 
-    const timer = setTimeout(() => {
+    const cleanup = () => {
+      clearTimeout(timer);
       socket.off(eventName, onEvent);
-      reject(
-        new Error(
-          `Timeout waiting for event "${eventName}" after ${timeoutMs}ms`,
-        ),
-      );
+      socket.off("connect_error", onConnectError);
+    };
+
+    const timer = setTimeout(() => {
+      cleanup();
+      const suffix = lastConnectErrorMessage
+        ? ` (last connect_error: ${lastConnectErrorMessage})`
+        : "";
+      reject(new Error(`Timeout waiting for event "${eventName}" after ${timeoutMs}ms${suffix}`));
     }, timeoutMs);
 
     socket.on(eventName, onEvent);
+    socket.on("connect_error", onConnectError);
   });
 }
 

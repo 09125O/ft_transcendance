@@ -84,7 +84,8 @@ Contrat detaille front-back:
 Etat actuel:
 - `auth` + `users` branches sur Prisma/PostgreSQL
 - `quizzes` branche sur Prisma/PostgreSQL
-- `rooms` + `game` + `scores` encore en memoire (MVP d'integration)
+- `rooms` + `game` + `scores` persistes en local dans `backend/.runtime/*.json`
+  (pas encore branches sur Prisma)
 
 - `POST /auth/register`
 - `POST /auth/login`
