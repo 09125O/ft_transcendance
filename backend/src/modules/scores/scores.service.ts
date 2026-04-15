@@ -1,4 +1,9 @@
 import { UsersService } from "@/modules/users/users.service";
+import {
+  getRuntimeFilePath,
+  readRuntimeJson,
+  writeRuntimeJson,
+} from "@/common/runtime/runtime-store";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 export type UserScore = {
@@ -13,11 +18,22 @@ type ScoreSnapshot = {
   wins: number;
 };
 
+type ScoresStore = {
+  leaderboard: Array<{
+    userId: number;
+    score: number;
+    wins: number;
+  }>;
+};
+
 @Injectable()
 export class ScoresService {
+  private readonly storePath = getRuntimeFilePath("scores-store.json");
   private readonly leaderboard = new Map<number, ScoreSnapshot>();
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {
+    this.loadStore();
+  }
 
   recordGameResult(
     entries: Array<{ userId: number; score: number }>,
@@ -30,6 +46,8 @@ export class ScoresService {
         wins: existing.wins + (winnerUserId === entry.userId ? 1 : 0),
       });
     }
+
+    this.persistStore();
   }
 
   async getLeaderboard(limit = 10): Promise<UserScore[]> {
@@ -90,6 +108,7 @@ export class ScoresService {
     const user = await this.usersService.findUser({ id: entry.userId });
     if (!user) {
       this.leaderboard.delete(entry.userId);
+      this.persistStore();
       return null;
     }
 
@@ -99,5 +118,38 @@ export class ScoresService {
       score: entry.score,
       wins: entry.wins,
     };
+  }
+
+  private loadStore(): void {
+    const fallback: ScoresStore = { leaderboard: [] };
+    const snapshot = readRuntimeJson<ScoresStore>(this.storePath, fallback);
+    if (!Array.isArray(snapshot.leaderboard)) {
+      return;
+    }
+
+    for (const entry of snapshot.leaderboard) {
+      if (
+        typeof entry.userId !== "number" ||
+        typeof entry.score !== "number" ||
+        typeof entry.wins !== "number"
+      ) {
+        continue;
+      }
+
+      this.leaderboard.set(entry.userId, {
+        score: entry.score,
+        wins: entry.wins,
+      });
+    }
+  }
+
+  private persistStore(): void {
+    writeRuntimeJson<ScoresStore>(this.storePath, {
+      leaderboard: [...this.leaderboard.entries()].map(([userId, snapshot]) => ({
+        userId,
+        score: snapshot.score,
+        wins: snapshot.wins,
+      })),
+    });
   }
 }
