@@ -7,7 +7,6 @@ type QuizQuestionResponse = {
   id: number;
   questionText: string;
   answers: string[];
-  correctAnswer: string;
   position: number;
   points: number;
   createdAt: string;
@@ -126,7 +125,6 @@ export class QuizzesService {
         id: question.id,
         questionText: question.questionText,
         answers: this.parseAnswers(question.answers),
-        correctAnswer: question.correctAnswer,
         position: question.position,
         points: question.points,
         createdAt: question.createdAt.toISOString(),

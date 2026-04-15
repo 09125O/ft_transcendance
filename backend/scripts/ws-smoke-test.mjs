@@ -23,6 +23,7 @@ function printTestCatalog() {
   console.log("\nTypologies de test executees:");
   console.log(" - test websocket auth");
   console.log(" - test websocket room lifecycle");
+  console.log(" - test websocket room private rest/ws coherence");
   console.log(" - test websocket game flow");
   console.log(" - test websocket rest coherence");
   console.log(" - test websocket disconnect cleanup");
@@ -68,6 +69,14 @@ async function run() {
     await assertOutsiderCannotChat(outsider, roomId);
     await joinRoomAsGuest(guest, roomId);
     await assertGuestCannotStartRoom(guest, roomId);
+
+    section("test websocket room private rest/ws coherence");
+    await assertPrivateRoomRestJoinThenWsChat(
+      owner,
+      guest,
+      WS_BASE_URL,
+      guestSession.cookieHeader,
+    );
 
     section("test websocket game flow");
     const questionId = await startRoomAsOwnerAndGetQuestion(owner, roomId);
@@ -141,6 +150,72 @@ async function assertGuestCannotStartRoom(guest, roomId) {
   guest.socket.emit("room:start", { roomId, userId: guest.userId });
   await startErrorPromise;
   pass("Droit owner sur room:start valide");
+}
+
+async function assertPrivateRoomRestJoinThenWsChat(
+  owner,
+  guest,
+  baseUrl,
+  guestCookieHeader,
+) {
+  const password = "secret-private-room";
+  const roomCreatedPromise = waitForEvent(
+    owner.socket,
+    "room:created",
+    (payload) => payload?.success === true && payload?.data?.isPrivate === true,
+  );
+  owner.socket.emit("room:create", {
+    name: `Private WS Smoke ${Date.now()}`,
+    rounds: 1,
+    isPrivate: true,
+    password,
+  });
+
+  const roomCreated = await roomCreatedPromise;
+  const roomId = roomCreated?.data?.id;
+  if (typeof roomId !== "number") {
+    fail("Private room creation failed");
+  }
+
+  const joinResponse = await fetch(`${baseUrl}/rooms/${roomId}/join`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: guestCookieHeader,
+    },
+    body: JSON.stringify({
+      password,
+    }),
+  });
+  if (!joinResponse.ok) {
+    fail(`REST private room join failed (${joinResponse.status})`);
+  }
+
+  const wsJoinPromise = waitForEvent(
+    guest.socket,
+    "room:joined",
+    (payload) => payload?.success === true && payload?.data?.id === roomId,
+  );
+  guest.socket.emit("room:join", { roomId, userId: guest.userId });
+  await wsJoinPromise;
+
+  const chatPromise = waitForEvent(
+    guest.socket,
+    "chat:message",
+    (payload) =>
+      payload?.success === true &&
+      payload?.data?.roomId === roomId &&
+      payload?.data?.userId === owner.userId &&
+      payload?.data?.content === "owner->guest private",
+  );
+
+  owner.socket.emit("chat:message", {
+    roomId,
+    userId: owner.userId,
+    content: "owner->guest private",
+  });
+  await chatPromise;
+  pass("Room privee: join REST + attach WS + chat OK");
 }
 
 async function startRoomAsOwnerAndGetQuestion(owner, roomId) {

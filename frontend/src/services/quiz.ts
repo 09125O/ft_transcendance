@@ -27,7 +27,6 @@ export type CreateRoomPayload = {
 };
 
 export type JoinRoomPayload = {
-  userId: number;
   password?: string;
 };
 

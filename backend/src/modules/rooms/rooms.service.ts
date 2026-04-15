@@ -4,6 +4,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
+import * as bcrypt from "bcrypt";
+import {
+  getRuntimeFilePath,
+  readRuntimeJson,
+  writeRuntimeJson,
+} from "@/common/runtime/runtime-store";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
 
@@ -23,30 +29,43 @@ export type Room = {
   createdAt: string;
   startedAt: string | null;
   finishedAt: string | null;
-  password?: string;
+  passwordHash?: string;
+};
+
+type RoomsStore = {
+  nextRoomId: number;
+  rooms: Room[];
 };
 
 @Injectable()
 export class RoomsService {
+  private readonly storePath = getRuntimeFilePath("rooms-store.json");
   private nextRoomId = 1;
 
   private readonly rooms: Room[] = [];
 
-  list(): Array<Omit<Room, "password">> {
-    return this.rooms.map((room) => this.stripPassword(room));
+  constructor() {
+    this.loadStore();
   }
 
-  getById(roomId: number): Omit<Room, "password"> {
+  list(): Array<Omit<Room, "passwordHash">> {
+    return this.rooms.map((room) => this.stripPasswordHash(room));
+  }
+
+  getById(roomId: number): Omit<Room, "passwordHash"> {
     const room = this.findRoomOrThrow(roomId);
-    return this.stripPassword(room);
+    return this.stripPasswordHash(room);
   }
 
   create(
     dto: CreateRoomDto & {
       ownerUserId?: number;
     },
-  ): Omit<Room, "password"> {
+  ): Omit<Room, "passwordHash"> {
     const createdAt = new Date().toISOString();
+    const shouldStorePasswordHash =
+      dto.isPrivate === true && typeof dto.password === "string" && dto.password.length > 0;
+    const privateRoomPassword = shouldStorePasswordHash ? dto.password : undefined;
     const room: Room = {
       id: this.nextRoomId,
       name: dto.name,
@@ -61,40 +80,53 @@ export class RoomsService {
       createdAt,
       startedAt: null,
       finishedAt: null,
-      password: dto.password,
+      ...(privateRoomPassword
+        ? { passwordHash: bcrypt.hashSync(privateRoomPassword, 10) }
+        : {}),
     };
 
     this.nextRoomId += 1;
     this.rooms.unshift(room);
-    return this.stripPassword(room);
+    this.persistStore();
+    return this.stripPasswordHash(room);
   }
 
-  join(roomId: number, dto: JoinRoomDto): Omit<Room, "password"> {
+  join(
+    roomId: number,
+    userId: number,
+    password?: JoinRoomDto["password"],
+  ): Omit<Room, "passwordHash"> {
     const room = this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
       throw new ConflictException("Room is not joinable");
     }
 
-    if (room.isPrivate && room.password !== dto.password) {
+    if (
+      room.isPrivate &&
+      (!room.passwordHash ||
+        typeof password !== "string" ||
+        !bcrypt.compareSync(password, room.passwordHash))
+    ) {
       throw new UnauthorizedException("Invalid room password");
     }
 
-    if (!room.players.some((player) => player.userId === dto.userId)) {
+    if (!room.players.some((player) => player.userId === userId)) {
       room.players.push({
-        userId: dto.userId,
+        userId,
         joinedAt: new Date().toISOString(),
       });
     }
 
     if (typeof room.ownerUserId !== "number") {
-      room.ownerUserId = dto.userId;
+      room.ownerUserId = userId;
     }
 
-    return this.stripPassword(room);
+    this.persistStore();
+    return this.stripPasswordHash(room);
   }
 
-  leave(roomId: number, userId: number): Omit<Room, "password"> {
+  leave(roomId: number, userId: number): Omit<Room, "passwordHash"> {
     const room = this.findRoomOrThrow(roomId);
     const existingPlayer = room.players.find((player) => player.userId === userId);
 
@@ -106,17 +138,19 @@ export class RoomsService {
 
     if (room.players.length === 0) {
       room.ownerUserId = undefined;
-      return this.stripPassword(room);
+      this.persistStore();
+      return this.stripPasswordHash(room);
     }
 
     if (room.ownerUserId === userId) {
       room.ownerUserId = room.players[0]?.userId;
     }
 
-    return this.stripPassword(room);
+    this.persistStore();
+    return this.stripPasswordHash(room);
   }
 
-  start(roomId: number, requesterUserId: number): Omit<Room, "password"> {
+  start(roomId: number, requesterUserId: number): Omit<Room, "passwordHash"> {
     const room = this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
@@ -142,10 +176,11 @@ export class RoomsService {
     room.startedAt = new Date().toISOString();
     room.finishedAt = null;
 
-    return this.stripPassword(room);
+    this.persistStore();
+    return this.stripPasswordHash(room);
   }
 
-  finish(roomId: number): Omit<Room, "password"> {
+  finish(roomId: number): Omit<Room, "passwordHash"> {
     const room = this.findRoomOrThrow(roomId);
 
     if (room.status !== "playing") {
@@ -155,7 +190,8 @@ export class RoomsService {
     room.status = "finished";
     room.finishedAt = new Date().toISOString();
 
-    return this.stripPassword(room);
+    this.persistStore();
+    return this.stripPasswordHash(room);
   }
 
   close(roomId: number): { roomId: number } {
@@ -170,12 +206,62 @@ export class RoomsService {
     }
 
     this.rooms.splice(index, 1);
+    this.persistStore();
 
     return { roomId };
   }
 
-  private stripPassword(room: Room): Omit<Room, "password"> {
-    const { password, ...publicRoom } = room;
+  private loadStore(): void {
+    const fallback: RoomsStore = {
+      nextRoomId: 1,
+      rooms: [],
+    };
+    const snapshot = readRuntimeJson<RoomsStore>(this.storePath, fallback);
+    if (!Array.isArray(snapshot.rooms)) {
+      return;
+    }
+
+    const normalizedRooms = snapshot.rooms.map((room) => {
+      const storedRoom = room as Room & { password?: string };
+      const migratedPasswordHash =
+        typeof storedRoom.passwordHash === "string"
+          ? storedRoom.passwordHash
+          : typeof storedRoom.password === "string" && storedRoom.password.length > 0
+            ? bcrypt.hashSync(storedRoom.password, 10)
+            : undefined;
+
+      return {
+        id: storedRoom.id,
+        name: storedRoom.name,
+        ownerUserId: storedRoom.ownerUserId,
+        rounds: storedRoom.rounds,
+        isPrivate: storedRoom.isPrivate,
+        status: storedRoom.status,
+        players: storedRoom.players,
+        createdAt: storedRoom.createdAt,
+        startedAt: storedRoom.startedAt,
+        finishedAt: storedRoom.finishedAt,
+        ...(migratedPasswordHash ? { passwordHash: migratedPasswordHash } : {}),
+      } satisfies Room;
+    });
+
+    this.rooms.splice(0, this.rooms.length, ...normalizedRooms);
+    const maxRoomId = this.rooms.reduce(
+      (max, room) => (room.id > max ? room.id : max),
+      0,
+    );
+    this.nextRoomId = Math.max(snapshot.nextRoomId || 1, maxRoomId + 1);
+  }
+
+  private persistStore(): void {
+    writeRuntimeJson<RoomsStore>(this.storePath, {
+      nextRoomId: this.nextRoomId,
+      rooms: this.rooms,
+    });
+  }
+
+  private stripPasswordHash(room: Room): Omit<Room, "passwordHash"> {
+    const { passwordHash, ...publicRoom } = room;
     return publicRoom;
   }
 
