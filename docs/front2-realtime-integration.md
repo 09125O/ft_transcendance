@@ -29,12 +29,12 @@ Transport: `socket.io`
 - listen `room:create:error`
 
 3. Rejoindre room:
-- emit `room:join` `{ roomId, userId, password? }`
+- emit `room:join` `{ roomId, password? }`
 - listen `room:joined`
 - listen `room:join:error`
 
 4. Quitter room:
-- emit `room:leave` `{ roomId, userId }`
+- emit `room:leave` `{ roomId }`
 - listen `room:left`
 - listen `room:closed` (si room vide)
 - listen `room:leave:error`
@@ -42,7 +42,7 @@ Transport: `socket.io`
 ## Flux Game
 
 1. Start (owner only):
-- emit `room:start` `{ roomId, userId }`
+- emit `room:start` `{ roomId }`
 - listen `room:started`
 - listen `room:start:error`
 
@@ -58,7 +58,7 @@ Transport: `socket.io`
 - listen `game:state` pour l'etat agrege de la partie
 
 3. Reponse:
-- emit `game:answer` `{ roomId, userId, questionId, answerIndex }`
+- emit `game:answer` `{ roomId, questionId, answerIndex }`
 - listen `game:answer:result`
 - listen `game:state`
 - listen `game:leaderboard`
@@ -70,7 +70,7 @@ Transport: `socket.io`
 
 ## Flux Chat
 
-- emit `chat:message` `{ roomId, userId, content }`
+- emit `chat:message` `{ roomId, content }`
 - listen `chat:message`
 - listen `chat:message:error`
 
@@ -101,7 +101,7 @@ Transport: `socket.io`
 ## Notes integration
 
 - Ne pas faire confiance au `userId` UI seul: le backend valide contre le socket authentifie.
-- Les services `rooms/game/scores` restent en memoire (pas persistants apres restart).
+- Les services `rooms/game/scores` sont persistes en local via `backend/.runtime/*.json`.
 - Pour la recette, lancer:
   - `make up`
   - `cd backend && npm run test:ws-smoke`

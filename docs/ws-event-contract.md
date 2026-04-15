@@ -1,6 +1,6 @@
 # WebSocket Event Contract (Back 3)
 
-Version: `v1` (etat actuel de `feature/realtime`)  
+Version: `v1` (etat actuel de `dev` au 2026-04-15)  
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -109,7 +109,6 @@ Notes:
 ```json
 {
   "roomId": 1,
-  "userId": 2,
   "password": "room1234"
 }
 ```
@@ -127,13 +126,12 @@ Notes:
 
 ```json
 {
-  "roomId": 1,
-  "userId": 2
+  "roomId": 1
 }
 ```
 
 Notes:
-- `userId` peut etre omis si le socket est deja lie a un user via `room:create`, `room:join`, `game:answer` ou `chat:message`.
+- `userId` peut etre omis sur tous les events: le backend derive l'identite depuis le socket JWT.
 - Seul le owner de la room peut demarrer la partie.
 
 ### `game:answer`
@@ -141,7 +139,6 @@ Notes:
 ```json
 {
   "roomId": 1,
-  "userId": 2,
   "questionId": 101,
   "answerIndex": 1
 }
@@ -152,7 +149,6 @@ Notes:
 ```json
 {
   "roomId": 1,
-  "userId": 2,
   "content": "Hello team"
 }
 ```
@@ -339,7 +335,8 @@ Codes d'erreur possibles:
 - `game:answer` autorise seulement en `playing`.
 - Un user ne peut repondre qu'une seule fois par question.
 - Un socket est lie au `userId` du JWT pour toute sa duree de vie.
-- `room:leave`, `game:answer` et `chat:message` refusent un `userId` qui n'appartient pas a la room cible.
+- Si un `userId` est fourni dans le payload et ne correspond pas au socket, la requete est refusee.
+- `room:leave`, `game:answer` et `chat:message` refusent toute action hors membership room.
 - `room:start` est reserve au owner de la room.
 - Score cumule par user publie via `game:leaderboard`.
 - Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
@@ -350,5 +347,6 @@ Codes d'erreur possibles:
 
 ## Notes scope
 
-- Cette version repose sur les services memoire actuels (`rooms/game/scores`).
+- Cette version repose sur les services runtime locaux actuels (`rooms/game/scores`).
+- Les etats runtime sont persistes dans `backend/.runtime/*.json`.
 - Le branchement Prisma des modules jeu sera traite dans le scope DB/data dedie.
