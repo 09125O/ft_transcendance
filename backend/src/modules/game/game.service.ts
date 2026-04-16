@@ -1,15 +1,12 @@
+import { PrismaService } from "@/prisma/prisma.service";
 import { RoomsService } from "@/modules/rooms/rooms.service";
-import {
-  getRuntimeFilePath,
-  readRuntimeJson,
-  writeRuntimeJson,
-} from "@/common/runtime/runtime-store";
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
+import { RoomGameState } from "@generated/prisma/client";
 import { SubmitAnswerDto } from "./dto/submit-answer.dto";
 
 export type GameLeaderboardEntry = {
@@ -58,33 +55,12 @@ type RoomRuntime = {
   totalAnswers: number;
 };
 
-type RoomRuntimeSnapshot = {
-  roomId: number;
-  answeredByQuestion: Array<{
-    questionId: number;
-    userIds: number[];
-  }>;
-  scoresByUser: Array<{
-    userId: number;
-    score: number;
-  }>;
-  totalAnswers: number;
-};
-
-type GameStore = {
-  roomStates: GameState[];
-  roomRuntime: RoomRuntimeSnapshot[];
-};
-
 type QuestionEntry = PublicQuestion & {
   correctAnswerIndex: number;
 };
 
 @Injectable()
 export class GameService {
-  private readonly storePath = getRuntimeFilePath("game-store.json");
-  private readonly roomStates = new Map<number, GameState>();
-  private readonly roomRuntime = new Map<number, RoomRuntime>();
   private readonly questionBank = new Map<number, QuestionEntry>([
     [
       101,
@@ -115,88 +91,133 @@ export class GameService {
     ],
   ]);
 
-  constructor(private readonly roomsService: RoomsService) {
-    this.loadStore();
-  }
+  constructor(
+    private readonly roomsService: RoomsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  getRoomState(roomId: number): GameState {
-    const room = this.roomsService.getById(roomId);
-    const runtime = this.getRoomRuntime(roomId);
-    this.syncScoresWithPlayers(room.players.map((player) => player.userId), runtime);
+  async getRoomState(roomId: number): Promise<GameState> {
+    const room = await this.roomsService.getById(roomId);
+    const existing = await this.prisma.client.roomGameState.findUnique({
+      where: { roomId },
+    });
 
-    const existing = this.roomStates.get(roomId);
-    if (existing) {
-      existing.status = room.status;
-      existing.totalQuestions = Math.max(existing.totalQuestions, room.rounds);
-      existing.startedAt = room.startedAt ?? existing.startedAt;
-      existing.endedAt = room.finishedAt ?? existing.endedAt;
-      existing.leaderboard = this.buildLeaderboard(runtime);
-      if (existing.status === "finished" && existing.winnerUserId === null) {
-        existing.winnerUserId = existing.leaderboard[0]?.userId ?? null;
-      }
-      this.persistStore();
-      return existing;
+    const runtime = this.deserializeRuntime(existing);
+    this.syncScoresWithPlayers(
+      room.players.map((player) => player.userId),
+      runtime,
+    );
+    const leaderboard = this.buildLeaderboard(runtime);
+
+    if (!existing) {
+      const created = await this.prisma.client.roomGameState.create({
+        data: {
+          roomId,
+          status: room.status,
+          totalQuestions: room.rounds,
+          currentQuestionId: null,
+          currentQuestionNumber: 0,
+          questionDurationMs: null,
+          questionStartedAt: null,
+          questionEndsAt: null,
+          answersForCurrentQuestion: 0,
+          totalAnswers: runtime.totalAnswers,
+          winnerUserId: room.status === "finished" ? leaderboard[0]?.userId ?? null : null,
+          startedAt: room.startedAt ? new Date(room.startedAt) : null,
+          endedAt: room.finishedAt ? new Date(room.finishedAt) : null,
+          answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+          scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+        },
+      });
+
+      return this.toGameState(created, leaderboard);
     }
 
-    const leaderboard = this.buildLeaderboard(runtime);
-    const state: GameState = {
-      roomId,
-      status: room.status,
-      currentQuestionId: null,
-      currentQuestionNumber: 0,
-      totalQuestions: room.rounds,
-      questionDurationMs: null,
-      questionStartedAt: null,
-      questionEndsAt: null,
-      answersForCurrentQuestion: 0,
-      totalAnswers: runtime.totalAnswers,
-      leaderboard,
-      winnerUserId: room.status === "finished" ? leaderboard[0]?.userId ?? null : null,
-      startedAt: room.startedAt,
-      endedAt: room.finishedAt,
-      updatedAt: new Date().toISOString(),
-    };
+    const winnerUserId =
+      room.status === "finished"
+        ? leaderboard[0]?.userId ?? existing.winnerUserId ?? null
+        : existing.winnerUserId;
+    const updated = await this.prisma.client.roomGameState.update({
+      where: { roomId },
+      data: {
+        status: room.status,
+        totalQuestions: Math.max(existing.totalQuestions, room.rounds),
+        startedAt:
+          room.startedAt && !existing.startedAt
+            ? new Date(room.startedAt)
+            : undefined,
+        endedAt:
+          room.finishedAt && !existing.endedAt
+            ? new Date(room.finishedAt)
+            : undefined,
+        winnerUserId,
+        totalAnswers: runtime.totalAnswers,
+        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+      },
+    });
 
-    this.roomStates.set(roomId, state);
-    this.persistStore();
-    return state;
+    return this.toGameState(updated, leaderboard);
   }
 
-  startGame(
+  async startGame(
     roomId: number,
     totalQuestions: number,
     questionDurationMs: number,
-  ): GameState {
-    const room = this.roomsService.getById(roomId);
-    const runtime = this.getRoomRuntime(roomId);
-    const state = this.getRoomState(roomId);
-    const now = new Date().toISOString();
+  ): Promise<GameState> {
+    const room = await this.roomsService.getById(roomId);
+    const runtime: RoomRuntime = {
+      answeredByQuestion: new Map(),
+      scoresByUser: new Map(),
+      totalAnswers: 0,
+    };
+    this.syncScoresWithPlayers(
+      room.players.map((player) => player.userId),
+      runtime,
+    );
+    const now = new Date();
 
-    runtime.answeredByQuestion.clear();
-    runtime.scoresByUser.clear();
-    runtime.totalAnswers = 0;
-    this.syncScoresWithPlayers(room.players.map((player) => player.userId), runtime);
+    const state = await this.prisma.client.roomGameState.upsert({
+      where: { roomId },
+      update: {
+        status: "playing",
+        currentQuestionId: null,
+        currentQuestionNumber: 0,
+        totalQuestions: Math.max(1, totalQuestions),
+        questionDurationMs,
+        questionStartedAt: null,
+        questionEndsAt: null,
+        answersForCurrentQuestion: 0,
+        totalAnswers: 0,
+        winnerUserId: null,
+        startedAt: room.startedAt ? new Date(room.startedAt) : now,
+        endedAt: null,
+        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+      },
+      create: {
+        roomId,
+        status: "playing",
+        currentQuestionId: null,
+        currentQuestionNumber: 0,
+        totalQuestions: Math.max(1, totalQuestions),
+        questionDurationMs,
+        questionStartedAt: null,
+        questionEndsAt: null,
+        answersForCurrentQuestion: 0,
+        totalAnswers: 0,
+        winnerUserId: null,
+        startedAt: room.startedAt ? new Date(room.startedAt) : now,
+        endedAt: null,
+        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+      },
+    });
 
-    state.status = "playing";
-    state.currentQuestionId = null;
-    state.currentQuestionNumber = 0;
-    state.totalQuestions = Math.max(1, totalQuestions);
-    state.questionDurationMs = questionDurationMs;
-    state.questionStartedAt = null;
-    state.questionEndsAt = null;
-    state.answersForCurrentQuestion = 0;
-    state.totalAnswers = 0;
-    state.leaderboard = this.buildLeaderboard(runtime);
-    state.winnerUserId = null;
-    state.startedAt = room.startedAt ?? now;
-    state.endedAt = null;
-    state.updatedAt = now;
-
-    this.persistStore();
-    return state;
+    return this.toGameState(state, this.buildLeaderboard(runtime));
   }
 
-  startQuestion(params: {
+  async startQuestion(params: {
     roomId: number;
     questionId: number;
     questionNumber: number;
@@ -204,32 +225,41 @@ export class GameService {
     questionDurationMs: number;
     startsAt: string;
     endsAt: string;
-  }): GameState {
-    const state = this.getRoomState(params.roomId);
+  }): Promise<GameState> {
+    await this.getRoomState(params.roomId);
 
-    state.status = "playing";
-    state.currentQuestionId = params.questionId;
-    state.currentQuestionNumber = params.questionNumber;
-    state.totalQuestions = params.totalQuestions;
-    state.questionDurationMs = params.questionDurationMs;
-    state.questionStartedAt = params.startsAt;
-    state.questionEndsAt = params.endsAt;
-    state.answersForCurrentQuestion = 0;
-    state.updatedAt = params.startsAt;
-
-    this.persistStore();
-    return state;
+    const updated = await this.prisma.client.roomGameState.update({
+      where: { roomId: params.roomId },
+      data: {
+        status: "playing",
+        currentQuestionId: params.questionId,
+        currentQuestionNumber: params.questionNumber,
+        totalQuestions: params.totalQuestions,
+        questionDurationMs: params.questionDurationMs,
+        questionStartedAt: new Date(params.startsAt),
+        questionEndsAt: new Date(params.endsAt),
+        answersForCurrentQuestion: 0,
+      },
+    });
+    const runtime = this.deserializeRuntime(updated);
+    return this.toGameState(updated, this.buildLeaderboard(runtime));
   }
 
-  markQuestionTimedOut(roomId: number): GameState {
-    const state = this.getRoomState(roomId);
-    state.updatedAt = new Date().toISOString();
-    this.persistStore();
-    return state;
+  async markQuestionTimedOut(roomId: number): Promise<GameState> {
+    await this.getRoomState(roomId);
+    const updated = await this.prisma.client.roomGameState.update({
+      where: { roomId },
+      data: {},
+    });
+    const runtime = this.deserializeRuntime(updated);
+    return this.toGameState(updated, this.buildLeaderboard(runtime));
   }
 
-  submitAnswer(dto: SubmitAnswerDto, userId: number): SubmitAnswerResult {
-    const room = this.roomsService.getById(dto.roomId);
+  async submitAnswer(
+    dto: SubmitAnswerDto,
+    userId: number,
+  ): Promise<SubmitAnswerResult> {
+    const room = await this.roomsService.getById(dto.roomId);
     if (room.status !== "playing") {
       throw new ConflictException("Game is not running for this room");
     }
@@ -238,12 +268,13 @@ export class GameService {
       throw new UnauthorizedException("User is not in this room");
     }
 
-    const state = this.getRoomState(dto.roomId);
+    await this.getRoomState(dto.roomId);
+    const state = await this.findStateOrThrow(dto.roomId);
     if (state.currentQuestionId === null || state.currentQuestionId !== dto.questionId) {
       throw new ConflictException("Question is not active");
     }
 
-    const runtime = this.getRoomRuntime(dto.roomId);
+    const runtime = this.deserializeRuntime(state);
     const question = this.getQuestionEntry(dto.questionId);
     if (dto.answerIndex >= question.options.length) {
       throw new BadRequestException("Answer index is out of range");
@@ -264,12 +295,18 @@ export class GameService {
     const previousScore = runtime.scoresByUser.get(userId) || 0;
     const userTotalScore = previousScore + scoreDelta;
     runtime.scoresByUser.set(userId, userTotalScore);
+    const leaderboard = this.buildLeaderboard(runtime);
 
-    state.answersForCurrentQuestion = answeredUsers.size;
-    state.totalAnswers = runtime.totalAnswers;
-    state.leaderboard = this.buildLeaderboard(runtime);
-    state.updatedAt = new Date().toISOString();
-    this.persistStore();
+    await this.prisma.client.roomGameState.update({
+      where: { roomId: dto.roomId },
+      data: {
+        answersForCurrentQuestion: answeredUsers.size,
+        totalAnswers: runtime.totalAnswers,
+        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+        winnerUserId: leaderboard[0]?.userId ?? null,
+      },
+    });
 
     return {
       roomId: dto.roomId,
@@ -279,22 +316,28 @@ export class GameService {
       isCorrect,
       scoreDelta,
       userTotalScore,
-      totalAnswers: state.totalAnswers,
+      totalAnswers: runtime.totalAnswers,
     };
   }
 
-  finishGame(roomId: number): GameState {
-    const room = this.roomsService.getById(roomId);
-    const state = this.getRoomState(roomId);
+  async finishGame(roomId: number): Promise<GameState> {
+    const room = await this.roomsService.getById(roomId);
+    await this.getRoomState(roomId);
 
-    state.status = "finished";
-    state.leaderboard = this.buildLeaderboard(this.getRoomRuntime(roomId));
-    state.winnerUserId = state.leaderboard[0]?.userId ?? null;
-    state.endedAt = room.finishedAt ?? new Date().toISOString();
-    state.updatedAt = state.endedAt;
+    const state = await this.findStateOrThrow(roomId);
+    const runtime = this.deserializeRuntime(state);
+    const leaderboard = this.buildLeaderboard(runtime);
+    const endedAt = room.finishedAt ? new Date(room.finishedAt) : new Date();
+    const finished = await this.prisma.client.roomGameState.update({
+      where: { roomId },
+      data: {
+        status: "finished",
+        winnerUserId: leaderboard[0]?.userId ?? null,
+        endedAt,
+      },
+    });
 
-    this.persistStore();
-    return state;
+    return this.toGameState(finished, leaderboard);
   }
 
   getQuestionOrder(): number[] {
@@ -311,31 +354,16 @@ export class GameService {
     };
   }
 
-  getRoomLeaderboard(roomId: number): GameLeaderboardEntry[] {
-    this.getRoomState(roomId);
-    return this.buildLeaderboard(this.getRoomRuntime(roomId));
+  async getRoomLeaderboard(roomId: number): Promise<GameLeaderboardEntry[]> {
+    await this.getRoomState(roomId);
+    const state = await this.findStateOrThrow(roomId);
+    return this.buildLeaderboard(this.deserializeRuntime(state));
   }
 
-  clearRoomState(roomId: number): void {
-    this.roomStates.delete(roomId);
-    this.roomRuntime.delete(roomId);
-    this.persistStore();
-  }
-
-  private getRoomRuntime(roomId: number): RoomRuntime {
-    const existing = this.roomRuntime.get(roomId);
-    if (existing) {
-      return existing;
-    }
-
-    const runtime: RoomRuntime = {
-      answeredByQuestion: new Map<number, Set<number>>(),
-      scoresByUser: new Map<number, number>(),
-      totalAnswers: 0,
-    };
-
-    this.roomRuntime.set(roomId, runtime);
-    return runtime;
+  async clearRoomState(roomId: number): Promise<void> {
+    await this.prisma.client.roomGameState.deleteMany({
+      where: { roomId },
+    });
   }
 
   private buildLeaderboard(runtime: RoomRuntime): GameLeaderboardEntry[] {
@@ -368,83 +396,108 @@ export class GameService {
     return question;
   }
 
-  private loadStore(): void {
-    const fallback: GameStore = {
-      roomStates: [],
-      roomRuntime: [],
-    };
-    const snapshot = readRuntimeJson<GameStore>(this.storePath, fallback);
-
-    if (Array.isArray(snapshot.roomStates)) {
-      for (const state of snapshot.roomStates) {
-        if (typeof state.roomId !== "number") {
-          continue;
-        }
-        this.roomStates.set(state.roomId, state);
-      }
+  private async findStateOrThrow(roomId: number): Promise<RoomGameState> {
+    const state = await this.prisma.client.roomGameState.findUnique({
+      where: { roomId },
+    });
+    if (!state) {
+      throw new ConflictException(`Game state for room ${roomId} not found`);
     }
-
-    if (Array.isArray(snapshot.roomRuntime)) {
-      for (const runtime of snapshot.roomRuntime) {
-        if (typeof runtime.roomId !== "number") {
-          continue;
-        }
-
-        const answeredByQuestion = new Map<number, Set<number>>();
-        for (const entry of runtime.answeredByQuestion || []) {
-          if (
-            typeof entry.questionId !== "number" ||
-            !Array.isArray(entry.userIds)
-          ) {
-            continue;
-          }
-          answeredByQuestion.set(entry.questionId, new Set(entry.userIds));
-        }
-
-        const scoresByUser = new Map<number, number>();
-        for (const entry of runtime.scoresByUser || []) {
-          if (
-            typeof entry.userId !== "number" ||
-            typeof entry.score !== "number"
-          ) {
-            continue;
-          }
-          scoresByUser.set(entry.userId, entry.score);
-        }
-
-        this.roomRuntime.set(runtime.roomId, {
-          answeredByQuestion,
-          scoresByUser,
-          totalAnswers: runtime.totalAnswers || 0,
-        });
-      }
-    }
+    return state;
   }
 
-  private persistStore(): void {
-    const roomStates = [...this.roomStates.values()];
-    const roomRuntime: RoomRuntimeSnapshot[] = [...this.roomRuntime.entries()].map(
-      ([roomId, runtime]) => ({
-        roomId,
-        answeredByQuestion: [...runtime.answeredByQuestion.entries()].map(
-          ([questionId, userIds]) => ({
-            questionId,
-            userIds: [...userIds.values()],
-          }),
-        ),
-        scoresByUser: [...runtime.scoresByUser.entries()].map(
-          ([userId, score]) => ({
-            userId,
-            score,
-          }),
-        ),
-        totalAnswers: runtime.totalAnswers,
-      }),
-    );
+  private deserializeRuntime(state: RoomGameState | null): RoomRuntime {
+    if (!state) {
+      return {
+        answeredByQuestion: new Map<number, Set<number>>(),
+        scoresByUser: new Map<number, number>(),
+        totalAnswers: 0,
+      };
+    }
 
-    writeRuntimeJson<GameStore>(this.storePath, {
-      roomStates,
-      roomRuntime,
-    });
+    const answeredByQuestion = new Map<number, Set<number>>();
+    const answeredRaw = this.toRecord(state.answeredByQuestion);
+    for (const [questionId, userIds] of Object.entries(answeredRaw)) {
+      if (!Array.isArray(userIds)) {
+        continue;
+      }
+      const parsedQuestionId = Number(questionId);
+      if (!Number.isFinite(parsedQuestionId)) {
+        continue;
+      }
+
+      const parsedUserIds = userIds.filter(
+        (value): value is number => typeof value === "number" && Number.isInteger(value),
+      );
+      answeredByQuestion.set(parsedQuestionId, new Set(parsedUserIds));
+    }
+
+    const scoresByUser = new Map<number, number>();
+    const scoresRaw = this.toRecord(state.scoresByUser);
+    for (const [userId, score] of Object.entries(scoresRaw)) {
+      const parsedUserId = Number(userId);
+      if (!Number.isFinite(parsedUserId) || typeof score !== "number") {
+        continue;
+      }
+      scoresByUser.set(parsedUserId, score);
+    }
+
+    return {
+      answeredByQuestion,
+      scoresByUser,
+      totalAnswers: state.totalAnswers || 0,
+    };
+  }
+
+  private serializeAnsweredByQuestion(
+    answeredByQuestion: Map<number, Set<number>>,
+  ): Record<string, number[]> {
+    const serialized: Record<string, number[]> = {};
+    for (const [questionId, userIds] of answeredByQuestion.entries()) {
+      serialized[String(questionId)] = [...userIds.values()];
+    }
+    return serialized;
+  }
+
+  private serializeScoresByUser(
+    scoresByUser: Map<number, number>,
+  ): Record<string, number> {
+    const serialized: Record<string, number> = {};
+    for (const [userId, score] of scoresByUser.entries()) {
+      serialized[String(userId)] = score;
+    }
+    return serialized;
+  }
+
+  private toRecord(payload: unknown): Record<string, unknown> {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return {};
+    }
+    return payload as Record<string, unknown>;
+  }
+
+  private toGameState(
+    state: RoomGameState,
+    leaderboard: GameLeaderboardEntry[],
+  ): GameState {
+    return {
+      roomId: state.roomId,
+      status: state.status,
+      currentQuestionId: state.currentQuestionId,
+      currentQuestionNumber: state.currentQuestionNumber,
+      totalQuestions: state.totalQuestions,
+      questionDurationMs: state.questionDurationMs,
+      questionStartedAt: state.questionStartedAt
+        ? state.questionStartedAt.toISOString()
+        : null,
+      questionEndsAt: state.questionEndsAt ? state.questionEndsAt.toISOString() : null,
+      answersForCurrentQuestion: state.answersForCurrentQuestion,
+      totalAnswers: state.totalAnswers,
+      leaderboard,
+      winnerUserId: state.winnerUserId,
+      startedAt: state.startedAt ? state.startedAt.toISOString() : null,
+      endedAt: state.endedAt ? state.endedAt.toISOString() : null,
+      updatedAt: state.updatedAt.toISOString(),
+    };
   }
 }

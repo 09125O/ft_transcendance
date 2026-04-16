@@ -1,9 +1,4 @@
-import { UsersService } from "@/modules/users/users.service";
-import {
-  getRuntimeFilePath,
-  readRuntimeJson,
-  writeRuntimeJson,
-} from "@/common/runtime/runtime-store";
+import { PrismaService } from "@/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 export type UserScore = {
@@ -13,143 +8,89 @@ export type UserScore = {
   wins: number;
 };
 
-type ScoreSnapshot = {
-  score: number;
-  wins: number;
-};
-
-type ScoresStore = {
-  leaderboard: Array<{
-    userId: number;
-    score: number;
-    wins: number;
-  }>;
-};
-
 @Injectable()
 export class ScoresService {
-  private readonly storePath = getRuntimeFilePath("scores-store.json");
-  private readonly leaderboard = new Map<number, ScoreSnapshot>();
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private readonly usersService: UsersService) {
-    this.loadStore();
-  }
-
-  recordGameResult(
+  async recordGameResult(
     entries: Array<{ userId: number; score: number }>,
     winnerUserId: number | null,
-  ): void {
-    for (const entry of entries) {
-      const existing = this.leaderboard.get(entry.userId) || { score: 0, wins: 0 };
-      this.leaderboard.set(entry.userId, {
-        score: existing.score + entry.score,
-        wins: existing.wins + (winnerUserId === entry.userId ? 1 : 0),
-      });
-    }
-
-    this.persistStore();
-  }
-
-  async getLeaderboard(limit = 10): Promise<UserScore[]> {
-    const leaderboard: UserScore[] = [];
-
-    for (const entry of this.getSortedEntries()) {
-      const userScore = await this.toUserScore(entry);
-      if (!userScore) {
-        continue;
-      }
-
-      leaderboard.push(userScore);
-      if (leaderboard.length >= limit) {
-        break;
-      }
-    }
-
-    return leaderboard;
-  }
-
-  async getUserScore(userId: number): Promise<UserScore> {
-    const snapshot = this.leaderboard.get(userId);
-    if (!snapshot) {
-      throw new NotFoundException(`Score for user ${userId} not found`);
-    }
-
-    const userScore = await this.toUserScore({ userId, ...snapshot });
-    if (!userScore) {
-      throw new NotFoundException(`Score for user ${userId} not found`);
-    }
-
-    return userScore;
-  }
-
-  private getSortedEntries(): Array<{
-    userId: number;
-    score: number;
-    wins: number;
-  }> {
-    return [...this.leaderboard.entries()]
-      .map(([userId, snapshot]) => ({ userId, ...snapshot }))
-      .sort((left, right) => {
-        if (right.score !== left.score) {
-          return right.score - left.score;
-        }
-        if (right.wins !== left.wins) {
-          return right.wins - left.wins;
-        }
-        return left.userId - right.userId;
-      });
-  }
-
-  private async toUserScore(entry: {
-    userId: number;
-    score: number;
-    wins: number;
-  }): Promise<UserScore | null> {
-    const user = await this.usersService.findUser({ id: entry.userId });
-    if (!user) {
-      this.leaderboard.delete(entry.userId);
-      this.persistStore();
-      return null;
-    }
-
-    return {
-      userId: entry.userId,
-      username: user.username,
-      score: entry.score,
-      wins: entry.wins,
-    };
-  }
-
-  private loadStore(): void {
-    const fallback: ScoresStore = { leaderboard: [] };
-    const snapshot = readRuntimeJson<ScoresStore>(this.storePath, fallback);
-    if (!Array.isArray(snapshot.leaderboard)) {
+  ): Promise<void> {
+    if (entries.length === 0) {
       return;
     }
 
-    for (const entry of snapshot.leaderboard) {
-      if (
-        typeof entry.userId !== "number" ||
-        typeof entry.score !== "number" ||
-        typeof entry.wins !== "number"
-      ) {
-        continue;
-      }
+    const userIds = [...new Set(entries.map((entry) => entry.userId))];
+    const existingUsers = await this.prisma.client.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true },
+    });
+    const existingUserIdSet = new Set(existingUsers.map((user) => user.id));
 
-      this.leaderboard.set(entry.userId, {
-        score: entry.score,
-        wins: entry.wins,
-      });
-    }
+    await this.prisma.client.$transaction(
+      entries
+        .filter((entry) => existingUserIdSet.has(entry.userId))
+        .map((entry) =>
+          this.prisma.client.userAggregateScore.upsert({
+            where: { userId: entry.userId },
+            create: {
+              userId: entry.userId,
+              score: entry.score,
+              wins: winnerUserId === entry.userId ? 1 : 0,
+            },
+            update: {
+              score: { increment: entry.score },
+              ...(winnerUserId === entry.userId
+                ? { wins: { increment: 1 } }
+                : {}),
+            },
+          }),
+        ),
+    );
   }
 
-  private persistStore(): void {
-    writeRuntimeJson<ScoresStore>(this.storePath, {
-      leaderboard: [...this.leaderboard.entries()].map(([userId, snapshot]) => ({
-        userId,
-        score: snapshot.score,
-        wins: snapshot.wins,
-      })),
+  async getLeaderboard(limit = 10): Promise<UserScore[]> {
+    const rows = await this.prisma.client.userAggregateScore.findMany({
+      take: limit,
+      orderBy: [{ score: "desc" }, { wins: "desc" }, { userId: "asc" }],
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
+
+    return rows.map((row) => ({
+      userId: row.userId,
+      username: row.user.username,
+      score: row.score,
+      wins: row.wins,
+    }));
+  }
+
+  async getUserScore(userId: number): Promise<UserScore> {
+    const row = await this.prisma.client.userAggregateScore.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!row) {
+      throw new NotFoundException(`Score for user ${userId} not found`);
+    }
+
+    return {
+      userId: row.userId,
+      username: row.user.username,
+      score: row.score,
+      wins: row.wins,
+    };
   }
 }

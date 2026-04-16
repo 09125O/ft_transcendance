@@ -43,6 +43,7 @@ model User {
 
   rooms      RoomPlayer[] @relation("UserRoomPlayers")
   ownedRooms Room[]       @relation("RoomOwner")
+  aggregateScore UserAggregateScore?
 
   messages Messages[] @relation("UserMessages")
 
@@ -71,18 +72,55 @@ model Room {
   id   Int    @id @default(autoincrement())
   name String
 
-  owner   User @relation("RoomOwner", fields: [ownerId], references: [id])
-  ownerId Int
+  owner   User? @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId Int?
 
   status RoomStatus @default(waiting)
+  rounds Int        @default(3)
+  isPrivate Boolean @default(false)
+  passwordHash String?
 
   players  RoomPlayer[] @relation("RoomPlayers")
   messages Messages[]   @relation("RoomMessages")
   games    Game[]       @relation("RoomGames")
+  gameState RoomGameState?
 
   createdAt  DateTime  @default(now())
   startedAt  DateTime?
   finishedAt DateTime?
+}
+
+model RoomGameState {
+  roomId Int @id
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  status RoomStatus @default(waiting)
+  currentQuestionId Int?
+  currentQuestionNumber Int @default(0)
+  totalQuestions Int @default(1)
+  questionDurationMs Int?
+  questionStartedAt DateTime?
+  questionEndsAt DateTime?
+  answersForCurrentQuestion Int @default(0)
+  totalAnswers Int @default(0)
+  winnerUserId Int?
+  startedAt DateTime?
+  endedAt DateTime?
+
+  answeredByQuestion Json?
+  scoresByUser Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAggregateScore {
+  userId Int @id
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  score Int @default(0)
+  wins  Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Quiz {

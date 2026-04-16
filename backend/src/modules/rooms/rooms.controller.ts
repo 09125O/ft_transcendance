@@ -23,15 +23,15 @@ export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Get()
-  list(): ApiResponse<Array<Omit<Room, "passwordHash">>> {
-    return ok(this.roomsService.list());
+  async list(): Promise<ApiResponse<Array<Omit<Room, "passwordHash">>>> {
+    return ok(await this.roomsService.list());
   }
 
   @Get(":roomId")
-  getById(
+  async getById(
     @Param("roomId", ParseIntPipe) roomId: number,
-  ): ApiResponse<Omit<Room, "passwordHash">> {
-    return ok(this.roomsService.getById(roomId));
+  ): Promise<ApiResponse<Omit<Room, "passwordHash">>> {
+    return ok(await this.roomsService.getById(roomId));
   }
 
   @Post()
