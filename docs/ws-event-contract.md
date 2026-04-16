@@ -82,6 +82,15 @@ Erreur:
 }
 ```
 
+`RoomLeaderboard`:
+
+```json
+{
+  "roomId": 1,
+  "leaderboard": [{ "userId": 2, "score": 200 }]
+}
+```
+
 ## Client -> Server (inbound)
 
 ### `room:list`
@@ -282,7 +291,7 @@ Note:
 }
 ```
 
-- `game:leaderboard`: `LeaderboardEntry[]`
+- `game:leaderboard`: `RoomLeaderboard`
 
 - `game:ended`:
 

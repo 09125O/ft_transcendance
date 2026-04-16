@@ -13,9 +13,14 @@ type LeaderboardEntry = {
   score: number;
 };
 
+export type RoomLeaderboardPayload = {
+  roomId: number;
+  leaderboard: LeaderboardEntry[];
+};
+
 type UseRoomParticipantsResult = {
   scoreEntries: ScoreEntry[];
-  applyLeaderboard: (leaderboard: LeaderboardEntry[]) => void;
+  applyLeaderboard: (payload: RoomLeaderboardPayload) => void;
 };
 
 export function useRoomParticipants(
@@ -55,7 +60,8 @@ export function useRoomParticipants(
     void loadRoomUsers();
   }, [currentRoom]);
 
-  const applyLeaderboard = useCallback((leaderboard: LeaderboardEntry[]) => {
+  const applyLeaderboard = useCallback((payload: RoomLeaderboardPayload) => {
+    const leaderboard = payload.leaderboard;
     setScoreEntries((previous) => {
       const scoreByUserId = new Map(
         leaderboard.map((entry) => [entry.userId, entry.score]),

@@ -62,6 +62,8 @@ Transport: `socket.io`
 - listen `game:answer:result`
 - listen `game:state`
 - listen `game:leaderboard`
+  - payload: `{ roomId, leaderboard: [{ userId, score }] }`
+  - filtrer strictement sur `roomId` cote front avant mise a jour UI
 - listen `game:answer:error`
 
 4. Fin:
