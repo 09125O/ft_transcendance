@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
+import { mkdir, writeFile } from "fs/promises";
 import { dirname, resolve } from "path";
 
 function getRuntimeRootPath(): string {
@@ -31,6 +32,32 @@ export function readRuntimeJson<T>(filePath: string, fallback: T): T {
 }
 
 export function writeRuntimeJson<T>(filePath: string, payload: T): void {
-  mkdirSync(dirname(filePath), { recursive: true });
-  writeFileSync(filePath, JSON.stringify(payload, null, 2), "utf8");
+  const nextPayload = JSON.stringify(payload, null, 2);
+  enqueueRuntimeWrite(filePath, nextPayload);
+}
+
+const writeQueues = new Map<string, Promise<void>>();
+
+function enqueueRuntimeWrite(filePath: string, payload: string): void {
+  const previous = writeQueues.get(filePath) ?? Promise.resolve();
+  const next = previous
+    .catch(() => undefined)
+    .then(async () => {
+      await mkdir(dirname(filePath), { recursive: true });
+      await writeFile(filePath, payload, "utf8");
+    })
+    .catch((error) => {
+      const message =
+        error instanceof Error ? error.message : "Unknown runtime write error";
+      console.error(
+        `[runtime-store] failed to persist ${filePath}: ${message}`,
+      );
+    })
+    .finally(() => {
+      if (writeQueues.get(filePath) === next) {
+        writeQueues.delete(filePath);
+      }
+    });
+
+  writeQueues.set(filePath, next);
 }

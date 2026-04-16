@@ -3,6 +3,7 @@ import { ok, type ApiResponse } from "@/common/http/api-response";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthGuard } from "@/modules/auth/guards/auth.guard";
 import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
+import { PublicUser } from "@/modules/auth/types/public-user.type";
 import { User } from "@generated/prisma/client";
 import {
   Controller,
@@ -36,20 +37,26 @@ export class UsersController {
   }
 
   @Get(":id")
+  @UseGuards(AuthGuard)
   async getById(
     @Param("id", ParseIntPipe) id: number,
-  ): Promise<ApiResponse<SafeUser>> {
+  ): Promise<ApiResponse<PublicUser>> {
     const user = await this.usersService.findUser({ id });
 
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    return ok(this.sanitizeUser(user));
+    return ok(this.sanitizePublicUser(user));
   }
 
   private sanitizeUser(user: User): SafeUser {
     const { password, ...safeUser } = user;
     return safeUser;
+  }
+
+  private sanitizePublicUser(user: User): PublicUser {
+    const { password, email, ...publicUser } = user;
+    return publicUser;
   }
 }

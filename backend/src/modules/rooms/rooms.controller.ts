@@ -36,12 +36,12 @@ export class RoomsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  create(
+  async create(
     @Body() dto: CreateRoomDto,
     @CurrentUser() auth: AuthPayload,
-  ): ApiResponse<Omit<Room, "passwordHash">> {
+  ): Promise<ApiResponse<Omit<Room, "passwordHash">>> {
     return ok(
-      this.roomsService.create({
+      await this.roomsService.create({
         ...dto,
         ownerUserId: auth.sub,
       }),
@@ -50,11 +50,11 @@ export class RoomsController {
 
   @Post(":roomId/join")
   @UseGuards(AuthGuard)
-  join(
+  async join(
     @Param("roomId", ParseIntPipe) roomId: number,
     @Body() dto: JoinRoomDto,
     @CurrentUser() auth: AuthPayload,
-  ): ApiResponse<Omit<Room, "passwordHash">> {
-    return ok(this.roomsService.join(roomId, auth.sub, dto.password));
+  ): Promise<ApiResponse<Omit<Room, "passwordHash">>> {
+    return ok(await this.roomsService.join(roomId, auth.sub, dto.password));
   }
 }

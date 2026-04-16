@@ -57,11 +57,11 @@ export class RoomsService {
     return this.stripPasswordHash(room);
   }
 
-  create(
+  async create(
     dto: CreateRoomDto & {
       ownerUserId?: number;
     },
-  ): Omit<Room, "passwordHash"> {
+  ): Promise<Omit<Room, "passwordHash">> {
     const createdAt = new Date().toISOString();
     const shouldStorePasswordHash =
       dto.isPrivate === true && typeof dto.password === "string" && dto.password.length > 0;
@@ -81,7 +81,7 @@ export class RoomsService {
       startedAt: null,
       finishedAt: null,
       ...(privateRoomPassword
-        ? { passwordHash: bcrypt.hashSync(privateRoomPassword, 10) }
+        ? { passwordHash: await bcrypt.hash(privateRoomPassword, 10) }
         : {}),
     };
 
@@ -91,24 +91,26 @@ export class RoomsService {
     return this.stripPasswordHash(room);
   }
 
-  join(
+  async join(
     roomId: number,
     userId: number,
     password?: JoinRoomDto["password"],
-  ): Omit<Room, "passwordHash"> {
+  ): Promise<Omit<Room, "passwordHash">> {
     const room = this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
       throw new ConflictException("Room is not joinable");
     }
 
-    if (
-      room.isPrivate &&
-      (!room.passwordHash ||
-        typeof password !== "string" ||
-        !bcrypt.compareSync(password, room.passwordHash))
-    ) {
-      throw new UnauthorizedException("Invalid room password");
+    if (room.isPrivate) {
+      if (!room.passwordHash || typeof password !== "string") {
+        throw new UnauthorizedException("Invalid room password");
+      }
+
+      const isValidPassword = await bcrypt.compare(password, room.passwordHash);
+      if (!isValidPassword) {
+        throw new UnauthorizedException("Invalid room password");
+      }
     }
 
     if (!room.players.some((player) => player.userId === userId)) {
