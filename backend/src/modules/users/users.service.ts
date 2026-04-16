@@ -1,10 +1,45 @@
 import { PrismaService } from "@/prisma/prisma.service";
 import { Prisma, User } from "@generated/prisma/client";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
+    const data: Prisma.UserUpdateInput = {};
+
+    if (typeof dto.username !== "undefined") {
+      data.username = dto.username;
+    }
+    if (typeof dto.avatar_url !== "undefined") {
+      data.avatar_url = dto.avatar_url;
+    }
+    if (typeof dto.status !== "undefined") {
+      data.status = dto.status;
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException("At least one profile field must be provided");
+    }
+
+    try {
+      return await this.updateUser({
+        where: { id: userId },
+        data,
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ConflictException("Username already exists");
+      }
+
+      throw error;
+    }
+  }
 
   async findUserByEmail(email: string): Promise<User | null> {
     return this.findUser({ email });

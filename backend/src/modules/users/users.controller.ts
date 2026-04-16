@@ -6,15 +6,18 @@ import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
 import { PublicUser } from "@/modules/auth/types/public-user.type";
 import { User } from "@generated/prisma/client";
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Patch,
   ParseIntPipe,
   UseFilters,
   UseGuards,
 } from "@nestjs/common";
 import { SafeUser } from "../auth/types/safe-user.type";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UsersService } from "./users.service";
 
 @Controller("users")
@@ -34,6 +37,15 @@ export class UsersController {
     }
 
     return ok(this.sanitizeUser(user));
+  }
+
+  @Patch("me")
+  @UseGuards(AuthGuard)
+  async updateMe(
+    @CurrentUser() auth: AuthPayload,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<ApiResponse<SafeUser>> {
+    return ok(this.sanitizeUser(await this.usersService.updateProfile(auth.sub, dto)));
   }
 
   @Get(":id")

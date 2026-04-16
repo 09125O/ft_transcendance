@@ -25,6 +25,7 @@ References:
 - docs/api-front-contract.md
 - docs/front2-realtime-integration.md
 - docs/ws-event-contract.md
+- docs/backend-front-enablement-spec.md
 
 ### Gaps front visibles
 
@@ -194,6 +195,7 @@ P2:
 - Risque principal: avance backend non visible en demo si UI insuffisante
 - Dependance: endpoints social/amis a confirmer cote backend
 - Mitigation: travailler en mode "UI first + adapter service" pour debloquer l'integration
+- Spec backend de rattrapage: docs/backend-front-enablement-spec.md
 
 ## 8) Commandes utiles front
 

@@ -127,6 +127,16 @@ export class RealtimeGateway
     });
   }
 
+  @SubscribeMessage("room:spectate")
+  handleRoomSpectate(
+    @MessageBody() payload: unknown,
+    @ConnectedSocket() client: Socket,
+  ): void {
+    void this.runSafely(client, "room:spectate:error", async () => {
+      await this.roomEvents.handleRoomSpectate(payload, client, this.server);
+    });
+  }
+
   @SubscribeMessage("game:answer")
   handleGameAnswer(
     @MessageBody() payload: unknown,

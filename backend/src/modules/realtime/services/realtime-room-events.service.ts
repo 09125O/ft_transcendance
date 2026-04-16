@@ -3,7 +3,9 @@ import { ChatMessageDto } from "@/modules/realtime/dto/chat-message.dto";
 import { RoomCreateEventDto } from "@/modules/realtime/dto/room-create-event.dto";
 import { RoomJoinEventDto } from "@/modules/realtime/dto/room-join-event.dto";
 import { RoomLeaveDto } from "@/modules/realtime/dto/room-leave.dto";
+import { RoomSpectateDto } from "@/modules/realtime/dto/room-spectate.dto";
 import { RoomStartDto } from "@/modules/realtime/dto/room-start.dto";
+import { GameService } from "@/modules/game/game.service";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { RealtimeGameRuntimeService } from "./realtime-game-runtime.service";
@@ -15,6 +17,7 @@ import { RealtimeValidationService } from "./realtime-validation.service";
 export class RealtimeRoomEventsService {
   constructor(
     private readonly roomsService: RoomsService,
+    private readonly gameService: GameService,
     private readonly validation: RealtimeValidationService,
     private readonly response: RealtimeResponseService,
     private readonly presence: RealtimePresenceService,
@@ -22,9 +25,14 @@ export class RealtimeRoomEventsService {
   ) {}
 
   async handleDisconnect(clientId: string, server: Server): Promise<void> {
+    const spectatingRooms = this.presence.getSpectatingRooms(clientId);
     const userId = this.presence.unregisterSocket(clientId);
     if (typeof userId === "number" && !this.presence.hasActiveSockets(userId)) {
       await this.removeUserFromRooms(userId, server);
+    }
+
+    for (const roomId of spectatingRooms) {
+      this.emitSpectatorCount(roomId, server);
     }
   }
 
@@ -46,6 +54,7 @@ export class RealtimeRoomEventsService {
     });
 
     client.join(this.roomChannel(room.id));
+    this.presence.unmarkSpectator(client.id, room.id);
     client.emit("room:created", this.response.ok(room));
     server.to(this.roomChannel(room.id)).emit("room:state", this.response.ok(room));
     this.broadcastRoomList(server);
@@ -67,6 +76,7 @@ export class RealtimeRoomEventsService {
       : await this.roomsService.join(payload.roomId, userId, payload.password);
 
     client.join(this.roomChannel(payload.roomId));
+    this.presence.unmarkSpectator(client.id, payload.roomId);
     client.emit("room:joined", this.response.ok(room));
     server
       .to(this.roomChannel(payload.roomId))
@@ -109,6 +119,9 @@ export class RealtimeRoomEventsService {
     server: Server,
   ): Promise<void> {
     const payload = this.validation.validatePayload(RoomStartDto, rawPayload);
+    if (this.presence.isSpectator(client.id, payload.roomId)) {
+      throw new UnauthorizedException("Spectator cannot start a game");
+    }
     const requesterUserId = this.presence.resolveSocketUser(
       client.id,
       payload.userId,
@@ -149,6 +162,33 @@ export class RealtimeRoomEventsService {
         sentAt: new Date().toISOString(),
       }),
     );
+  }
+
+  async handleRoomSpectate(
+    rawPayload: unknown,
+    client: Socket,
+    server: Server,
+  ): Promise<void> {
+    const payload = this.validation.validatePayload(RoomSpectateDto, rawPayload);
+    this.presence.resolveSocketUser(client.id, payload.userId);
+    const room = await this.roomsService.getById(payload.roomId);
+
+    client.join(this.roomChannel(payload.roomId));
+    this.presence.markSpectator(client.id, payload.roomId);
+
+    client.emit(
+      "room:spectated",
+      this.response.ok({
+        roomId: payload.roomId,
+        spectatorCount: this.presence.getSpectatorCount(payload.roomId),
+      }),
+    );
+    client.emit("room:state", this.response.ok(room));
+    client.emit(
+      "game:state",
+      this.response.ok(await this.gameService.getRoomState(payload.roomId)),
+    );
+    this.emitSpectatorCount(payload.roomId, server);
   }
 
   private async removeUserFromRooms(userId: number, server: Server): Promise<void> {
@@ -193,5 +233,15 @@ export class RealtimeRoomEventsService {
 
   private roomChannel(roomId: number): string {
     return `room:${roomId}`;
+  }
+
+  private emitSpectatorCount(roomId: number, server: Server): void {
+    server.to(this.roomChannel(roomId)).emit(
+      "room:spectators:update",
+      this.response.ok({
+        roomId,
+        count: this.presence.getSpectatorCount(roomId),
+      }),
+    );
   }
 }

@@ -25,6 +25,9 @@ export class RealtimeGameEventsService {
     server: Server,
   ): Promise<void> {
     const payload = this.validation.validatePayload(GameAnswerEventDto, rawPayload);
+    if (this.presence.isSpectator(client.id, payload.roomId)) {
+      throw new UnauthorizedException("Spectator cannot submit an answer");
+    }
     const userId = this.presence.resolveSocketUser(client.id, payload.userId);
 
     const room = await this.roomsService.getById(payload.roomId);

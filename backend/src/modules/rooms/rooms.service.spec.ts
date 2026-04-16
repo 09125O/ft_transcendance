@@ -15,7 +15,6 @@ describe("RoomsService", () => {
     await expect(
       service.create({
         name: "Room test",
-        quizId: 1,
         rounds: 3,
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
