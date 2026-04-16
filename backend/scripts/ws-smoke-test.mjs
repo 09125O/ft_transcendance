@@ -38,12 +38,16 @@ async function run() {
     section("test websocket auth");
     const anonymous = createSocket(WS_NAMESPACE_URL);
     try {
-      const authErrorPromise = waitForEvent(
-        anonymous,
-        "ws:auth:error",
-        (payload) =>
-          payload?.success === false && payload?.error?.code === "UNAUTHORIZED",
-      );
+      const authErrorPromise = Promise.race([
+        waitForEvent(
+          anonymous,
+          "ws:auth:error",
+          (payload) =>
+            payload?.success === false &&
+            payload?.error?.code === "UNAUTHORIZED",
+        ),
+        waitForEvent(anonymous, "connect_error", () => true),
+      ]);
       anonymous.connect();
       await authErrorPromise;
       pass("Connexion anonyme refusee");

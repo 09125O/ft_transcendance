@@ -1,6 +1,12 @@
 import { io } from "socket.io-client";
 
 export const EVENT_TIMEOUT_MS = Number(process.env.WS_SMOKE_TIMEOUT_MS || 12000);
+const SOCKET_TRANSPORTS = (
+  process.env.WS_SMOKE_TRANSPORTS || "polling,websocket"
+)
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 
 export function pass(message) {
   console.log(`[OK] ${message}`);
@@ -11,18 +17,22 @@ export function fail(message) {
 }
 
 export function createSocket(namespaceUrl, cookieHeader) {
+  const allowInsecureTls = process.env.WS_TLS_INSECURE === "1";
+  const extraHeaders = {
+    Origin:
+      process.env.WS_SMOKE_ORIGIN ||
+      process.env.FRONTEND_ORIGIN ||
+      "https://localhost:3000",
+    ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+  };
+
   return io(namespaceUrl, {
     autoConnect: false,
     reconnection: false,
     timeout: EVENT_TIMEOUT_MS,
-    transports: ["websocket", "polling"],
-    ...(cookieHeader
-      ? {
-          extraHeaders: {
-            Cookie: cookieHeader,
-          },
-        }
-      : {}),
+    transports: SOCKET_TRANSPORTS,
+    extraHeaders,
+    ...(allowInsecureTls ? { rejectUnauthorized: false } : {}),
   });
 }
 
