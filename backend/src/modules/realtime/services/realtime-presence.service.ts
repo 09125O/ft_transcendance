@@ -113,6 +113,10 @@ export class RealtimePresenceService {
     return this.userToSockets.has(userId);
   }
 
+  getSocketIdsForUser(userId: number): string[] {
+    return [...(this.userToSockets.get(userId) || [])];
+  }
+
   clear(): void {
     this.socketToUser.clear();
     this.userToSockets.clear();

@@ -3,6 +3,7 @@ import { ok, type ApiResponse } from "@/common/http/api-response";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthGuard } from "@/modules/auth/guards/auth.guard";
 import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
+import { RealtimeNotifierService } from "@/modules/realtime/services/realtime-notifier.service";
 import {
   Body,
   Controller,
@@ -27,7 +28,10 @@ import {
 @UseFilters(ApiExceptionFilter)
 @UseGuards(AuthGuard)
 export class FriendsController {
-  constructor(private readonly friendsService: FriendsService) {}
+  constructor(
+    private readonly friendsService: FriendsService,
+    private readonly notifier: RealtimeNotifierService,
+  ) {}
 
   @Get()
   async listFriends(
@@ -48,7 +52,22 @@ export class FriendsController {
     @CurrentUser() auth: AuthPayload,
     @Body() dto: CreateFriendRequestDto,
   ): Promise<ApiResponse<FriendRequestCreated>> {
-    return ok(await this.friendsService.sendRequest(auth.sub, dto.receiverUserId));
+    const created = await this.friendsService.sendRequest(auth.sub, dto.receiverUserId);
+
+    this.notifier.emitOkToUser(created.receiverUserId, "notification:new", {
+      id: created.requestId,
+      type: "FRIEND_REQUEST_RECEIVED",
+      title: "Nouvelle demande d'ami",
+      payload: {
+        requestId: created.requestId,
+        fromUserId: created.senderUserId,
+        fromUsername: created.senderUsername,
+      },
+      read: false,
+      createdAt: created.createdAt,
+    });
+
+    return ok(created);
   }
 
   @Post("requests/:requestId/accept")

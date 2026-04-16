@@ -11,6 +11,7 @@ describe("NotificationsService", () => {
             {
               id: 12,
               sender: { id: 5, username: "alice" },
+              receiverReadAt: null,
               createdAt: new Date("2026-04-16T10:00:00.000Z"),
             },
           ]),
@@ -39,20 +40,18 @@ describe("NotificationsService", () => {
       client: {
         friendRequests: {
           findFirst: jest.fn().mockResolvedValue({ id: 12 }),
+          update: jest.fn().mockResolvedValue({ id: 12 }),
         },
       },
     } as any;
 
     const service = new NotificationsService(prisma);
     await service.markRead(7, 12);
-
-    const listed = await (service as any).toNotification(
-      7,
-      12,
-      5,
-      "alice",
-      new Date("2026-04-16T10:00:00.000Z"),
-    );
-    expect(listed.read).toBe(true);
+    expect(prisma.client.friendRequests.update).toHaveBeenCalledWith({
+      where: { id: 12 },
+      data: {
+        receiverReadAt: expect.any(Date),
+      },
+    });
   });
 });

@@ -4,6 +4,7 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -13,6 +14,7 @@ import { RealtimeAuthService } from "./services/realtime-auth.service";
 import { RealtimeGameEventsService } from "./services/realtime-game-events.service";
 import { RealtimeGameRuntimeService } from "./services/realtime-game-runtime.service";
 import { RealtimePresenceService } from "./services/realtime-presence.service";
+import { RealtimeNotifierService } from "./services/realtime-notifier.service";
 import { RealtimeResponseService } from "./services/realtime-response.service";
 import { RealtimeRoomEventsService } from "./services/realtime-room-events.service";
 
@@ -25,7 +27,7 @@ import { RealtimeRoomEventsService } from "./services/realtime-room-events.servi
   transports: ["websocket", "polling"],
 })
 export class RealtimeGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy, OnGatewayInit
 {
   private readonly logger = new Logger(RealtimeGateway.name);
 
@@ -39,7 +41,12 @@ export class RealtimeGateway
     private readonly roomEvents: RealtimeRoomEventsService,
     private readonly gameEvents: RealtimeGameEventsService,
     private readonly gameRuntime: RealtimeGameRuntimeService,
+    private readonly notifier: RealtimeNotifierService,
   ) {}
+
+  afterInit(server: Server): void {
+    this.notifier.bindServer(server);
+  }
 
   async handleConnection(client: Socket): Promise<void> {
     try {

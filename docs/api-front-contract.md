@@ -1,23 +1,21 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-04-15)
-Scope: contrat front-back MVP pour auth, users, rooms, game, scores
+Version: v1 (etat actuel de `dev` au 2026-04-16)
+Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, notifications
 
 ## Etat de persistance (important)
 
 - Branche sur Prisma/PostgreSQL:
   - `auth` (login/register/session/logout via `User`)
-  - `users` (`/users/me`, `/users/:id`)
+  - `users` (`/users/me`, `/users/:id`, `/users/me` patch)
+  - `friends` (`/friends`, `/friends/requests`, actions accept/decline/remove)
+  - `notifications` (`/notifications`, `/notifications/:id/read`, `/notifications/read-all`)
   - `quizzes` (`/quizzes`, `/quizzes/:quizId`)
-- Encore hors Prisma (store runtime JSON):
-  - `rooms`
-  - `game`
-  - `scores`
+- `rooms`, `game` et `scores` sont egalement persistes via PostgreSQL/Prisma.
 
 Consequence:
-- Les routes `rooms/game/scores` sont valides pour integration front MVP.
-- Les donnees sont persistees localement dans `backend/.runtime/*.json`
-  (pas encore dans PostgreSQL/Prisma).
+- Les routes `rooms/game/scores/friends/notifications` sont valides pour integration front MVP.
+- La persistance est centralisee en base PostgreSQL via Prisma.
 
 ## Base URL et proxy
 
@@ -29,6 +27,8 @@ Consequence:
   - `/rooms`
   - `/game`
   - `/scores`
+  - `/friends`
+  - `/notifications`
   - `/quizzes`
   - `/api`
   - `/health`
@@ -254,6 +254,94 @@ type Quiz = {
   - `400 BAD_REQUEST` si `id` non numerique
   - `404 NOT_FOUND` si user absent
 
+`PATCH /users/me`
+- Auth: cookie `access_token` requis
+- Body (au moins un champ):
+
+```json
+{
+  "username": "new_name",
+  "avatar_url": "https://example.com/avatar.png",
+  "status": "online"
+}
+```
+
+- Validation:
+  - `username`: string 2..32
+  - `avatar_url`: URL valide ou `null`
+  - `status`: `online | offline`
+- Reponse: `200`, `ApiResponse<SafeUser>`
+- Erreurs:
+  - `400 BAD_REQUEST` si payload vide/invalide
+  - `401 UNAUTHORIZED`
+  - `409 CONFLICT` si username deja pris
+
+### Friends
+
+`GET /friends`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<FriendListEntry[]>`
+
+```ts
+type FriendListEntry = {
+  userId: number;
+  username: string;
+  avatar_url: string | null;
+  status: "online" | "offline";
+  since: string;
+};
+```
+
+`GET /friends/requests`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ received: FriendRequestEntry[]; sent: FriendRequestEntry[] }>`
+
+```ts
+type FriendRequestEntry = {
+  requestId: number;
+  userId: number;
+  username: string;
+  avatar_url: string | null;
+  status: "online" | "offline";
+  createdAt: string;
+};
+```
+
+`POST /friends/requests`
+- Auth: cookie `access_token` requis
+- Body:
+
+```json
+{
+  "receiverUserId": 22
+}
+```
+
+- Reponse: `201` (ou `200`), `ApiResponse<FriendRequestCreated>`
+- Erreurs:
+  - `400 BAD_REQUEST`
+  - `401 UNAUTHORIZED`
+  - `404 NOT_FOUND` si user cible absent
+  - `409 CONFLICT` si self-request/deja ami/deja pending
+
+`POST /friends/requests/:requestId/accept`
+`POST /friends/requests/:requestId/decline`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ requestId: number; status: "accepted" | "declined" }>`
+- Erreurs:
+  - `400 BAD_REQUEST`
+  - `401 UNAUTHORIZED` si action non autorisee
+  - `404 NOT_FOUND`
+  - `409 CONFLICT` si request non pending
+
+`DELETE /friends/:userId`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ removed: true }>`
+- Erreurs:
+  - `400 BAD_REQUEST`
+  - `401 UNAUTHORIZED`
+  - `404 NOT_FOUND`
+
 ### Rooms
 
 `GET /rooms`
@@ -359,6 +447,40 @@ type Quiz = {
 - Erreurs:
   - `400 BAD_REQUEST`
   - `404 NOT_FOUND` si score absent
+
+### Notifications
+
+`GET /notifications?limit=20&cursor=...`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<NotificationList>`
+
+```ts
+type NotificationItem = {
+  id: number;
+  type: "FRIEND_REQUEST_RECEIVED";
+  title: string;
+  payload: {
+    requestId: number;
+    fromUserId: number;
+    fromUsername: string;
+  };
+  read: boolean;
+  createdAt: string;
+};
+
+type NotificationList = {
+  items: NotificationItem[];
+  nextCursor: string | null;
+};
+```
+
+`PATCH /notifications/:id/read`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ read: true }>`
+
+`PATCH /notifications/read-all`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ readAll: true }>`
 
 ### Quizzes
 

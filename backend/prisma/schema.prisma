@@ -65,6 +65,7 @@ model FriendRequests {
   receiverId Int
 
   status    FriendshipStatus @default(pending)
+  receiverReadAt DateTime?
   createdAt DateTime         @default(now())
 }
 

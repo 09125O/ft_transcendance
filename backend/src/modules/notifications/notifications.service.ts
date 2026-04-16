@@ -21,8 +21,6 @@ export type NotificationList = {
 
 @Injectable()
 export class NotificationsService {
-  private readonly readState = new Map<number, Set<number>>();
-
   constructor(private readonly prisma: PrismaService) {}
 
   async list(userId: number, limit = 20, cursor?: string): Promise<NotificationList> {
@@ -48,7 +46,13 @@ export class NotificationsService {
 
     const hasNext = requests.length > safeLimit;
     const pageItems = (hasNext ? requests.slice(0, safeLimit) : requests).map((request) =>
-      this.toNotification(userId, request.id, request.sender.id, request.sender.username, request.createdAt),
+      this.toNotification(
+        request.id,
+        request.sender.id,
+        request.sender.username,
+        request.createdAt,
+        request.receiverReadAt,
+      ),
     );
 
     return {
@@ -59,28 +63,27 @@ export class NotificationsService {
 
   async markRead(userId: number, notificationId: number): Promise<{ read: true }> {
     await this.ensureNotificationExists(userId, notificationId);
-    this.getUserReadSet(userId).add(notificationId);
+    await this.prisma.client.friendRequests.update({
+      where: { id: notificationId },
+      data: {
+        receiverReadAt: new Date(),
+      },
+    });
     return { read: true };
   }
 
   async markAllRead(userId: number): Promise<{ readAll: true }> {
-    const list = await this.list(userId, 50);
-    const readSet = this.getUserReadSet(userId);
-    for (const item of list.items) {
-      readSet.add(item.id);
-    }
+    await this.prisma.client.friendRequests.updateMany({
+      where: {
+        receiverId: userId,
+        status: "pending",
+        receiverReadAt: null,
+      },
+      data: {
+        receiverReadAt: new Date(),
+      },
+    });
     return { readAll: true };
-  }
-
-  private getUserReadSet(userId: number): Set<number> {
-    const current = this.readState.get(userId);
-    if (current) {
-      return current;
-    }
-
-    const created = new Set<number>();
-    this.readState.set(userId, created);
-    return created;
   }
 
   private async ensureNotificationExists(userId: number, notificationId: number): Promise<void> {
@@ -99,11 +102,11 @@ export class NotificationsService {
   }
 
   private toNotification(
-    userId: number,
     requestId: number,
     fromUserId: number,
     fromUsername: string,
     createdAt: Date,
+    receiverReadAt: Date | null,
   ): NotificationItem {
     return {
       id: requestId,
@@ -114,7 +117,7 @@ export class NotificationsService {
         fromUserId,
         fromUsername,
       },
-      read: this.getUserReadSet(userId).has(requestId),
+      read: receiverReadAt !== null,
       createdAt: createdAt.toISOString(),
     };
   }

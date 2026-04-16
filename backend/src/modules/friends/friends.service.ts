@@ -39,6 +39,7 @@ export type FriendRequestLists = {
 export type FriendRequestCreated = {
   requestId: number;
   senderUserId: number;
+  senderUsername: string;
   receiverUserId: number;
   status: FriendshipStatus;
   createdAt: string;
@@ -146,10 +147,20 @@ export class FriendsService {
       throw new ConflictException("Cannot send friend request to yourself");
     }
 
-    const receiver = await this.prisma.client.user.findUnique({
-      where: { id: receiverUserId },
-      select: { id: true },
-    });
+    const [sender, receiver] = await Promise.all([
+      this.prisma.client.user.findUnique({
+        where: { id: userId },
+        select: { id: true, username: true },
+      }),
+      this.prisma.client.user.findUnique({
+        where: { id: receiverUserId },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!sender) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
 
     if (!receiver) {
       throw new NotFoundException(`User ${receiverUserId} not found`);
@@ -185,12 +196,14 @@ export class FriendsService {
         senderId: userId,
         receiverId: receiverUserId,
         status: "pending",
+        receiverReadAt: null,
       },
     });
 
     return {
       requestId: created.id,
       senderUserId: created.senderId,
+      senderUsername: sender.username,
       receiverUserId: created.receiverId,
       status: created.status,
       createdAt: created.createdAt.toISOString(),

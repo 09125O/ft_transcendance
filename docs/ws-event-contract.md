@@ -1,6 +1,6 @@
 # WebSocket Event Contract (Back 3)
 
-Version: `v1` (etat actuel de `dev` au 2026-04-15)  
+Version: `v1` (etat actuel de `dev` au 2026-04-16)  
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -143,6 +143,18 @@ Notes:
 - `userId` peut etre omis sur tous les events: le backend derive l'identite depuis le socket JWT.
 - Seul le owner de la room peut demarrer la partie.
 
+### `room:spectate`
+
+```json
+{
+  "roomId": 1
+}
+```
+
+Notes:
+- Join la room en mode lecture seule (spectateur).
+- Un spectateur ne peut ni demarrer la partie, ni repondre.
+
 ### `game:answer`
 
 ```json
@@ -213,6 +225,24 @@ Notes:
 {
   "roomId": 1,
   "reason": "room_empty"
+}
+```
+
+- `room:spectated`:
+
+```json
+{
+  "roomId": 1,
+  "spectatorCount": 3
+}
+```
+
+- `room:spectators:update`:
+
+```json
+{
+  "roomId": 1,
+  "count": 3
 }
 ```
 
@@ -320,12 +350,32 @@ Note:
 }
 ```
 
+### Notifications
+
+- `notification:new`:
+
+```json
+{
+  "id": 44,
+  "type": "FRIEND_REQUEST_RECEIVED",
+  "title": "Nouvelle demande d'ami",
+  "payload": {
+    "requestId": 44,
+    "fromUserId": 7,
+    "fromUsername": "alice"
+  },
+  "read": false,
+  "createdAt": "2026-04-16T10:00:00.000Z"
+}
+```
+
 ## Error events
 
 - `room:create:error`
 - `room:join:error`
 - `room:leave:error`
 - `room:start:error`
+- `room:spectate:error`
 - `game:answer:error`
 - `chat:message:error`
 - `ws:auth:error`
@@ -347,6 +397,8 @@ Codes d'erreur possibles:
 - Si un `userId` est fourni dans le payload et ne correspond pas au socket, la requete est refusee.
 - `room:leave`, `game:answer` et `chat:message` refusent toute action hors membership room.
 - `room:start` est reserve au owner de la room.
+- `room:spectate` place le socket en mode lecture seule pour la room cible.
+- Un spectateur ne peut pas emettre `room:start` ni `game:answer` (UNAUTHORIZED).
 - Score cumule par user publie via `game:leaderboard`.
 - Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
 - Timeout auto d'une question puis question suivante.
@@ -356,6 +408,4 @@ Codes d'erreur possibles:
 
 ## Notes scope
 
-- Cette version repose sur les services runtime locaux actuels (`rooms/game/scores`).
-- Les etats runtime sont persistes dans `backend/.runtime/*.json`.
-- Le branchement Prisma des modules jeu sera traite dans le scope DB/data dedie.
+- Cette version est compatible avec la persistance Prisma/PostgreSQL actuelle.
