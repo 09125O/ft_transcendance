@@ -11,6 +11,7 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import { AuthGuard } from "./guards/auth.guard";
@@ -23,6 +24,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("login")
+  @Throttle({ default: { limit: 40, ttl: 60_000 } })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -32,6 +34,7 @@ export class AuthController {
   }
 
   @Post("register")
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
@@ -40,6 +43,7 @@ export class AuthController {
   }
 
   @Post("guest")
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async guest(
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponse<SafeUser>> {

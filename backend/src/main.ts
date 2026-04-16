@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import { existsSync, readFileSync } from "fs";
+import helmet from "helmet";
 import "reflect-metadata";
 import { AppModule } from "./app.module";
 
@@ -29,6 +30,8 @@ async function bootstrap() {
     credentials: true,
     origin: frontendOrigin,
   });
+
+  app.use(helmet());
 
   app.useGlobalPipes(
     new ValidationPipe({
