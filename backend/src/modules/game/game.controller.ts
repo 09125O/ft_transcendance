@@ -28,26 +28,26 @@ export class GameController {
 
   @Get(":roomId/state")
   @UseGuards(AuthGuard)
-  getState(
+  async getState(
     @Param("roomId", ParseIntPipe) roomId: number,
     @CurrentUser() auth: AuthPayload,
-  ): ApiResponse<GameState> {
-    const room = this.roomsService.getById(roomId);
+  ): Promise<ApiResponse<GameState>> {
+    const room = await this.roomsService.getById(roomId);
     const isRoomMember = room.players.some((player) => player.userId === auth.sub);
 
     if (!isRoomMember) {
       throw new UnauthorizedException("User is not in this room");
     }
 
-    return ok(this.gameService.getRoomState(roomId));
+    return ok(await this.gameService.getRoomState(roomId));
   }
 
   @Post("answer")
   @UseGuards(AuthGuard)
-  submitAnswer(
+  async submitAnswer(
     @Body() dto: SubmitAnswerDto,
     @CurrentUser() auth: AuthPayload,
-  ): ApiResponse<SubmitAnswerResult> {
-    return ok(this.gameService.submitAnswer(dto, auth.sub));
+  ): Promise<ApiResponse<SubmitAnswerResult>> {
+    return ok(await this.gameService.submitAnswer(dto, auth.sub));
   }
 }

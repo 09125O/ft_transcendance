@@ -19,11 +19,15 @@ export class RealtimeGameEventsService {
     private readonly gameRuntime: RealtimeGameRuntimeService,
   ) {}
 
-  handleGameAnswer(rawPayload: unknown, client: Socket, server: Server): void {
+  async handleGameAnswer(
+    rawPayload: unknown,
+    client: Socket,
+    server: Server,
+  ): Promise<void> {
     const payload = this.validation.validatePayload(GameAnswerEventDto, rawPayload);
     const userId = this.presence.resolveSocketUser(client.id, payload.userId);
 
-    const room = this.roomsService.getById(payload.roomId);
+    const room = await this.roomsService.getById(payload.roomId);
     if (room.status !== "playing") {
       throw new ConflictException("Game is not running for this room");
     }
@@ -33,9 +37,9 @@ export class RealtimeGameEventsService {
 
     this.gameRuntime.ensureActiveQuestion(payload.roomId, payload.questionId);
 
-    const answer = this.gameService.submitAnswer(payload, userId);
-    const gameState = this.gameService.getRoomState(payload.roomId);
-    const leaderboard = this.gameService.getRoomLeaderboard(payload.roomId);
+    const answer = await this.gameService.submitAnswer(payload, userId);
+    const gameState = await this.gameService.getRoomState(payload.roomId);
+    const leaderboard = await this.gameService.getRoomLeaderboard(payload.roomId);
     const channel = this.roomChannel(payload.roomId);
 
     server.to(channel).emit("game:answer:result", this.response.ok(answer));

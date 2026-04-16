@@ -1,15 +1,12 @@
+import { PrismaService } from "@/prisma/prisma.service";
 import {
   ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
+import { Room as PrismaRoom, RoomPlayer as PrismaRoomPlayer } from "@generated/prisma/client";
 import * as bcrypt from "bcrypt";
-import {
-  getRuntimeFilePath,
-  readRuntimeJson,
-  writeRuntimeJson,
-} from "@/common/runtime/runtime-store";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
 
@@ -32,29 +29,30 @@ export type Room = {
   passwordHash?: string;
 };
 
-type RoomsStore = {
-  nextRoomId: number;
-  rooms: Room[];
+type RoomWithPlayers = PrismaRoom & {
+  players: PrismaRoomPlayer[];
 };
 
 @Injectable()
 export class RoomsService {
-  private readonly storePath = getRuntimeFilePath("rooms-store.json");
-  private nextRoomId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  private readonly rooms: Room[] = [];
+  async list(): Promise<Array<Omit<Room, "passwordHash">>> {
+    const rooms = await this.prisma.client.room.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
 
-  constructor() {
-    this.loadStore();
+    return rooms.map((room) => this.stripPasswordHash(this.toRoom(room)));
   }
 
-  list(): Array<Omit<Room, "passwordHash">> {
-    return this.rooms.map((room) => this.stripPasswordHash(room));
-  }
-
-  getById(roomId: number): Omit<Room, "passwordHash"> {
-    const room = this.findRoomOrThrow(roomId);
-    return this.stripPasswordHash(room);
+  async getById(roomId: number): Promise<Omit<Room, "passwordHash">> {
+    const room = await this.findRoomOrThrow(roomId);
+    return this.stripPasswordHash(this.toRoom(room));
   }
 
   async create(
@@ -62,33 +60,40 @@ export class RoomsService {
       ownerUserId?: number;
     },
   ): Promise<Omit<Room, "passwordHash">> {
-    const createdAt = new Date().toISOString();
-    const shouldStorePasswordHash =
-      dto.isPrivate === true && typeof dto.password === "string" && dto.password.length > 0;
-    const privateRoomPassword = shouldStorePasswordHash ? dto.password : undefined;
-    const room: Room = {
-      id: this.nextRoomId,
-      name: dto.name,
-      ownerUserId: dto.ownerUserId,
-      rounds: dto.rounds,
-      isPrivate: dto.isPrivate ?? false,
-      status: "waiting",
-      players:
-        typeof dto.ownerUserId === "number"
-          ? [{ userId: dto.ownerUserId, joinedAt: createdAt }]
-          : [],
-      createdAt,
-      startedAt: null,
-      finishedAt: null,
-      ...(privateRoomPassword
-        ? { passwordHash: await bcrypt.hash(privateRoomPassword, 10) }
-        : {}),
-    };
+    if (typeof dto.ownerUserId !== "number") {
+      throw new UnauthorizedException("Authentication required to create a room");
+    }
 
-    this.nextRoomId += 1;
-    this.rooms.unshift(room);
-    this.persistStore();
-    return this.stripPasswordHash(room);
+    const shouldStorePasswordHash =
+      dto.isPrivate === true &&
+      typeof dto.password === "string" &&
+      dto.password.length > 0;
+    const passwordHash = shouldStorePasswordHash
+      ? await bcrypt.hash(dto.password as string, 10)
+      : undefined;
+
+    const room = await this.prisma.client.room.create({
+      data: {
+        name: dto.name,
+        ownerId: dto.ownerUserId,
+        rounds: dto.rounds,
+        isPrivate: dto.isPrivate ?? false,
+        status: "waiting",
+        ...(passwordHash ? { passwordHash } : {}),
+        players: {
+          create: {
+            userId: dto.ownerUserId,
+          },
+        },
+      },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
+
+    return this.stripPasswordHash(this.toRoom(room));
   }
 
   async join(
@@ -96,7 +101,7 @@ export class RoomsService {
     userId: number,
     password?: JoinRoomDto["password"],
   ): Promise<Omit<Room, "passwordHash">> {
-    const room = this.findRoomOrThrow(roomId);
+    const room = await this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
       throw new ConflictException("Room is not joinable");
@@ -113,47 +118,98 @@ export class RoomsService {
       }
     }
 
-    if (!room.players.some((player) => player.userId === userId)) {
-      room.players.push({
-        userId,
-        joinedAt: new Date().toISOString(),
+    const isAlreadyMember = room.players.some((player) => player.userId === userId);
+    const shouldSetOwner = room.ownerId === null;
+
+    if (!isAlreadyMember || shouldSetOwner) {
+      await this.prisma.client.$transaction(async (tx) => {
+        if (!isAlreadyMember) {
+          await tx.roomPlayer.create({
+            data: {
+              roomId,
+              userId,
+            },
+          });
+        }
+
+        if (shouldSetOwner) {
+          await tx.room.update({
+            where: { id: roomId },
+            data: { ownerId: userId },
+          });
+        }
       });
     }
 
-    if (typeof room.ownerUserId !== "number") {
-      room.ownerUserId = userId;
-    }
-
-    this.persistStore();
-    return this.stripPasswordHash(room);
+    const updated = await this.findRoomOrThrow(roomId);
+    return this.stripPasswordHash(this.toRoom(updated));
   }
 
-  leave(roomId: number, userId: number): Omit<Room, "passwordHash"> {
-    const room = this.findRoomOrThrow(roomId);
-    const existingPlayer = room.players.find((player) => player.userId === userId);
-
-    if (!existingPlayer) {
+  async leave(roomId: number, userId: number): Promise<Omit<Room, "passwordHash">> {
+    const room = await this.findRoomOrThrow(roomId);
+    const isMember = room.players.some((player) => player.userId === userId);
+    if (!isMember) {
       throw new ConflictException("User is not in this room");
     }
 
-    room.players = room.players.filter((player) => player.userId !== userId);
+    const updated = await this.prisma.client.$transaction(async (tx) => {
+      await tx.roomPlayer.delete({
+        where: {
+          userId_roomId: {
+            userId,
+            roomId,
+          },
+        },
+      });
 
-    if (room.players.length === 0) {
-      room.ownerUserId = undefined;
-      this.persistStore();
-      return this.stripPasswordHash(room);
-    }
+      let nextRoom = await tx.room.findUnique({
+        where: { id: roomId },
+        include: {
+          players: {
+            orderBy: { joinedAt: "asc" },
+          },
+        },
+      });
+      if (!nextRoom) {
+        throw new NotFoundException(`Room ${roomId} not found`);
+      }
 
-    if (room.ownerUserId === userId) {
-      room.ownerUserId = room.players[0]?.userId;
-    }
+      if (nextRoom.players.length === 0 && nextRoom.ownerId !== null) {
+        nextRoom = await tx.room.update({
+          where: { id: roomId },
+          data: { ownerId: null },
+          include: {
+            players: {
+              orderBy: { joinedAt: "asc" },
+            },
+          },
+        });
+      } else if (
+        nextRoom.players.length > 0 &&
+        nextRoom.ownerId === userId
+      ) {
+        nextRoom = await tx.room.update({
+          where: { id: roomId },
+          data: { ownerId: nextRoom.players[0].userId },
+          include: {
+            players: {
+              orderBy: { joinedAt: "asc" },
+            },
+          },
+        });
+      }
 
-    this.persistStore();
-    return this.stripPasswordHash(room);
+      return nextRoom;
+    });
+
+    return this.stripPasswordHash(this.toRoom(updated));
   }
 
-  start(roomId: number, requesterUserId: number): Omit<Room, "passwordHash"> {
-    const room = this.findRoomOrThrow(roomId);
+  async start(
+    roomId: number,
+    requesterUserId: number,
+  ): Promise<Omit<Room, "passwordHash">> {
+    const room = await this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
       throw new ConflictException("Room is not in waiting state");
@@ -163,10 +219,7 @@ export class RoomsService {
       throw new UnauthorizedException("User is not in this room");
     }
 
-    if (
-      typeof room.ownerUserId === "number" &&
-      room.ownerUserId !== requesterUserId
-    ) {
+    if (typeof room.ownerId === "number" && room.ownerId !== requesterUserId) {
       throw new UnauthorizedException("Only room owner can start the game");
     }
 
@@ -174,105 +227,97 @@ export class RoomsService {
       throw new ConflictException("Cannot start a room without players");
     }
 
-    room.status = "playing";
-    room.startedAt = new Date().toISOString();
-    room.finishedAt = null;
+    const updated = await this.prisma.client.room.update({
+      where: { id: roomId },
+      data: {
+        status: "playing",
+        startedAt: new Date(),
+        finishedAt: null,
+      },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
 
-    this.persistStore();
-    return this.stripPasswordHash(room);
+    return this.stripPasswordHash(this.toRoom(updated));
   }
 
-  finish(roomId: number): Omit<Room, "passwordHash"> {
-    const room = this.findRoomOrThrow(roomId);
+  async finish(roomId: number): Promise<Omit<Room, "passwordHash">> {
+    const room = await this.findRoomOrThrow(roomId);
 
     if (room.status !== "playing") {
       throw new ConflictException("Room is not in playing state");
     }
 
-    room.status = "finished";
-    room.finishedAt = new Date().toISOString();
+    const updated = await this.prisma.client.room.update({
+      where: { id: roomId },
+      data: {
+        status: "finished",
+        finishedAt: new Date(),
+      },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
 
-    this.persistStore();
-    return this.stripPasswordHash(room);
+    return this.stripPasswordHash(this.toRoom(updated));
   }
 
-  close(roomId: number): { roomId: number } {
-    const index = this.rooms.findIndex((room) => room.id === roomId);
-    if (index === -1) {
-      throw new NotFoundException(`Room ${roomId} not found`);
-    }
-
-    const room = this.rooms[index];
+  async close(roomId: number): Promise<{ roomId: number }> {
+    const room = await this.findRoomOrThrow(roomId);
     if (room.status === "playing") {
       throw new ConflictException("Cannot close a room while game is playing");
     }
 
-    this.rooms.splice(index, 1);
-    this.persistStore();
+    await this.prisma.client.room.delete({
+      where: { id: roomId },
+    });
 
     return { roomId };
   }
 
-  private loadStore(): void {
-    const fallback: RoomsStore = {
-      nextRoomId: 1,
-      rooms: [],
-    };
-    const snapshot = readRuntimeJson<RoomsStore>(this.storePath, fallback);
-    if (!Array.isArray(snapshot.rooms)) {
-      return;
-    }
-
-    const normalizedRooms = snapshot.rooms.map((room) => {
-      const storedRoom = room as Room & { password?: string };
-      const migratedPasswordHash =
-        typeof storedRoom.passwordHash === "string"
-          ? storedRoom.passwordHash
-          : typeof storedRoom.password === "string" && storedRoom.password.length > 0
-            ? bcrypt.hashSync(storedRoom.password, 10)
-            : undefined;
-
-      return {
-        id: storedRoom.id,
-        name: storedRoom.name,
-        ownerUserId: storedRoom.ownerUserId,
-        rounds: storedRoom.rounds,
-        isPrivate: storedRoom.isPrivate,
-        status: storedRoom.status,
-        players: storedRoom.players,
-        createdAt: storedRoom.createdAt,
-        startedAt: storedRoom.startedAt,
-        finishedAt: storedRoom.finishedAt,
-        ...(migratedPasswordHash ? { passwordHash: migratedPasswordHash } : {}),
-      } satisfies Room;
+  private async findRoomOrThrow(roomId: number): Promise<RoomWithPlayers> {
+    const room = await this.prisma.client.room.findUnique({
+      where: { id: roomId },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
     });
 
-    this.rooms.splice(0, this.rooms.length, ...normalizedRooms);
-    const maxRoomId = this.rooms.reduce(
-      (max, room) => (room.id > max ? room.id : max),
-      0,
-    );
-    this.nextRoomId = Math.max(snapshot.nextRoomId || 1, maxRoomId + 1);
-  }
-
-  private persistStore(): void {
-    writeRuntimeJson<RoomsStore>(this.storePath, {
-      nextRoomId: this.nextRoomId,
-      rooms: this.rooms,
-    });
-  }
-
-  private stripPasswordHash(room: Room): Omit<Room, "passwordHash"> {
-    const { passwordHash, ...publicRoom } = room;
-    return publicRoom;
-  }
-
-  private findRoomOrThrow(roomId: number): Room {
-    const room = this.rooms.find((item) => item.id === roomId);
     if (!room) {
       throw new NotFoundException(`Room ${roomId} not found`);
     }
 
     return room;
+  }
+
+  private toRoom(room: RoomWithPlayers): Room {
+    return {
+      id: room.id,
+      name: room.name,
+      ownerUserId: room.ownerId ?? undefined,
+      rounds: room.rounds,
+      isPrivate: room.isPrivate,
+      status: room.status,
+      players: room.players.map((player) => ({
+        userId: player.userId,
+        joinedAt: player.joinedAt.toISOString(),
+      })),
+      createdAt: room.createdAt.toISOString(),
+      startedAt: room.startedAt ? room.startedAt.toISOString() : null,
+      finishedAt: room.finishedAt ? room.finishedAt.toISOString() : null,
+      ...(room.passwordHash ? { passwordHash: room.passwordHash } : {}),
+    };
+  }
+
+  private stripPasswordHash(room: Room): Omit<Room, "passwordHash"> {
+    const { passwordHash, ...publicRoom } = room;
+    return publicRoom;
   }
 }
