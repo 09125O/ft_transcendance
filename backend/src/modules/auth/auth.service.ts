@@ -50,6 +50,9 @@ export class AuthService {
     "https://oauth2.googleapis.com/token";
   private static readonly OAUTH_GOOGLE_USERINFO_URL =
     "https://openidconnect.googleapis.com/v1/userinfo";
+  private readonly oauthHttpTimeoutMs = Number(
+    process.env.OAUTH_HTTP_TIMEOUT_MS || 10000,
+  );
 
   constructor(
     private usersService: UsersService,
@@ -114,14 +117,48 @@ export class AuthService {
     return user;
   }
 
+  private getCookieSameSite(): NonNullable<CookieOptions["sameSite"]> {
+    const configuredSameSite = (process.env.AUTH_COOKIE_SAMESITE || "lax").toLowerCase();
+
+    if (
+      configuredSameSite === "lax" ||
+      configuredSameSite === "strict" ||
+      configuredSameSite === "none"
+    ) {
+      return configuredSameSite;
+    }
+
+    return "lax";
+  }
+
+  private getCookieSecure(
+    sameSite: NonNullable<CookieOptions["sameSite"]>,
+  ): boolean {
+    const configuredSecure = process.env.AUTH_COOKIE_SECURE?.toLowerCase();
+
+    if (configuredSecure === "true") {
+      return true;
+    }
+
+    if (configuredSecure === "false") {
+      return sameSite === "none" ? true : false;
+    }
+
+    if (sameSite === "none") {
+      return true;
+    }
+
+    return process.env.FRONTEND_ORIGIN?.startsWith("https://") === true;
+  }
+
   private getAuthCookieOptions(): CookieOptions {
-    const isSecureCookie = process.env.FRONTEND_ORIGIN?.startsWith("https://");
+    const sameSite = this.getCookieSameSite();
 
     return {
       httpOnly: true,
       path: "/",
-      sameSite: isSecureCookie ? "none" : "lax",
-      secure: Boolean(isSecureCookie),
+      sameSite,
+      secure: this.getCookieSecure(sameSite),
     };
   }
 
@@ -185,6 +222,47 @@ export class AuthService {
       redirectUri,
       scope,
     };
+  }
+
+  private isAbortError(error: unknown): boolean {
+    return error instanceof Error && error.name === "AbortError";
+  }
+
+  private async fetchJsonOrThrow<T>(
+    url: string,
+    init: RequestInit,
+    errorMessage: string,
+  ): Promise<T> {
+    const timeoutController = new AbortController();
+    const timeout = setTimeout(
+      () => timeoutController.abort(),
+      this.oauthHttpTimeoutMs,
+    );
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        signal: timeoutController.signal,
+      });
+
+      if (!response.ok) {
+        throw new BadGatewayException(errorMessage);
+      }
+
+      return (await response.json()) as T;
+    } catch (error: unknown) {
+      if (this.isAbortError(error)) {
+        throw new BadGatewayException(`${errorMessage} (timeout)`);
+      }
+
+      if (error instanceof BadGatewayException) {
+        throw error;
+      }
+
+      throw new BadGatewayException(errorMessage);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   getOauth42StartUrl(res: Response): string {
@@ -319,35 +397,31 @@ export class AuthService {
       state,
     });
 
-    const tokenResponse = await fetch(AuthService.OAUTH_42_TOKEN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    const tokenJson = await this.fetchJsonOrThrow<FortyTwoTokenResponse>(
+      AuthService.OAUTH_42_TOKEN_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: tokenPayload.toString(),
       },
-      body: tokenPayload.toString(),
-    });
-
-    if (!tokenResponse.ok) {
-      throw new BadGatewayException("Failed to exchange 42 authorization code");
-    }
-
-    const tokenJson = (await tokenResponse.json()) as FortyTwoTokenResponse;
+      "Failed to exchange 42 authorization code",
+    );
 
     if (!tokenJson.access_token) {
       throw new BadGatewayException("42 token response is invalid");
     }
 
-    const meResponse = await fetch(AuthService.OAUTH_42_ME_URL, {
-      headers: {
-        Authorization: `Bearer ${tokenJson.access_token}`,
+    const profile = await this.fetchJsonOrThrow<FortyTwoMeResponse>(
+      AuthService.OAUTH_42_ME_URL,
+      {
+        headers: {
+          Authorization: `Bearer ${tokenJson.access_token}`,
+        },
       },
-    });
-
-    if (!meResponse.ok) {
-      throw new BadGatewayException("Failed to fetch 42 profile");
-    }
-
-    const profile = (await meResponse.json()) as FortyTwoMeResponse;
+      "Failed to fetch 42 profile",
+    );
 
     if (!profile.login) {
       throw new BadGatewayException("42 profile is invalid");
@@ -392,37 +466,31 @@ export class AuthService {
       redirect_uri: config.redirectUri,
     });
 
-    const tokenResponse = await fetch(AuthService.OAUTH_GOOGLE_TOKEN_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    const tokenJson = await this.fetchJsonOrThrow<GoogleTokenResponse>(
+      AuthService.OAUTH_GOOGLE_TOKEN_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: tokenPayload.toString(),
       },
-      body: tokenPayload.toString(),
-    });
-
-    if (!tokenResponse.ok) {
-      throw new BadGatewayException(
-        "Failed to exchange Google authorization code",
-      );
-    }
-
-    const tokenJson = (await tokenResponse.json()) as GoogleTokenResponse;
+      "Failed to exchange Google authorization code",
+    );
 
     if (!tokenJson.access_token) {
       throw new BadGatewayException("Google token response is invalid");
     }
 
-    const userInfoResponse = await fetch(AuthService.OAUTH_GOOGLE_USERINFO_URL, {
-      headers: {
-        Authorization: `Bearer ${tokenJson.access_token}`,
+    const profile = await this.fetchJsonOrThrow<GoogleUserInfoResponse>(
+      AuthService.OAUTH_GOOGLE_USERINFO_URL,
+      {
+        headers: {
+          Authorization: `Bearer ${tokenJson.access_token}`,
+        },
       },
-    });
-
-    if (!userInfoResponse.ok) {
-      throw new BadGatewayException("Failed to fetch Google profile");
-    }
-
-    const profile = (await userInfoResponse.json()) as GoogleUserInfoResponse;
+      "Failed to fetch Google profile",
+    );
 
     if (!profile.sub) {
       throw new BadGatewayException("Google profile is invalid");

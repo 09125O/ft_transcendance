@@ -183,7 +183,10 @@ export class RealtimeGameRuntimeService {
     this.scoresService.recordGameResult(leaderboard, winnerUserId);
 
     server.to(channel).emit("room:state", this.response.ok(room));
-    server.to(channel).emit("game:leaderboard", this.response.ok(leaderboard));
+    server.to(channel).emit(
+      "game:leaderboard",
+      this.response.ok({ roomId, leaderboard }),
+    );
     server.to(channel).emit("game:state", this.response.ok(gameState));
     server.to(channel).emit(
       "game:ended",

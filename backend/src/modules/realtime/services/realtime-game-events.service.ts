@@ -40,7 +40,13 @@ export class RealtimeGameEventsService {
 
     server.to(channel).emit("game:answer:result", this.response.ok(answer));
     server.to(channel).emit("game:state", this.response.ok(gameState));
-    server.to(channel).emit("game:leaderboard", this.response.ok(leaderboard));
+    server.to(channel).emit(
+      "game:leaderboard",
+      this.response.ok({
+        roomId: payload.roomId,
+        leaderboard,
+      }),
+    );
   }
 
   private roomChannel(roomId: number): string {

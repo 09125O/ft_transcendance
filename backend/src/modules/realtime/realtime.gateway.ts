@@ -78,7 +78,7 @@ export class RealtimeGateway
 
   @SubscribeMessage("room:list")
   handleRoomList(@ConnectedSocket() client: Socket): void {
-    this.runSafely(client, "room:list:error", () => {
+    void this.runSafely(client, "room:list:error", () => {
       this.roomEvents.handleRoomList(client);
     });
   }
@@ -88,8 +88,8 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "room:create:error", () => {
-      this.roomEvents.handleRoomCreate(payload, client, this.server);
+    void this.runSafely(client, "room:create:error", async () => {
+      await this.roomEvents.handleRoomCreate(payload, client, this.server);
     });
   }
 
@@ -98,8 +98,8 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "room:join:error", () => {
-      this.roomEvents.handleRoomJoin(payload, client, this.server);
+    void this.runSafely(client, "room:join:error", async () => {
+      await this.roomEvents.handleRoomJoin(payload, client, this.server);
     });
   }
 
@@ -108,7 +108,7 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "room:leave:error", () => {
+    void this.runSafely(client, "room:leave:error", () => {
       this.roomEvents.handleRoomLeave(payload, client, this.server);
     });
   }
@@ -118,7 +118,7 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "room:start:error", () => {
+    void this.runSafely(client, "room:start:error", () => {
       this.roomEvents.handleRoomStart(payload, client, this.server);
     });
   }
@@ -128,7 +128,7 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "game:answer:error", () => {
+    void this.runSafely(client, "game:answer:error", () => {
       this.gameEvents.handleGameAnswer(payload, client, this.server);
     });
   }
@@ -138,18 +138,18 @@ export class RealtimeGateway
     @MessageBody() payload: unknown,
     @ConnectedSocket() client: Socket,
   ): void {
-    this.runSafely(client, "chat:message:error", () => {
+    void this.runSafely(client, "chat:message:error", () => {
       this.roomEvents.handleChatMessage(payload, client, this.server);
     });
   }
 
-  private runSafely(
+  private async runSafely(
     client: Socket,
     errorEvent: string,
-    callback: () => void,
-  ): void {
+    callback: () => void | Promise<void>,
+  ): Promise<void> {
     try {
-      callback();
+      await callback();
     } catch (exception) {
       this.response.emitError(client, errorEvent, exception);
     }

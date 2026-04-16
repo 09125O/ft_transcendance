@@ -80,12 +80,24 @@ Codes d'erreur standards (selon statut HTTP):
 
 ## Types utilises par le front
 
-`SafeUser` (retour auth/users):
+`SafeUser` (retour auth/session):
 
 ```ts
 type SafeUser = {
   id: number;
   email: string;
+  username: string;
+  avatar_url: string | null;
+  status: "online" | "offline";
+  createdAt: string;
+};
+```
+
+`PublicUser` (retour `GET /users/:id`):
+
+```ts
+type PublicUser = {
+  id: number;
   username: string;
   avatar_url: string | null;
   status: "online" | "offline";
@@ -235,8 +247,10 @@ type Quiz = {
   - `404 NOT_FOUND`
 
 `GET /users/:id`
-- Reponse: `200`, `ApiResponse<SafeUser>`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<PublicUser>`
 - Erreurs:
+  - `401 UNAUTHORIZED`
   - `400 BAD_REQUEST` si `id` non numerique
   - `404 NOT_FOUND` si user absent
 
@@ -304,9 +318,11 @@ type Quiz = {
 ### Game
 
 `GET /game/:roomId/state`
+- Auth: cookie `access_token` requis
 - Reponse: `200`, `ApiResponse<GameState>`
 - Erreurs:
   - `400 BAD_REQUEST`
+  - `401 UNAUTHORIZED` si user hors room
   - `404 NOT_FOUND` si room absente
 
 `POST /game/answer`

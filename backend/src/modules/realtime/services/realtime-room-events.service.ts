@@ -32,11 +32,15 @@ export class RealtimeRoomEventsService {
     client.emit("room:list", this.response.ok(this.roomsService.list()));
   }
 
-  handleRoomCreate(rawPayload: unknown, client: Socket, server: Server): void {
+  async handleRoomCreate(
+    rawPayload: unknown,
+    client: Socket,
+    server: Server,
+  ): Promise<void> {
     const payload = this.validation.validatePayload(RoomCreateEventDto, rawPayload);
     const requesterUserId = this.presence.resolveSocketUser(client.id, payload.userId);
     const { userId, ...createDto } = payload;
-    const room = this.roomsService.create({
+    const room = await this.roomsService.create({
       ...createDto,
       ownerUserId: requesterUserId,
     });
@@ -47,7 +51,11 @@ export class RealtimeRoomEventsService {
     this.broadcastRoomList(server);
   }
 
-  handleRoomJoin(rawPayload: unknown, client: Socket, server: Server): void {
+  async handleRoomJoin(
+    rawPayload: unknown,
+    client: Socket,
+    server: Server,
+  ): Promise<void> {
     const payload = this.validation.validatePayload(RoomJoinEventDto, rawPayload);
     const userId = this.presence.resolveSocketUser(client.id, payload.userId);
     const existingRoom = this.roomsService.getById(payload.roomId);
@@ -56,7 +64,7 @@ export class RealtimeRoomEventsService {
     );
     const room = isAlreadyMember
       ? existingRoom
-      : this.roomsService.join(payload.roomId, userId, payload.password);
+      : await this.roomsService.join(payload.roomId, userId, payload.password);
 
     client.join(this.roomChannel(payload.roomId));
     client.emit("room:joined", this.response.ok(room));
