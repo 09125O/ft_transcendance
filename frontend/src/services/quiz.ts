@@ -12,11 +12,14 @@ export type RoomPlayer = {
 export type Room = {
   id: number;
   name: string;
+  ownerUserId?: number;
   rounds: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
   players: RoomPlayer[];
   createdAt: string;
+  startedAt?: string | null;
+  finishedAt?: string | null;
 };
 
 export type CreateRoomPayload = {

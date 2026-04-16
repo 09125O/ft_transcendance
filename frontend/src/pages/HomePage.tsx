@@ -18,6 +18,18 @@ export default function HomePage() {
   const { roomId: roomIdParam } = useParams();
   const [isRulesOpen, setIsRulesOpen] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    id: number;
+    questionNumber: number;
+    totalQuestions: number;
+    text: string;
+    options: string[];
+  } | null>(null);
+  const [remainingMs, setRemainingMs] = useState<number | null>(null);
+  const [hasAnsweredCurrentQuestion, setHasAnsweredCurrentQuestion] = useState(false);
+  const [isAnswerSubmitting, setIsAnswerSubmitting] = useState(false);
+  const [gameFeedback, setGameFeedback] = useState<string | null>(null);
+  const [gameError, setGameError] = useState<string | null>(null);
   const { user: sessionUser, isLoading: isSessionLoading } = useAuth();
   const {
     rooms,
@@ -54,6 +66,12 @@ export default function HomePage() {
     if (activePanel === "lobby") {
       clearCurrentRoom();
       setSelectedAnswer(null);
+      setCurrentQuestion(null);
+      setRemainingMs(null);
+      setHasAnsweredCurrentQuestion(false);
+      setIsAnswerSubmitting(false);
+      setGameFeedback(null);
+      setGameError(null);
       return;
     }
 
@@ -75,6 +93,28 @@ export default function HomePage() {
     void restoreRoom();
   }, [activePanel, clearCurrentRoom, loadCurrentRoom, navigate, requestedRoomId]);
 
+  useEffect(() => {
+    if (!currentRoom) {
+      return;
+    }
+
+    if (currentRoom.status === "waiting") {
+      setCurrentQuestion(null);
+      setRemainingMs(null);
+      setHasAnsweredCurrentQuestion(false);
+      setIsAnswerSubmitting(false);
+      setSelectedAnswer(null);
+    }
+
+    if (currentRoom.status === "finished") {
+      setCurrentQuestion(null);
+      setRemainingMs(null);
+      setHasAnsweredCurrentQuestion(true);
+      setIsAnswerSubmitting(false);
+      setSelectedAnswer(null);
+    }
+  }, [currentRoom, setSelectedAnswer]);
+
   useRoomRealtime({
     requestedRoomId,
     currentRoomId,
@@ -86,7 +126,72 @@ export default function HomePage() {
     },
     onRoomJoined: resetChat,
     onLeaderboard: applyLeaderboard,
+    onQuestionStarted: (payload) => {
+      setCurrentQuestion({
+        id: payload.questionId,
+        questionNumber: payload.questionNumber,
+        totalQuestions: payload.totalQuestions,
+        text: payload.question.text,
+        options: payload.question.options,
+      });
+      setRemainingMs(payload.durationMs);
+      setSelectedAnswer(null);
+      setHasAnsweredCurrentQuestion(false);
+      setIsAnswerSubmitting(false);
+      setGameError(null);
+      setGameFeedback(null);
+    },
+    onTimer: (payload) => {
+      setRemainingMs(payload.remainingMs);
+    },
+    onQuestionTimeout: () => {
+      setHasAnsweredCurrentQuestion(true);
+      setIsAnswerSubmitting(false);
+      setGameFeedback("Temps écoulé pour cette question.");
+    },
+    onAnswerResult: (payload) => {
+      if (!sessionUser || payload.userId !== sessionUser.id) {
+        return;
+      }
+
+      setHasAnsweredCurrentQuestion(true);
+      setIsAnswerSubmitting(false);
+      setGameFeedback(
+        payload.isCorrect ? `Bonne réponse (+${payload.scoreDelta})` : "Mauvaise réponse.",
+      );
+    },
+    onGameEnded: (payload) => {
+      setCurrentQuestion(null);
+      setRemainingMs(null);
+      setHasAnsweredCurrentQuestion(true);
+      setIsAnswerSubmitting(false);
+      setSelectedAnswer(null);
+      setGameFeedback(
+        payload.winnerUserId === sessionUser?.id
+          ? "Partie terminée, tu as gagné."
+          : "Partie terminée.",
+      );
+    },
+    onRealtimeError: (message) => {
+      setGameError(message);
+      setIsAnswerSubmitting(false);
+    },
   });
+
+  const isOwner = Boolean(
+    sessionUser &&
+      currentRoom &&
+      typeof currentRoom.ownerUserId === "number" &&
+      currentRoom.ownerUserId === sessionUser.id,
+  );
+  const canSubmitAnswer = Boolean(
+    sessionUser &&
+      currentRoom &&
+      currentRoom.status === "playing" &&
+      currentQuestion &&
+      selectedAnswer !== null &&
+      !hasAnsweredCurrentQuestion,
+  );
 
   const chatEntries = chatMessages.map((message) => ({
     ...message,
@@ -129,6 +234,9 @@ export default function HomePage() {
 
       {!isRulesOpen && activePanel === "game" ? (
         <GamePanel
+          roomName={currentRoom?.name ?? `Room #${requestedRoomId ?? ""}`}
+          roomStatus={currentRoom?.status ?? "waiting"}
+          isOwner={isOwner}
           onToggleRules={() => setIsRulesOpen((currentValue) => !currentValue)}
           onLeaveRoom={() => {
             if (currentRoom && sessionUser) {
@@ -139,11 +247,54 @@ export default function HomePage() {
             }
             clearCurrentRoom();
             setSelectedAnswer(null);
+            setCurrentQuestion(null);
+            setRemainingMs(null);
+            setHasAnsweredCurrentQuestion(false);
+            setIsAnswerSubmitting(false);
+            setGameFeedback(null);
+            setGameError(null);
             setIsRulesOpen(false);
             navigate("/");
           }}
+          onStartGame={() => {
+            if (!currentRoom || !sessionUser) {
+              return;
+            }
+            setGameError(null);
+            setGameFeedback(null);
+            emitWs("room:start", {
+              roomId: currentRoom.id,
+              userId: sessionUser.id,
+            });
+          }}
+          onSubmitAnswer={() => {
+            if (
+              !currentRoom ||
+              !sessionUser ||
+              !currentQuestion ||
+              selectedAnswer === null ||
+              hasAnsweredCurrentQuestion
+            ) {
+              return;
+            }
+            setGameError(null);
+            setGameFeedback(null);
+            setIsAnswerSubmitting(true);
+            emitWs("game:answer", {
+              roomId: currentRoom.id,
+              userId: sessionUser.id,
+              questionId: currentQuestion.id,
+              answerIndex: selectedAnswer,
+            });
+          }}
           selectedAnswer={selectedAnswer}
           onSelectAnswer={setSelectedAnswer}
+          canSubmitAnswer={canSubmitAnswer}
+          isAnswerSubmitting={isAnswerSubmitting}
+          currentQuestion={currentQuestion}
+          remainingMs={remainingMs}
+          gameFeedback={gameFeedback}
+          gameError={gameError}
           scoreEntries={scoreEntries}
           chatMessages={chatEntries}
           chatError={chatError}
