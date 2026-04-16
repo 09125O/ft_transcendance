@@ -55,9 +55,12 @@ Le repo peut etre verifie via GitHub Actions avec :
 
 - le build du `backend`
 - le build du `frontend`
+- une validation lockfile (`package-lock.json`) par app
 - un demarrage complet de la stack Docker
 - le smoke test `scripts/smoke-test.sh`
 - un smoke test WebSocket Back 3 via `cd backend && npm run test:ws-smoke`
+- un test de scenarios critiques WebSocket (QA-05) via `cd backend && npm run test:ws-critical`
+- un test de rate limiting HTTP (SEC-02) via `cd backend && npm run test:rate-limit`
 
 Le workflow peut fonctionner de deux facons :
 
@@ -80,12 +83,17 @@ Contrat detaille front-back:
 - `docs/api-front-contract.md`
 - `docs/ws-event-contract.md` (temps reel WebSocket)
 - `docs/front2-realtime-integration.md` (checklist de branchement Front2)
+- `docs/architecture-db-first.md` (source de verite metier et role runtime)
+- `docs/room-game-state-audit.md` (mini-audit de consolidation)
 
 Etat actuel:
 - `auth` + `users` branches sur Prisma/PostgreSQL
 - `quizzes` branche sur Prisma/PostgreSQL
-- `rooms` + `game` + `scores` persistes en local dans `backend/.runtime/*.json`
-  (pas encore branches sur Prisma)
+- `rooms` + `game` + `scores` branches sur Prisma/PostgreSQL
+
+Note architecture (resume):
+- Prisma/PostgreSQL est la source de verite metier (room/game/questions/reponses/scores).
+- Le runtime WebSocket sert uniquement a l'orchestration live (timers, diffusion, coordination).
 
 - `POST /auth/register`
 - `POST /auth/login`
@@ -140,6 +148,8 @@ Important pour le front en dev:
 - le WebSocket Socket.IO passe lui aussi par le meme origin frontend, sans mixed content
 - la confiance navigateur/Node repose sur `mkcert`; lancer `make tls-trust` une fois par machine
 - utiliser `credentials: "include"` pour que la session cookie fonctionne
+- apres une migration Prisma, relancer `cd backend && npm run prisma:generate` puis redemarrer le backend (`docker compose restart backend`)
+- sinon tu peux voir des erreurs du type `Unknown argument quizId` ou `currentGameId does not exist`
 
 ## Quand ajouter nginx
 
