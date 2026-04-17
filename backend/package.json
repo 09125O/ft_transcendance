@@ -17,7 +17,7 @@
     "test:ws-smoke": "sh -c 'if [ -f ../certs/mkcert-rootCA.pem ]; then NODE_EXTRA_CA_CERTS=../certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs; elif [ -f /certs/mkcert-rootCA.pem ]; then NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs; else WS_TLS_INSECURE=1 NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/ws-smoke-test.mjs; fi'",
     "start": "node dist/main.js",
     "start:dev": "npm run prisma:generate && ts-node-dev --respawn --transpile-only src/main.ts",
-    "start:docker": "npm run deps:sync && npm run prisma:generate && npm run prisma:migrate:deploy && npm run prisma:seed && ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/main.ts"
+    "start:docker": "npm run deps:sync && npm run prisma:generate && npm run prisma:migrate:deploy && ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/main.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",

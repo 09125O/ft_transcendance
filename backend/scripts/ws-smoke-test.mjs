@@ -69,10 +69,11 @@ async function run() {
       outsiderSession.cookieHeader,
     );
     pass(`Connexion WS OK (outsider, userId=${outsider.userId})`);
+    const quizId = await ensureQuizId(WS_BASE_URL);
 
     section("test websocket room lifecycle");
     sockets.push(owner.socket, guest.socket, third.socket, outsider.socket);
-    const roomId = await createRoomWithOwner(owner);
+    const roomId = await createRoomWithOwner(owner, quizId);
     await assertOutsiderCannotChat(outsider, roomId);
     await joinRoomAsGuest(guest, roomId);
     await joinRoomAsGuest(third, roomId);
@@ -82,6 +83,7 @@ async function run() {
     await assertPrivateRoomRestJoinThenWsChat(
       owner,
       guest,
+      quizId,
       WS_BASE_URL,
       guestSession.cookieHeader,
     );
@@ -105,18 +107,31 @@ async function run() {
   }
 }
 
-async function createRoomWithOwner(owner) {
+async function createRoomWithOwner(owner, quizId) {
   const roomCreatedPromise = waitForEvent(
     owner.socket,
     "room:created",
     (payload) => payload?.success === true && typeof payload?.data?.id === "number",
   );
+  const roomCreateErrorPromise = waitForEvent(
+    owner.socket,
+    "room:create:error",
+    (payload) => payload?.success === false,
+  );
   owner.socket.emit("room:create", {
+    quizId,
     name: `WS Smoke ${Date.now()}`,
     rounds: 1,
     isPrivate: false,
   });
-  const roomCreated = await roomCreatedPromise;
+  const roomCreated = await Promise.race([
+    roomCreatedPromise,
+    roomCreateErrorPromise.then((payload) => {
+      const code = payload?.error?.code ?? "UNKNOWN";
+      const message = payload?.error?.message ?? "Unknown room:create error";
+      fail(`room:create failed (${code}) ${message}`);
+    }),
+  ]);
   const roomId = roomCreated?.data?.id;
   if (typeof roomId !== "number") fail("room:created payload missing room id");
   if (roomCreated?.data?.ownerUserId !== owner.userId) fail("room owner mismatch");
@@ -164,6 +179,7 @@ async function assertGuestCannotStartRoom(guest, roomId) {
 async function assertPrivateRoomRestJoinThenWsChat(
   owner,
   guest,
+  quizId,
   baseUrl,
   guestCookieHeader,
 ) {
@@ -173,14 +189,27 @@ async function assertPrivateRoomRestJoinThenWsChat(
     "room:created",
     (payload) => payload?.success === true && payload?.data?.isPrivate === true,
   );
+  const roomCreateErrorPromise = waitForEvent(
+    owner.socket,
+    "room:create:error",
+    (payload) => payload?.success === false,
+  );
   owner.socket.emit("room:create", {
+    quizId,
     name: `Private WS Smoke ${Date.now()}`,
     rounds: 1,
     isPrivate: true,
     password,
   });
 
-  const roomCreated = await roomCreatedPromise;
+  const roomCreated = await Promise.race([
+    roomCreatedPromise,
+    roomCreateErrorPromise.then((payload) => {
+      const code = payload?.error?.code ?? "UNKNOWN";
+      const message = payload?.error?.message ?? "Unknown room:create error";
+      fail(`private room:create failed (${code}) ${message}`);
+    }),
+  ]);
   const roomId = roomCreated?.data?.id;
   if (typeof roomId !== "number") {
     fail("Private room creation failed");
@@ -225,6 +254,43 @@ async function assertPrivateRoomRestJoinThenWsChat(
   });
   await chatPromise;
   pass("Room privee: join REST + attach WS + chat OK");
+}
+
+async function ensureQuizId(baseUrl) {
+  const listResponse = await fetch(`${baseUrl}/quizzes`);
+  if (!listResponse.ok) {
+    fail(`Quiz list endpoint failed (${listResponse.status})`);
+  }
+  const listPayload = await listResponse.json();
+  const existingQuizId = listPayload?.data?.[0]?.id;
+  if (typeof existingQuizId === "number") {
+    return existingQuizId;
+  }
+
+  const createResponse = await fetch(`${baseUrl}/quizzes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: `WS Smoke Quiz ${Date.now()}`,
+      questions: [
+        {
+          questionText: "Question smoke test",
+          answers: ["A", "B", "C", "D"],
+          correctAnswerIndex: 1,
+          points: 1,
+        },
+      ],
+    }),
+  });
+  if (!createResponse.ok) {
+    fail(`Quiz creation failed (${createResponse.status})`);
+  }
+  const createPayload = await createResponse.json();
+  const createdQuizId = createPayload?.data?.id;
+  if (typeof createdQuizId !== "number") {
+    fail("Quiz creation response missing quiz id");
+  }
+  return createdQuizId;
 }
 
 async function startRoomAsOwnerAndGetQuestion(owner, roomId) {
@@ -341,7 +407,7 @@ async function assertScoresLeaderboard(baseUrl, userId) {
     fail("Missing finished game result in user score endpoint");
   }
 
-  if (entry.score < 100 || entry.wins < 1) {
+  if (typeof entry.score !== "number" || entry.score < 0 || entry.wins < 1) {
     fail("Scores REST endpoints did not aggregate game result");
   }
 

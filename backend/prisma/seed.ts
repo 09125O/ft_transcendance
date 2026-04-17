@@ -186,21 +186,29 @@ async function main() {
     const quiz = existing
       ? existing
       : await prisma.quiz.create({ data: { title: DEFAULT_QUIZ_TITLE } });
-
-    await prisma.quizQuestion.deleteMany({ where: { quizId: quiz.id } });
-
-    await prisma.quizQuestion.createMany({
-      data: QUESTIONS.map((question, index) => ({
-        quizId: quiz.id,
-        questionText: question.text,
-        answers: question.options,
-        correctAnswer: question.correct,
-        position: index + 1,
-        points: question.points ?? 100,
-      })),
+    const existingQuestions = await prisma.quizQuestion.findMany({
+      where: { quizId: quiz.id },
+      select: { position: true },
     });
+    const existingPositions = new Set(existingQuestions.map((question) => question.position));
+    const missingQuestions = QUESTIONS.map((question, index) => ({
+      quizId: quiz.id,
+      questionText: question.text,
+      answers: question.options,
+      correctAnswer: question.correct,
+      position: index + 1,
+      points: question.points ?? 100,
+    })).filter((question) => !existingPositions.has(question.position));
 
-    console.log(`[seed] Quiz "${DEFAULT_QUIZ_TITLE}" seeded with ${QUESTIONS.length} questions.`);
+    if (missingQuestions.length > 0) {
+      await prisma.quizQuestion.createMany({
+        data: missingQuestions,
+      });
+    }
+
+    console.log(
+      `[seed] Quiz "${DEFAULT_QUIZ_TITLE}": +${missingQuestions.length} question(s) ajoutee(s), ${existingQuestions.length + missingQuestions.length} total.`,
+    );
   } finally {
     await prisma.$disconnect();
   }
