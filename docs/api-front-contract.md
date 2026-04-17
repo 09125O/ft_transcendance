@@ -382,9 +382,6 @@ type FriendRequestEntry = {
   - `isPrivate`: boolean optionnel
   - `password`: requis si `isPrivate=true`, string 4..64
 - Reponse: `201`, `ApiResponse<Room>`
-- Note MVP:
-  - `rounds`, `isPrivate`, `password` sont des champs API temporaires cote service memoire.
-  - Le schema Prisma `Room` ne les inclut pas encore dans l'etat actuel.
 
 `POST /rooms/:roomId/join`
 - Auth: cookie `access_token` requis

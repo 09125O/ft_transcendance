@@ -127,6 +127,9 @@ jobs:
       - name: Run HTTP rate limit test
         run: docker exec quiz_backend npm run test:rate-limit
 
+      - name: Run social integration test
+        run: docker exec quiz_backend npm run test:integration:social
+
       - name: Show compose logs on failure
         if: failure()
         run: docker compose logs --no-color

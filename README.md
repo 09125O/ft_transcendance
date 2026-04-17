@@ -83,8 +83,6 @@ Contrat detaille front-back:
 - `docs/api-front-contract.md`
 - `docs/ws-event-contract.md` (temps reel WebSocket)
 - `docs/front2-realtime-integration.md` (checklist de branchement Front2)
-- `docs/architecture-db-first.md` (source de verite metier et role runtime)
-- `docs/room-game-state-audit.md` (mini-audit de consolidation)
 
 Etat actuel:
 - `auth` + `users` branches sur Prisma/PostgreSQL
@@ -97,10 +95,22 @@ Note architecture (resume):
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `GET /auth/42/start`
+- `GET /auth/42/callback`
 - `POST /auth/logout`
 - `GET /auth/session`
 - `GET /users/me`
+- `PATCH /users/me`
 - `GET /users/:id`
+- `GET /friends`
+- `GET /friends/requests`
+- `POST /friends/requests`
+- `POST /friends/requests/:requestId/accept`
+- `POST /friends/requests/:requestId/decline`
+- `DELETE /friends/:userId`
+- `GET /notifications`
+- `PATCH /notifications/:id/read`
+- `PATCH /notifications/read-all`
 - `GET /rooms`
 - `POST /rooms`
 - `GET /rooms/:roomId`
@@ -143,11 +153,12 @@ Reponse d'erreur standard:
 Important pour le front en dev:
 
 - le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game` et `/scores`
-- il couvre aussi `/quizzes`
+- il couvre aussi `/quizzes`, `/friends` et `/notifications`
 - le front peut donc appeler ces routes directement sur `https://localhost:3000`
 - le WebSocket Socket.IO passe lui aussi par le meme origin frontend, sans mixed content
 - la confiance navigateur/Node repose sur `mkcert`; lancer `make tls-trust` une fois par machine
 - utiliser `credentials: "include"` pour que la session cookie fonctionne
+- l'auth OAuth du projet est desormais limitee a 42 (`/auth/42/start`)
 - apres une migration Prisma, relancer `cd backend && npm run prisma:generate` puis redemarrer le backend (`docker compose restart backend`)
 - sinon tu peux voir des erreurs du type `Unknown argument quizId` ou `currentGameId does not exist`
 

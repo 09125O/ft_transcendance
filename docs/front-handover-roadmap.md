@@ -193,7 +193,7 @@ P2:
 ## 7) Risques et dependances
 
 - Risque principal: avance backend non visible en demo si UI insuffisante
-- Dependance: endpoints social/amis a confirmer cote backend
+- Dependance: alignement front sur les endpoints social/notifications dejas exposes cote backend
 - Mitigation: travailler en mode "UI first + adapter service" pour debloquer l'integration
 - Spec backend de rattrapage: docs/backend-front-enablement-spec.md
 

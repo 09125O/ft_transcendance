@@ -39,6 +39,12 @@ Transport: `socket.io`
 - listen `room:closed` (si room vide)
 - listen `room:leave:error`
 
+5. Spectateur:
+- emit `room:spectate` `{ roomId }`
+- listen `room:spectated`
+- listen `room:spectators:update`
+- un spectateur ne peut pas lancer `room:start` ni `game:answer`
+
 ## Flux Game
 
 1. Start (owner only):
@@ -76,6 +82,11 @@ Transport: `socket.io`
 - listen `chat:message`
 - listen `chat:message:error`
 
+## Flux Notifications
+
+- listen `notification:new` pour nouvelles demandes d'amis
+- fallback HTTP: `GET /notifications`
+
 ## Erreurs a gerer cote front
 
 - `UNAUTHORIZED`:
@@ -103,7 +114,7 @@ Transport: `socket.io`
 ## Notes integration
 
 - Ne pas faire confiance au `userId` UI seul: le backend valide contre le socket authentifie.
-- Les services `rooms/game/scores` sont persistes en local via `backend/.runtime/*.json`.
+- Les services `rooms/game/scores` sont persistes via Prisma/PostgreSQL.
 - Pour la recette, lancer:
   - `make up`
   - `cd backend && npm run test:ws-smoke`
