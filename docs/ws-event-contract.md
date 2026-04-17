@@ -43,11 +43,14 @@ Erreur:
   "id": 1,
   "name": "Lobby #1",
   "ownerUserId": 1,
+  "quizId": 1,
   "rounds": 5,
   "isPrivate": false,
   "status": "waiting",
   "players": [{ "userId": 1, "joinedAt": "2026-04-08T10:00:00.000Z" }],
-  "createdAt": "2026-04-08T10:00:00.000Z"
+  "createdAt": "2026-04-08T10:00:00.000Z",
+  "startedAt": null,
+  "finishedAt": null
 }
 ```
 
@@ -105,12 +108,15 @@ Payload: none
   "rounds": 5,
   "isPrivate": false,
   "password": "room1234",
+  "quizId": 1,
   "userId": 1
 }
 ```
 
 Notes:
 - `password` requis seulement si `isPrivate=true`.
+- `quizId` optionnel, mais recommande pour les rooms creees depuis l'interface quiz.
+- Si `quizId` est fourni, les questions de la partie viennent de ce quiz.
 - `userId` optionnel (si fourni, le createur rejoint la room).
 
 ### `room:join`
@@ -279,6 +285,8 @@ Notes:
 
 Note:
 - Le backend n'expose pas la bonne reponse dans ce payload.
+- Si la room a un `quizId`, `question` correspond a une `QuizQuestion` persistante.
+- Sinon, le backend utilise une banque de questions de fallback pour compatibilite.
 
 - `game:timer`:
 
@@ -400,6 +408,7 @@ Codes d'erreur possibles:
 - `room:spectate` place le socket en mode lecture seule pour la room cible.
 - Un spectateur ne peut pas emettre `room:start` ni `game:answer` (UNAUTHORIZED).
 - Score cumule par user publie via `game:leaderboard`.
+- Les rooms peuvent etre liees a un quiz via `Room.quizId`; dans ce cas l'ordre, le texte, les options, la bonne reponse et les points viennent des `QuizQuestion`.
 - Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
 - Timeout auto d'une question puis question suivante.
 - Fin auto de partie a la fin du cycle de questions.
