@@ -1,0 +1,8 @@
+ALTER TABLE "Room"
+ADD COLUMN "quizId" INTEGER;
+
+ALTER TABLE "Room"
+ADD CONSTRAINT "Room_quizId_fkey"
+FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX "Room_quizId_idx" ON "Room"("quizId");

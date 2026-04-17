@@ -13,6 +13,7 @@ export type Room = {
   id: number;
   name: string;
   ownerUserId?: number;
+  quizId?: number;
   rounds: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
@@ -26,6 +27,7 @@ export type CreateRoomPayload = {
   name: string;
   rounds: number;
   isPrivate: boolean;
+  quizId?: number;
   password?: string;
 };
 

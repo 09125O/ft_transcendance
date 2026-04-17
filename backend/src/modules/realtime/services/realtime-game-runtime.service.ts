@@ -43,7 +43,11 @@ export class RealtimeGameRuntimeService {
     roomRounds: number,
     server: Server,
   ): Promise<void> {
-    const totalQuestions = Math.max(1, roomRounds);
+    const questionOrder = await this.gameService.getQuestionOrder(roomId);
+    if (questionOrder.length === 0) {
+      throw new ConflictException("No questions configured");
+    }
+    const totalQuestions = Math.min(Math.max(1, roomRounds), questionOrder.length);
     await this.gameService.startGame(roomId, totalQuestions, this.questionDurationMs);
     server.to(roomChannel(roomId)).emit(
       "game:started",
@@ -81,10 +85,14 @@ export class RealtimeGameRuntimeService {
   ): Promise<void> {
     this.stopRoomTimer(roomId);
 
-    const questionId = getQuestionIdForTurn(this.gameService, questionNumber);
+    const questionId = await getQuestionIdForTurn(
+      this.gameService,
+      roomId,
+      questionNumber,
+    );
     const startsAtMs = Date.now();
     const endsAtMs = startsAtMs + this.questionDurationMs;
-    const question = this.gameService.getPublicQuestion(questionId);
+    const question = await this.gameService.getPublicQuestion(questionId);
     const channel = roomChannel(roomId);
     const startsAt = new Date(startsAtMs).toISOString();
     const endsAt = new Date(endsAtMs).toISOString();

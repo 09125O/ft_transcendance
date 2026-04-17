@@ -6,7 +6,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { RoomGameState } from "@generated/prisma/client";
+import { Prisma, RoomGameState } from "@generated/prisma/client";
 import { SubmitAnswerDto } from "./dto/submit-answer.dto";
 
 export type GameLeaderboardEntry = {
@@ -57,6 +57,7 @@ type RoomRuntime = {
 
 type QuestionEntry = PublicQuestion & {
   correctAnswerIndex: number;
+  points: number;
 };
 
 @Injectable()
@@ -69,6 +70,7 @@ export class GameService {
         text: "Quel est le language principal utilise pour ce backend ?",
         options: ["Python", "TypeScript", "Go", "Rust"],
         correctAnswerIndex: 1,
+        points: 100,
       },
     ],
     [
@@ -78,6 +80,7 @@ export class GameService {
         text: "Quel endpoint est utilise pour rejoindre une room ?",
         options: ["/room/join", "/rooms/join", "/rooms/:roomId/join", "/join-room"],
         correctAnswerIndex: 2,
+        points: 100,
       },
     ],
     [
@@ -87,6 +90,7 @@ export class GameService {
         text: "Quel event WebSocket diffuse le compte a rebours ?",
         options: ["game:start", "game:timer", "question:tick", "room:timer"],
         correctAnswerIndex: 1,
+        points: 100,
       },
     ],
   ]);
@@ -275,7 +279,7 @@ export class GameService {
     }
 
     const runtime = this.deserializeRuntime(state);
-    const question = this.getQuestionEntry(dto.questionId);
+    const question = await this.getQuestionEntry(dto.questionId);
     if (dto.answerIndex >= question.options.length) {
       throw new BadRequestException("Answer index is out of range");
     }
@@ -291,7 +295,7 @@ export class GameService {
     runtime.totalAnswers += 1;
 
     const isCorrect = question.correctAnswerIndex === dto.answerIndex;
-    const scoreDelta = isCorrect ? 100 : 0;
+    const scoreDelta = isCorrect ? question.points : 0;
     const previousScore = runtime.scoresByUser.get(userId) || 0;
     const userTotalScore = previousScore + scoreDelta;
     runtime.scoresByUser.set(userId, userTotalScore);
@@ -340,12 +344,22 @@ export class GameService {
     return this.toGameState(finished, leaderboard);
   }
 
-  getQuestionOrder(): number[] {
+  async getQuestionOrder(roomId: number): Promise<number[]> {
+    const room = await this.roomsService.getById(roomId);
+    if (typeof room.quizId === "number") {
+      const questions = await this.prisma.client.quizQuestion.findMany({
+        where: { quizId: room.quizId },
+        orderBy: { position: "asc" },
+        select: { id: true },
+      });
+      return questions.map((question) => question.id);
+    }
+
     return [...this.questionBank.keys()].sort((a, b) => a - b);
   }
 
-  getPublicQuestion(questionId: number): PublicQuestion {
-    const question = this.getQuestionEntry(questionId);
+  async getPublicQuestion(questionId: number): Promise<PublicQuestion> {
+    const question = await this.getQuestionEntry(questionId);
 
     return {
       id: question.id,
@@ -388,12 +402,45 @@ export class GameService {
     }
   }
 
-  private getQuestionEntry(questionId: number): QuestionEntry {
-    const question = this.questionBank.get(questionId);
-    if (!question) {
+  private async getQuestionEntry(questionId: number): Promise<QuestionEntry> {
+    const quizQuestion = await this.prisma.client.quizQuestion.findUnique({
+      where: { id: questionId },
+    });
+    if (quizQuestion) {
+      const options = this.parseAnswers(quizQuestion.answers);
+      const correctAnswerIndex = options.findIndex(
+        (answer) => answer === quizQuestion.correctAnswer,
+      );
+      if (correctAnswerIndex < 0) {
+        throw new ConflictException(
+          `Question ${questionId} has no matching correct answer`,
+        );
+      }
+      return {
+        id: quizQuestion.id,
+        text: quizQuestion.questionText,
+        options,
+        correctAnswerIndex,
+        points: quizQuestion.points,
+      };
+    }
+
+    const fallbackQuestion = this.questionBank.get(questionId);
+    if (!fallbackQuestion) {
       throw new ConflictException(`Question ${questionId} not configured`);
     }
-    return question;
+    return fallbackQuestion;
+  }
+
+  private parseAnswers(value: Prisma.JsonValue): string[] {
+    if (
+      Array.isArray(value) &&
+      value.every((entry) => typeof entry === "string")
+    ) {
+      return [...value];
+    }
+
+    throw new ConflictException("Quiz answers are not stored in the expected format");
   }
 
   private async findStateOrThrow(roomId: number): Promise<RoomGameState> {

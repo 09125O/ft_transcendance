@@ -8,11 +8,12 @@ export function roomChannel(roomId: number): string {
   return `room:${roomId}`;
 }
 
-export function getQuestionIdForTurn(
+export async function getQuestionIdForTurn(
   gameService: GameService,
+  roomId: number,
   turnNumber: number,
-): number {
-  const questionOrder = gameService.getQuestionOrder();
+): Promise<number> {
+  const questionOrder = await gameService.getQuestionOrder(roomId);
   if (questionOrder.length === 0) {
     throw new ConflictException("No questions configured");
   }
