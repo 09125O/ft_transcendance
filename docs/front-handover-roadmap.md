@@ -209,3 +209,54 @@ P2:
 - UX realtime stabilisee (erreurs, etats, feedback)
 - Checklist QA navigateurs
 - Dossier de demo orientee sujet (preuves fonctionnelles)
+
+## 10) Plan d'amelioration documentaire (execution)
+
+Objectif: rendre la conformite au sujet lisible en moins de 5 minutes pour tout nouveau collaborateur.
+
+### Lot D1 - Matrice de conformite sujet (P0)
+
+- Source de verite: `srcs_subject/module.txt`
+- Livrable: `docs/sujet-conformite-matrice.md`
+- Regle: chaque exigence du sujet pointe vers une preuve concrete (endpoint, event WS, ecran front, test, script, doc)
+- Owner recommande: PM/Lead dev
+
+Definition of Done:
+- toutes les lignes du sujet ont un statut `Fait`, `Partiel` ou `A faire`
+- chaque ligne `Fait` a au moins une preuve technique
+
+### Lot D2 - Checklist de demo soutenance (P0)
+
+- Livrable: section dediee dans la matrice + script de passage de demo
+- Parcours minimum: auth -> room -> game -> scores -> social -> spectateur
+- Sortie attendue: aucun trou fonctionnel pendant la demo
+
+Definition of Done:
+- checklist executable sans connaissance interne du code
+- references explicites vers les pages front et contrats API/WS
+
+### Lot D3 - Guide front de production (P1)
+
+- Livrable: clarifier les pre-requis front dans ce fichier (etats UI, erreurs, fallback)
+- Ajouter les conventions de rendu: `loading`, `empty`, `error`, `ready`
+- Ajouter les attentes de tests manuels multi-navigateurs
+
+Definition of Done:
+- la personne front peut implementer sans demander les contrats backend
+
+### Lot D4 - Hygiene documentaire continue (P1)
+
+- A chaque PR: verifier que les sections API/WS impactees sont a jour
+- Verifier que README pointe vers les bons documents
+- Refuser merge si l'ecart doc/impl existe sur un flux critique
+
+Definition of Done:
+- aucune reference obsoletisee dans les docs principales
+
+## 11) Quick wins doc (1-2 heures)
+
+1. Ajouter un tableau `Sujet -> Statut -> Preuves` dans `docs/sujet-conformite-matrice.md`.
+2. Ajouter une mini check-list de demo (10 etapes) avec liens vers endpoints/events.
+3. Ajouter dans README un bloc `Conformite sujet` qui pointe vers la matrice.
+4. Ajouter un statut explicite `Partiel` pour SSR et 2FA afin d'eviter les zones grises.
+5. Mettre a jour la matrice apres chaque lot front (profil, amis, notifications, spectateur).

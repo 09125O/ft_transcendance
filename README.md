@@ -83,6 +83,8 @@ Contrat detaille front-back:
 - `docs/api-front-contract.md`
 - `docs/ws-event-contract.md` (temps reel WebSocket)
 - `docs/front2-realtime-integration.md` (checklist de branchement Front2)
+- `docs/front-handover-roadmap.md` (plan d'execution front)
+- `docs/sujet-conformite-matrice.md` (suivi exigence sujet -> preuves)
 
 Etat actuel:
 - `auth` + `users` branches sur Prisma/PostgreSQL
