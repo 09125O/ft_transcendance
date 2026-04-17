@@ -120,6 +120,13 @@ export async function createAuthenticatedSession(baseUrl, label) {
     fail(`Register failed for ${label} (${registerResponse.status})`);
   }
 
+  // Register already creates an authenticated cookie in this app.
+  // Reuse it first to avoid hitting auth rate limits in CI test chains.
+  const registerCookie = extractAccessTokenCookie(registerResponse);
+  if (registerCookie) {
+    return { email, cookieHeader: registerCookie };
+  }
+
   const loginResponse = await requestJson(baseUrl, "/auth/login", {
     email,
     password,
