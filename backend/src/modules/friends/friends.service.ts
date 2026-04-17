@@ -147,67 +147,75 @@ export class FriendsService {
       throw new ConflictException("Cannot send friend request to yourself");
     }
 
-    const [sender, receiver] = await Promise.all([
-      this.prisma.client.user.findUnique({
-        where: { id: userId },
-        select: { id: true, username: true },
-      }),
-      this.prisma.client.user.findUnique({
-        where: { id: receiverUserId },
-        select: { id: true },
-      }),
-    ]);
+    const leftUserId = Math.min(userId, receiverUserId);
+    const rightUserId = Math.max(userId, receiverUserId);
 
-    if (!sender) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
+    return this.prisma.client.$transaction(async (tx) => {
+      // Serialize friend-request creation for a pair to avoid concurrent duplicates.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${leftUserId}, ${rightUserId})`;
 
-    if (!receiver) {
-      throw new NotFoundException(`User ${receiverUserId} not found`);
-    }
+      const [sender, receiver] = await Promise.all([
+        tx.user.findUnique({
+          where: { id: userId },
+          select: { id: true, username: true },
+        }),
+        tx.user.findUnique({
+          where: { id: receiverUserId },
+          select: { id: true },
+        }),
+      ]);
 
-    const existing = await this.prisma.client.friendRequests.findFirst({
-      where: {
-        OR: [
-          {
-            senderId: userId,
-            receiverId: receiverUserId,
-          },
-          {
-            senderId: receiverUserId,
-            receiverId: userId,
-          },
-        ],
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (existing) {
-      if (existing.status === "accepted") {
-        throw new ConflictException("Users are already friends");
+      if (!sender) {
+        throw new NotFoundException(`User ${userId} not found`);
       }
-      if (existing.status === "pending") {
-        throw new ConflictException("A friend request is already pending");
+
+      if (!receiver) {
+        throw new NotFoundException(`User ${receiverUserId} not found`);
       }
-    }
 
-    const created = await this.prisma.client.friendRequests.create({
-      data: {
-        senderId: userId,
-        receiverId: receiverUserId,
-        status: "pending",
-        receiverReadAt: null,
-      },
+      const existing = await tx.friendRequests.findFirst({
+        where: {
+          OR: [
+            {
+              senderId: userId,
+              receiverId: receiverUserId,
+            },
+            {
+              senderId: receiverUserId,
+              receiverId: userId,
+            },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (existing) {
+        if (existing.status === "accepted") {
+          throw new ConflictException("Users are already friends");
+        }
+        if (existing.status === "pending") {
+          throw new ConflictException("A friend request is already pending");
+        }
+      }
+
+      const created = await tx.friendRequests.create({
+        data: {
+          senderId: userId,
+          receiverId: receiverUserId,
+          status: "pending",
+          receiverReadAt: null,
+        },
+      });
+
+      return {
+        requestId: created.id,
+        senderUserId: created.senderId,
+        senderUsername: sender.username,
+        receiverUserId: created.receiverId,
+        status: created.status,
+        createdAt: created.createdAt.toISOString(),
+      };
     });
-
-    return {
-      requestId: created.id,
-      senderUserId: created.senderId,
-      senderUsername: sender.username,
-      receiverUserId: created.receiverId,
-      status: created.status,
-      createdAt: created.createdAt.toISOString(),
-    };
   }
 
   async acceptRequest(userId: number, requestId: number): Promise<FriendRequestUpdated> {

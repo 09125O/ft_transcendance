@@ -34,3 +34,10 @@ npm run test:ws-critical
 cd backend
 npm run test:rate-limit
 ```
+
+## Social integration flow (friends + notifications + spectator)
+
+```bash
+cd backend
+npm run test:integration:social
+```
