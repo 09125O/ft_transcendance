@@ -3,6 +3,8 @@
 Date: 2026-04-17  
 Source: `srcs_subject/module.txt`
 
+Derniere verification: apres merge PR #12 (Front) et PR #13 (docs Front)
+
 ## Legende
 
 - `Fait`: implemente et demonstrable
@@ -14,20 +16,20 @@ Source: `srcs_subject/module.txt`
 | Exigence sujet | Type | Statut | Preuves techniques | Gap restant | Responsable | PR de reference |
 |---|---|---|---|---|---|---|
 | Framework frontend + backend | Major | Fait | React (`frontend/src`), NestJS (`backend/src`) | - | Fullstack | Historique (avant suivi PR) |
-| Features temps reel | Major | Fait | Socket.IO `/ws`, contrats `docs/ws-event-contract.md` | - | Backend Realtime | Historique (avant suivi PR) |
+| Features temps reel | Major | Fait | Socket.IO `/ws`, contrats `docs/ws-event-contract.md`, integration front realtime | - | Backend Realtime | PR #4 + PR #12 + PR #13 |
 | Interaction utilisateurs (chat, profil, amis) | Major | Partiel | chat room WS, profil API (`PATCH /users/me`), API amis | UI front amis/profil a finaliser | Frontend + Backend Social | A lier (prochaine PR front social) |
 | ORM | Minor | Fait | Prisma schema + migrations (`backend/prisma`) | - | Backend Data | Historique (avant suivi PR) |
 | Notifications create/update/delete | Minor | Partiel | API notifications + event `notification:new` | scenarios front UX a finaliser | Frontend | A lier (prochaine PR front notifications) |
 | SSR | Minor | A faire | - | non prioritaire, non demarre | Frontend | N/A |
 | Support navigateurs additionnels | Minor | Partiel | checklist mentionnee roadmap | execution QA multi-browser a formaliser | QA Front | A lier (prochaine PR QA front) |
-| User management (profile/avatar/friends/status) | Major | Partiel | routes users/friends + modele user | vues front management a finir | Frontend | A lier (prochaine PR front profil/amis) |
+| User management (profile/avatar/friends/status) | Major | Partiel | routes users/friends + modele user + flux lobby/room front refactorise | vues front profil/amis a finir | Frontend | PR #12 |
 | Stats + historique | Minor | Partiel | endpoints scores/leaderboard | ecran historique front a renforcer | Frontend | A lier (prochaine PR front stats) |
 | Remote auth OAuth2 | Minor | Fait | OAuth 42 (`/auth/42/start`, `/auth/42/callback`) | - | Backend Auth | Historique (avant suivi PR) |
 | 2FA | Minor | A faire | - | lot optionnel apres conformite principale | Backend Auth | N/A |
-| Web-based game realtime multiplayer | Major | Fait | room/game/ws backend + ecran game front | - | Fullstack Game | Historique (avant suivi PR) |
+| Web-based game realtime multiplayer | Major | Fait | room/game/ws backend + ecran game front + flux quiz->room->game | - | Fullstack Game | PR #4 + PR #12 |
 | Remote players (machines separees) | Major | Fait | architecture client/server + WS | - | Fullstack Realtime | Historique (avant suivi PR) |
 | Multiplayer >2 | Major | Fait | rooms multi-joueurs + leaderboard | - | Backend Game | Historique (avant suivi PR) |
-| Game customization options | Minor | Partiel | rounds/rooms configurables | enrichissements gameplay optionnels | Product + Frontend | A lier (prochaine PR gameplay UX) |
+| Game customization options | Minor | Partiel | rooms liees a quiz (`quizId`), rounds bornes par quiz | duree par question visible en UI mais non branchee au backend | Product + Frontend | PR #12 + PR #13 |
 | Spectator mode | Minor | Partiel | `room:spectate` + protections backend | parcours UI spectateur a finaliser | Frontend Realtime | A lier (prochaine PR front spectator) |
 | Health check + status page | Minor | Partiel | `/health`, smoke scripts | formaliser backup/DR dans doc ops | DevOps | A lier (prochaine PR ops doc) |
 
