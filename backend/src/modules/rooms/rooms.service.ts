@@ -19,6 +19,7 @@ export type Room = {
   id: number;
   name: string;
   ownerUserId?: number;
+  quizId?: number;
   rounds: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
@@ -71,12 +72,30 @@ export class RoomsService {
     const passwordHash = shouldStorePasswordHash
       ? await bcrypt.hash(dto.password as string, 10)
       : undefined;
+    let rounds = dto.rounds;
+
+    if (typeof dto.quizId === "number") {
+      const quiz = await this.prisma.client.quiz.findUnique({
+        where: { id: dto.quizId },
+        include: {
+          questions: true,
+        },
+      });
+      if (!quiz) {
+        throw new NotFoundException(`Quiz ${dto.quizId} not found`);
+      }
+      if (quiz.questions.length < 1) {
+        throw new ConflictException("Cannot create a room with an empty quiz");
+      }
+      rounds = Math.min(dto.rounds, quiz.questions.length);
+    }
 
     const room = await this.prisma.client.room.create({
       data: {
         name: dto.name,
         ownerId: dto.ownerUserId,
-        rounds: dto.rounds,
+        quizId: dto.quizId,
+        rounds,
         isPrivate: dto.isPrivate ?? false,
         status: "waiting",
         ...(passwordHash ? { passwordHash } : {}),
@@ -302,6 +321,7 @@ export class RoomsService {
       id: room.id,
       name: room.name,
       ownerUserId: room.ownerId ?? undefined,
+      quizId: room.quizId ?? undefined,
       rounds: room.rounds,
       isPrivate: room.isPrivate,
       status: room.status,

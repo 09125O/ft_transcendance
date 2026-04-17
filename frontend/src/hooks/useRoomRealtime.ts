@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { Room } from "../services/quiz";
+import type { PublicQuestion } from "../types/game";
 import type { RoomLeaderboardPayload } from "./useRoomParticipants";
 import {
   emitWs,
@@ -8,56 +9,9 @@ import {
   type WsResponse,
 } from "../services/ws";
 
-export type GameQuestionStartedPayload = {
-  roomId: number;
-  questionId: number;
-  question: {
-    id: number;
-    text: string;
-    options: string[];
-  };
-  questionNumber: number;
-  totalQuestions: number;
-  durationMs: number;
-  startsAt: string;
-  endsAt: string;
-};
-
-export type GameTimerPayload = {
-  roomId: number;
-  questionId: number;
-  questionNumber: number;
-  totalQuestions: number;
-  remainingMs: number;
-  endsAt: string;
-};
-
-export type GameQuestionTimeoutPayload = {
-  roomId: number;
-  questionId: number;
-  questionNumber: number;
-  totalQuestions: number;
-};
-
-export type GameAnswerResultPayload = {
-  roomId: number;
+type LeaderboardEntry = {
   userId: number;
-  questionId: number;
-  selectedAnswerIndex: number;
-  isCorrect: boolean;
-  scoreDelta: number;
-  userTotalScore: number;
-  totalAnswers: number;
-};
-
-export type GameEndedPayload = {
-  roomId: number;
-  reason: string;
-  winnerUserId: number | null;
-  leaderboard: Array<{
-    userId: number;
-    score: number;
-  }>;
+  score: number;
 };
 
 type UseRoomRealtimeOptions = {
@@ -68,13 +22,9 @@ type UseRoomRealtimeOptions = {
   clearCurrentRoom: () => void;
   onRoomClosed: () => void;
   onRoomJoined: () => void;
-  onLeaderboard: (payload: RoomLeaderboardPayload) => void;
-  onQuestionStarted?: (payload: GameQuestionStartedPayload) => void;
-  onTimer?: (payload: GameTimerPayload) => void;
-  onQuestionTimeout?: (payload: GameQuestionTimeoutPayload) => void;
-  onAnswerResult?: (payload: GameAnswerResultPayload) => void;
-  onGameEnded?: (payload: GameEndedPayload) => void;
-  onRealtimeError?: (message: string) => void;
+  onLeaderboard: (payload: LeaderboardEntry[] | RoomLeaderboardPayload) => void;
+  onQuestionStarted: (question: PublicQuestion) => void;
+  onGameEnded: () => void;
 };
 
 export function useRoomRealtime({
@@ -87,11 +37,7 @@ export function useRoomRealtime({
   onRoomJoined,
   onLeaderboard,
   onQuestionStarted,
-  onTimer,
-  onQuestionTimeout,
-  onAnswerResult,
   onGameEnded,
-  onRealtimeError,
 }: UseRoomRealtimeOptions): void {
   useEffect(() => {
     const handleRoomState = (response: WsResponse<Room>) => {
@@ -133,12 +79,14 @@ export function useRoomRealtime({
   }, [clearCurrentRoom, onRoomClosed, requestedRoomId, syncCurrentRoom]);
 
   useEffect(() => {
-    const handleLeaderboard = (response: WsResponse<RoomLeaderboardPayload>) => {
+    const handleLeaderboard = (
+      response: WsResponse<LeaderboardEntry[] | RoomLeaderboardPayload>,
+    ) => {
       if (!response.success || !response.data || requestedRoomId === null) {
         return;
       }
 
-      if (response.data.roomId !== requestedRoomId) {
+      if (!Array.isArray(response.data) && response.data.roomId !== requestedRoomId) {
         return;
       }
 
@@ -154,99 +102,39 @@ export function useRoomRealtime({
 
   useEffect(() => {
     const handleQuestionStarted = (
-      response: WsResponse<GameQuestionStartedPayload>,
+      response: WsResponse<{ roomId: number; question: PublicQuestion }>,
     ) => {
       if (!response.success || !response.data || requestedRoomId === null) {
         return;
       }
+
       if (response.data.roomId !== requestedRoomId) {
         return;
       }
-      onQuestionStarted?.(response.data);
+
+      onQuestionStarted(response.data.question);
     };
 
-    const handleTimer = (response: WsResponse<GameTimerPayload>) => {
+    const handleGameEnded = (response: WsResponse<{ roomId: number }>) => {
       if (!response.success || !response.data || requestedRoomId === null) {
         return;
       }
+
       if (response.data.roomId !== requestedRoomId) {
         return;
       }
-      onTimer?.(response.data);
-    };
 
-    const handleQuestionTimeout = (
-      response: WsResponse<GameQuestionTimeoutPayload>,
-    ) => {
-      if (!response.success || !response.data || requestedRoomId === null) {
-        return;
-      }
-      if (response.data.roomId !== requestedRoomId) {
-        return;
-      }
-      onQuestionTimeout?.(response.data);
-    };
-
-    const handleAnswerResult = (response: WsResponse<GameAnswerResultPayload>) => {
-      if (!response.success || !response.data || requestedRoomId === null) {
-        return;
-      }
-      if (response.data.roomId !== requestedRoomId) {
-        return;
-      }
-      onAnswerResult?.(response.data);
-    };
-
-    const handleGameEnded = (response: WsResponse<GameEndedPayload>) => {
-      if (!response.success || !response.data || requestedRoomId === null) {
-        return;
-      }
-      if (response.data.roomId !== requestedRoomId) {
-        return;
-      }
-      onGameEnded?.(response.data);
-    };
-
-    const handleRoomStartError = (response: WsResponse<never>) => {
-      if (response.success) {
-        return;
-      }
-      onRealtimeError?.(response.error?.message ?? "Erreur room:start");
-    };
-
-    const handleGameAnswerError = (response: WsResponse<never>) => {
-      if (response.success) {
-        return;
-      }
-      onRealtimeError?.(response.error?.message ?? "Erreur game:answer");
+      onGameEnded();
     };
 
     onWs("game:question:started", handleQuestionStarted);
-    onWs("game:timer", handleTimer);
-    onWs("game:question:timeout", handleQuestionTimeout);
-    onWs("game:answer:result", handleAnswerResult);
     onWs("game:ended", handleGameEnded);
-    onWs("room:start:error", handleRoomStartError);
-    onWs("game:answer:error", handleGameAnswerError);
 
     return () => {
       offWs("game:question:started", handleQuestionStarted);
-      offWs("game:timer", handleTimer);
-      offWs("game:question:timeout", handleQuestionTimeout);
-      offWs("game:answer:result", handleAnswerResult);
       offWs("game:ended", handleGameEnded);
-      offWs("room:start:error", handleRoomStartError);
-      offWs("game:answer:error", handleGameAnswerError);
     };
-  }, [
-    onAnswerResult,
-    onGameEnded,
-    onQuestionStarted,
-    onQuestionTimeout,
-    onRealtimeError,
-    onTimer,
-    requestedRoomId,
-  ]);
+  }, [onGameEnded, onQuestionStarted, requestedRoomId]);
 
   useEffect(() => {
     if (currentRoomId === null || userId === null) {

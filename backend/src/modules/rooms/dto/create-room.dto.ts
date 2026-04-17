@@ -30,5 +30,9 @@ export class CreateRoomDto {
   @MinLength(4)
   @MaxLength(64)
   password?: string;
-}
 
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  quizId?: number;
+}

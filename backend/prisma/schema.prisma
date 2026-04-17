@@ -76,6 +76,9 @@ model Room {
   owner   User? @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   ownerId Int?
 
+  quiz   Quiz? @relation("QuizRooms", fields: [quizId], references: [id], onDelete: SetNull)
+  quizId Int?
+
   status RoomStatus @default(waiting)
   rounds Int        @default(3)
   isPrivate Boolean @default(false)
@@ -89,6 +92,8 @@ model Room {
   createdAt  DateTime  @default(now())
   startedAt  DateTime?
   finishedAt DateTime?
+
+  @@index([quizId])
 }
 
 model RoomGameState {
@@ -131,6 +136,7 @@ model Quiz {
 
   questions QuizQuestion[] @relation("QuizQuestions")
   games     Game[]         @relation("QuizGames")
+  rooms     Room[]         @relation("QuizRooms")
 }
 
 model QuizQuestion {

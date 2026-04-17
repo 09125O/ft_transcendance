@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
+import type { PublicQuestion } from "../../types/game";
 
 type ScoreEntry = {
   userId: number;
@@ -17,26 +18,13 @@ type ChatEntry = {
 };
 
 type GamePanelProps = {
-  roomName: string;
-  roomStatus: "waiting" | "playing" | "finished";
-  isOwner: boolean;
   onToggleRules: () => void;
   onLeaveRoom: () => void;
-  onStartGame: () => void;
-  onSubmitAnswer: () => void;
+  onStartRoom: () => void;
+  canStartRoom: boolean;
   selectedAnswer: number | null;
   onSelectAnswer: (answerIndex: number) => void;
-  canSubmitAnswer: boolean;
-  isAnswerSubmitting: boolean;
-  currentQuestion: {
-    questionNumber: number;
-    totalQuestions: number;
-    text: string;
-    options: string[];
-  } | null;
-  remainingMs: number | null;
-  gameFeedback: string | null;
-  gameError: string | null;
+  currentQuestion: PublicQuestion | null;
   scoreEntries: ScoreEntry[];
   chatMessages: ChatEntry[];
   chatError: string | null;
@@ -44,21 +32,13 @@ type GamePanelProps = {
 };
 
 export default function GamePanel({
-  roomName,
-  roomStatus,
-  isOwner,
   onToggleRules,
   onLeaveRoom,
-  onStartGame,
-  onSubmitAnswer,
+  onStartRoom,
+  canStartRoom,
   selectedAnswer,
   onSelectAnswer,
-  canSubmitAnswer,
-  isAnswerSubmitting,
   currentQuestion,
-  remainingMs,
-  gameFeedback,
-  gameError,
   scoreEntries,
   chatMessages,
   chatError,
@@ -66,8 +46,6 @@ export default function GamePanel({
 }: GamePanelProps) {
   const [messageInput, setMessageInput] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
-  const remainingSeconds =
-    remainingMs === null ? null : Math.max(0, Math.ceil(remainingMs / 1000));
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -137,14 +115,14 @@ export default function GamePanel({
       <Panel className="min-h-[80vh] min-w-125 flex-1 px-8 py-6">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <p className="m-0 text-sm text-text/70">{roomName}</p>
-            <p className="m-0 text-lg font-semibold text-text">
-              {roomStatus === "waiting"
-                ? "En attente"
-                : roomStatus === "playing"
-                  ? "Partie en cours"
-                  : "Partie terminée"}
-            </p>
+            {canStartRoom ? (
+              <PrimaryButton
+                className="px-4 py-2 text-sm"
+                onClick={onStartRoom}
+              >
+                Démarrer
+              </PrimaryButton>
+            ) : null}
           </div>
           <button
             className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
@@ -155,95 +133,26 @@ export default function GamePanel({
           </button>
         </div>
         <div className="flex flex-1 flex-col items-center justify-around">
-          {roomStatus === "waiting" ? (
-            <div className="w-full max-w-140 rounded-xl border border-white/10 bg-background p-6 text-center">
-              <p className="m-0 text-xl font-semibold text-text">
-                La partie n&apos;a pas encore commencé
-              </p>
-              <p className="mt-2 text-sm text-text/70">
-                {isOwner
-                  ? "Tu peux lancer la partie dès que tout le monde est prêt."
-                  : "En attente du lancement par le propriétaire de la room."}
-              </p>
-              {isOwner ? (
-                <PrimaryButton
-                  className="mt-4 px-5 py-2"
-                  onClick={onStartGame}
-                  type="button"
-                >
-                  Lancer la partie
-                </PrimaryButton>
-              ) : null}
-            </div>
-          ) : null}
-
-          {roomStatus === "playing" && currentQuestion === null ? (
-            <div className="w-full max-w-140 rounded-xl border border-white/10 bg-background p-6 text-center">
-              <p className="m-0 text-lg font-semibold text-text">
-                Préparation de la question...
-              </p>
-            </div>
-          ) : null}
-
-          {roomStatus === "playing" && currentQuestion !== null ? (
-            <>
-              <div className="mb-4 flex w-full max-w-140 items-center justify-between">
-                <p className="m-0 text-sm text-text/70">
-                  Question {currentQuestion.questionNumber}/
-                  {currentQuestion.totalQuestions}
-                </p>
-                {remainingSeconds !== null ? (
-                  <p className="m-0 rounded-full border border-white/15 px-3 py-1 text-sm font-semibold text-text">
-                    {remainingSeconds}s
-                  </p>
-                ) : null}
-              </div>
-              <p className="mb-6 text-center text-3xl font-semibold text-text">
-                {currentQuestion.text}
-              </p>
-              <div className="flex w-full max-w-140 flex-col gap-4">
-                {currentQuestion.options.map((option, index) => (
-                  <button
-                    className={[
-                      "h-20 rounded-xl border text-base font-medium text-text transition",
-                      selectedAnswer === index
-                        ? "border-primary bg-primary"
-                        : "border-white/10 bg-background hover:border-primary hover:bg-primary/15",
-                    ].join(" ")}
-                    key={`${currentQuestion.questionNumber}-${index}-${option}`}
-                    type="button"
-                    onClick={() => onSelectAnswer(index)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-              <PrimaryButton
-                className="mt-5 px-6 py-3 text-base"
-                disabled={!canSubmitAnswer || isAnswerSubmitting}
-                onClick={onSubmitAnswer}
+          <p className="text-center text-3xl font-semibold text-text">
+            {currentQuestion?.text ?? "En attente de la prochaine question"}
+          </p>
+          <div className="flex w-full max-w-140 flex-col gap-4">
+            {(currentQuestion?.options ?? []).map((option, index) => (
+              <button
+                className={[
+                  "h-20 rounded-xl border px-4 text-base font-medium text-text transition",
+                  selectedAnswer === index
+                    ? "border-primary bg-primary"
+                    : "border-white/10 bg-background hover:border-primary hover:bg-primary/15",
+                ].join(" ")}
+                key={`${currentQuestion?.id}-${index}-${option}`}
                 type="button"
+                onClick={() => onSelectAnswer(index)}
               >
-                {isAnswerSubmitting ? "Envoi..." : "Valider ma réponse"}
-              </PrimaryButton>
-            </>
-          ) : null}
-
-          {roomStatus === "finished" ? (
-            <div className="w-full max-w-140 rounded-xl border border-white/10 bg-background p-6 text-center">
-              <p className="m-0 text-xl font-semibold text-text">
-                Partie terminée
-              </p>
-              <p className="mt-2 text-sm text-text/70">
-                Consulte le classement à droite.
-              </p>
-            </div>
-          ) : null}
-
-          {gameFeedback ? (
-            <p className="mt-3 text-sm text-emerald-300">{gameFeedback}</p>
-          ) : null}
-          {gameError ? <p className="mt-2 text-sm text-red-300">{gameError}</p> : null}
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
       </Panel>
       <Panel className="min-h-[80vh] min-w-50 w-[25%] px-6 py-6">
