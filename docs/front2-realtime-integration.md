@@ -24,9 +24,10 @@ Transport: `socket.io`
 - listen `room:list-updated` (diffusions globales)
 
 2. Creation room:
-- emit `room:create` `{ name, rounds, isPrivate, password? }`
+- emit `room:create` `{ name, rounds, isPrivate, quizId?, password? }`
 - listen `room:created`
 - listen `room:create:error`
+- quand la room est creee depuis un quiz, envoyer `quizId` pour lier la partie aux questions persistantes
 
 3. Rejoindre room:
 - emit `room:join` `{ roomId, password? }`
@@ -59,6 +60,7 @@ Transport: `socket.io`
   - `questionId`
   - `question: { id, text, options[] }`
   - `questionNumber`, `totalQuestions`, `durationMs`, `startsAt`, `endsAt`
+- si la room a un `quizId`, `question` provient des `QuizQuestion` du quiz
 - listen `game:timer`
 - listen `game:question:timeout`
 - listen `game:state` pour l'etat agrege de la partie
@@ -115,6 +117,8 @@ Transport: `socket.io`
 
 - Ne pas faire confiance au `userId` UI seul: le backend valide contre le socket authentifie.
 - Les services `rooms/game/scores` sont persistes via Prisma/PostgreSQL.
+- Le front doit utiliser `POST /rooms` avec `quizId` pour les rooms creees depuis un quiz; le backend stocke ce lien dans `Room.quizId`.
+- Le backend limite `rounds` au nombre de questions disponibles dans le quiz.
 - Pour la recette, lancer:
   - `make up`
   - `cd backend && npm run test:ws-smoke`

@@ -111,11 +111,15 @@ type PublicUser = {
 type Room = {
   id: number;
   name: string;
+  ownerUserId?: number;
+  quizId?: number;
   rounds: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
   players: Array<{ userId: number; joinedAt: string }>;
   createdAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
 };
 ```
 
@@ -361,7 +365,8 @@ type FriendRequestEntry = {
 {
   "name": "Lobby #1",
   "rounds": 5,
-  "isPrivate": false
+  "isPrivate": false,
+  "quizId": 1
 }
 ```
 
@@ -372,6 +377,7 @@ type FriendRequestEntry = {
   "name": "Private room",
   "rounds": 3,
   "isPrivate": true,
+  "quizId": 1,
   "password": "room1234"
 }
 ```
@@ -380,8 +386,13 @@ type FriendRequestEntry = {
   - `name`: string 2..40
   - `rounds`: int 1..20
   - `isPrivate`: boolean optionnel
+  - `quizId`: int optionnel, lie la room aux questions du quiz
   - `password`: requis si `isPrivate=true`, string 4..64
 - Reponse: `201`, `ApiResponse<Room>`
+- Notes:
+  - Si `quizId` est fourni, le backend verifie que le quiz existe et contient au moins une question.
+  - Le nombre de manches effectif est limite au nombre de questions disponibles dans le quiz.
+  - Si `quizId` est omis, la room peut encore demarrer avec la banque de questions de fallback.
 
 `POST /rooms/:roomId/join`
 - Auth: cookie `access_token` requis
