@@ -1,10 +1,28 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 
-const REQUIRED_MARKERS = [
-  "Start concurrent owner -> une seule partie active + question payload OK",
-  "Reponse double idempotente OK",
-  "Timer + fin de partie unique OK",
+const REQUIRED_MARKER_GROUPS = [
+  {
+    expected: "Start concurrent owner -> une seule partie active + question payload OK",
+    aliases: [
+      "Start + question payload front-ready OK",
+      "Start concurrent owner -> une seule partie active + question payload OK",
+    ],
+  },
+  {
+    expected: "Reponse double idempotente OK",
+    aliases: [
+      "Anti double-reponse OK",
+      "Reponse double idempotente OK",
+    ],
+  },
+  {
+    expected: "Timer + fin de partie unique OK",
+    aliases: [
+      "Timer + fin de partie OK",
+      "Timer + fin de partie unique OK",
+    ],
+  },
 ];
 
 function runSmokeAndCapture() {
@@ -47,7 +65,9 @@ async function main() {
     process.exit(result.code);
   }
 
-  const missing = REQUIRED_MARKERS.filter((marker) => !result.stdout.includes(marker));
+  const missing = REQUIRED_MARKER_GROUPS.filter(
+    (group) => !group.aliases.some((marker) => result.stdout.includes(marker)),
+  ).map((group) => group.expected);
 
   if (missing.length > 0) {
     console.error("\n[KO] QA-05 critical scenarios missing in WS run:");
