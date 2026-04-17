@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 
+// QA-05 checks remain text-based by design. We accept aliases here so
+// wording changes in ws-smoke output do not create false negatives in CI.
 const REQUIRED_MARKER_GROUPS = [
   {
     expected: "Start concurrent owner -> une seule partie active + question payload OK",
