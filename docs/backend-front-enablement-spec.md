@@ -1,247 +1,87 @@
 # Backend Front Enablement Spec
 
-Date: 2026-04-16
-Objectif: definir le minimum backend manquant pour permettre au front d'executer la roadmap F1/F2 sans blocage.
+Date: 2026-04-17  
+Statut: document de reference (mise a jour implementation)
 
-## 1) Scope
+## Objectif
 
-Ce document couvre uniquement les briques backend non couvertes aujourd'hui:
-- profil editable
-- API amis
-- notifications minimales
-- mode spectateur (lecture seule)
+Donner une vue rapide de ce qui est effectivement disponible cote backend pour debloquer le front, et ce qui reste hors scope MVP.
 
-Ce document n'inclut pas:
-- 2FA (non bloquant pour handoff front)
-- SSR
-- optimisations avancees hors MVP
+## Etat reel par bloc
 
-## 2) Contraintes globales
+### Bloc A - Profil editable
 
-- Conserver l'enveloppe standard:
-  - succes: { success: true, data, error: null }
-  - erreur: { success: false, data: null, error: { code, message } }
-- Endpoints proteges par session cookie sauf mention contraire.
-- Codes d'erreur utilises: BAD_REQUEST, UNAUTHORIZED, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR.
+Statut: implemente
 
-## 3) Bloc A - Profil editable (P0)
+Endpoints:
+- `GET /users/me`
+- `PATCH /users/me`
+- `GET /users/:id`
 
-## Endpoint A1: PATCH /users/me
+Notes:
+- Auth cookie obligatoire sur `users/me`.
+- `PATCH /users/me` impose au moins un champ (`username`, `avatar_url`, `status`).
 
-But:
-- permettre au front de modifier le profil courant (username/avatar/status).
+### Bloc B - API Amis
 
-Body:
-```json
-{
-  "username": "new_name",
-  "avatar_url": "https://...",
-  "status": "online"
-}
-```
+Statut: implemente
 
-Regles:
-- Tous les champs optionnels, au moins 1 champ requis.
-- username: string min 2, max 32, unique si possible metier.
-- avatar_url: url valide ou null.
-- status: enum online|offline.
+Endpoints:
+- `GET /friends`
+- `GET /friends/requests`
+- `POST /friends/requests`
+- `POST /friends/requests/:requestId/accept`
+- `POST /friends/requests/:requestId/decline`
+- `DELETE /friends/:userId`
 
-Reponses:
-- 200: SafeUser mis a jour.
-- 400: payload invalide.
-- 401: non authentifie.
-- 409: username deja pris.
+Notes:
+- Bloc protege par auth.
+- Regles metier en place: pas d'auto-demande, pas de doublon pending, controle receiver sur accept/decline.
 
-Definition of Done:
-- endpoint documente dans docs/api-front-contract.md
-- tests unitaires controller/service
-- test d'integration happy path + conflit username
+### Bloc C - Notifications minimales
 
-## 4) Bloc B - API Amis (P0)
+Statut: implemente (MVP)
 
-Note modele present dans Prisma (FriendRequests + FriendshipStatus), mais endpoints non exposes.
+Endpoints:
+- `GET /notifications?limit=20&cursor=...`
+- `PATCH /notifications/:id/read`
+- `PATCH /notifications/read-all`
 
-## Endpoint B1: GET /friends
+Realtime:
+- event WS `notification:new` emis a la creation d'une demande d'ami.
 
-Retour:
-```json
-[
-  {
-    "userId": 12,
-    "username": "alice",
-    "avatar_url": null,
-    "status": "online",
-    "since": "2026-04-16T10:00:00.000Z"
-  }
-]
-```
+Notes:
+- Les notifications sont derivees des demandes d'ami (`friendRequests`) en base.
 
-## Endpoint B2: GET /friends/requests
+### Bloc D - Spectateur
 
-Retour:
-```json
-{
-  "received": [
-    {
-      "requestId": 44,
-      "fromUserId": 7,
-      "fromUsername": "bob",
-      "createdAt": "2026-04-16T10:00:00.000Z"
-    }
-  ],
-  "sent": [
-    {
-      "requestId": 45,
-      "toUserId": 22,
-      "toUsername": "charlie",
-      "createdAt": "2026-04-16T10:00:00.000Z"
-    }
-  ]
-}
-```
+Statut: implemente
 
-## Endpoint B3: POST /friends/requests
-
-Body:
-```json
-{
-  "receiverUserId": 22
-}
-```
+Events WS:
+- inbound `room:spectate`
+- outbound `room:spectated`
+- outbound `room:spectators:update`
 
 Regles:
-- impossible de s'ajouter soi-meme.
-- impossible si deja amis.
-- idempotence recommandee: si pending existe deja, renvoyer la meme ressource ou 409 explicite.
+- un spectateur ne peut pas faire `room:start` ni `game:answer` (`UNAUTHORIZED`).
 
-## Endpoint B4: POST /friends/requests/:requestId/accept
-## Endpoint B5: POST /friends/requests/:requestId/decline
+## Contrats a utiliser
 
-Regles:
-- seule la cible de la demande peut accepter/refuser.
+- REST: `docs/api-front-contract.md`
+- WebSocket: `docs/ws-event-contract.md`
+- Integration front realtime: `docs/front2-realtime-integration.md`
+- Flux quiz -> room -> game: `docs/quiz-room-game-integration.md`
 
-## Endpoint B6: DELETE /friends/:userId
+## Points hors scope ou partiels
 
-But:
-- retirer un ami (relation acceptee).
+- OAuth Google: non expose dans les routes backend actuelles.
+- 2FA: non implemente.
+- SSR: non implemente.
 
-Reponses bloc B:
-- 200/201 succes selon action.
-- 400 payload invalide.
-- 401 non authentifie.
-- 404 request/user inexistant.
-- 409 conflit metier (deja ami, mauvaise etape, etc.).
+## Checklist front de branchement rapide
 
-Definition of Done:
-- nouveau module backend friends (controller/service/dto)
-- mappings Prisma FriendRequests utilises
-- tests unitaires metier (send/accept/decline/remove)
-- contrat API mis a jour
-
-## 5) Bloc C - Notifications minimales (P1)
-
-Option MVP simple recommandee:
-- stocker notifications en DB (model Notification) ou fallback transitoire runtime si contraint de temps.
-
-## Endpoint C1: GET /notifications?limit=20&cursor=...
-
-Retour:
-```json
-{
-  "items": [
-    {
-      "id": 100,
-      "type": "FRIEND_REQUEST_RECEIVED",
-      "title": "Nouvelle demande d'ami",
-      "payload": { "requestId": 44, "fromUserId": 7 },
-      "read": false,
-      "createdAt": "2026-04-16T10:00:00.000Z"
-    }
-  ],
-  "nextCursor": null
-}
-```
-
-## Endpoint C2: PATCH /notifications/:id/read
-## Endpoint C3: PATCH /notifications/read-all
-
-WS optionnel utile front:
-- event: notification:new
-- payload: notification resumee
-
-Definition of Done:
-- endpoint list + read fonctionne
-- trigger creation notifs pour actions amis (B3/B4)
-- docs mises a jour
-
-## 6) Bloc D - Spectateur (P1)
-
-Objectif:
-- permettre l'observation d'une partie sans pouvoir agir comme joueur.
-
-Approche recommandee:
-- role derive au runtime socket: player | spectator.
-
-## WS Event D1: room:spectate
-
-Payload:
-```json
-{
-  "roomId": 12
-}
-```
-
-Effets:
-- rejoint la room socket en mode spectateur.
-- emet room:state + game:state immediatement.
-
-## WS Event D2: room:spectators:update
-
-Payload:
-```json
-{
-  "roomId": 12,
-  "count": 3
-}
-```
-
-Regles:
-- un spectateur ne peut pas emettre room:start ni game:answer.
-- tentative => event erreur avec code UNAUTHORIZED.
-
-HTTP complement (optionnel):
-- GET /rooms/:roomId/spectators
-
-Definition of Done:
-- parcours spectateur stable sans regression joueur
-- tests WS pour blocage des actions joueur en mode spectateur
-- contrat WS mis a jour dans docs/ws-event-contract.md
-
-## 7) Priorisation implementation
-
-P0 (avant handoff front complet):
-1. PATCH /users/me
-2. Module friends complet (B1 a B6)
-
-P1 (dans la suite immediate):
-1. Notifications minimales (C1/C2)
-2. Spectateur WS (D1/D2)
-
-P2:
-1. read-all notifications
-2. endpoints annexes (stats derivees, filtres)
-
-## 8) Checklist de livraison backend
-
-- [ ] endpoints exposes dans app.module.ts via nouveaux modules
-- [ ] DTO + validation class-validator
-- [ ] tests unitaires + integration minimum
-- [ ] docs/api-front-contract.md mises a jour
-- [ ] docs/ws-event-contract.md mises a jour (spectateur/notifications WS)
-- [ ] smoke scenario ajoute si possible (friends happy path)
-
-## 9) Decision record
-
-Pour accelerer le front:
-- 2FA reste en backlog non bloquant.
-- Les contrats B et D sont le minimum indispensable pour fermer F2 sans mock permanent.
+1. Authentifier l'utilisateur (`/auth/login`, `/auth/register` ou `/auth/guest`).
+2. Envoyer `credentials: "include"` sur toutes les requetes REST.
+3. Ouvrir Socket.IO sur `/ws` avec cookies (`withCredentials: true`).
+4. Brancher les erreurs standard (`success/data/error`) cote UI.
+5. Filtrer les payloads WS par `roomId` avant rendu.

@@ -28,6 +28,7 @@ Transport: `socket.io`
 - listen `room:created`
 - listen `room:create:error`
 - quand la room est creee depuis un quiz, envoyer `quizId` pour lier la partie aux questions persistantes
+- sans `quizId`, le backend bascule sur le quiz par defaut `"Culture générale"` (seed Prisma)
 
 3. Rejoindre room:
 - emit `room:join` `{ roomId, password? }`
@@ -52,6 +53,7 @@ Transport: `socket.io`
 - emit `room:start` `{ roomId }`
 - listen `room:started`
 - listen `room:start:error`
+- precondition metier: au moins 3 joueurs dans la room
 
 2. Question / timer:
 - listen `game:started`
@@ -119,6 +121,7 @@ Transport: `socket.io`
 - Les services `rooms/game/scores` sont persistes via Prisma/PostgreSQL.
 - Le front doit utiliser `POST /rooms` avec `quizId` pour les rooms creees depuis un quiz; le backend stocke ce lien dans `Room.quizId`.
 - Le backend limite `rounds` au nombre de questions disponibles dans le quiz.
+- Si le quiz par defaut est absent et qu'aucun `quizId` n'est fourni, `room:start` echoue (`CONFLICT`).
 - Pour la recette, lancer:
   - `make up`
   - `cd backend && npm run test:ws-smoke`

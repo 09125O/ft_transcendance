@@ -1,6 +1,6 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-04-16)
+Version: v1 (etat actuel de `dev` au 2026-04-17)
 Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, notifications
 
 ## Etat de persistance (important)
@@ -21,6 +21,9 @@ Consequence:
 
 - Backend direct: `https://localhost:4000`
 - Front dev server: `https://localhost:3000`
+- Proxy Webpack actuellement configure sur:
+  - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/socket.io`
+- Les routes `/friends` et `/notifications` ne sont pas encore proxifiees par `frontend/webpack.config.cjs` (etat actuel).
 - En dev, le front peut appeler directement:
   - `/auth`
   - `/users`
@@ -75,8 +78,8 @@ Codes d'erreur standards (selon statut HTTP):
 - Options cookie:
   - `httpOnly: true`
   - `path: /`
-  - `sameSite: lax` en local HTTP
-  - `sameSite: none` + `secure: true` si `FRONTEND_ORIGIN` est en HTTPS
+  - `sameSite`: derive de `AUTH_COOKIE_SAMESITE` (defaut `lax`)
+  - `secure`: derive de `AUTH_COOKIE_SECURE` (avec garde-fou `sameSite=none => secure=true`)
 
 ## Types utilises par le front
 
@@ -193,6 +196,10 @@ type Quiz = {
 
 ### Auth
 
+Note:
+- OAuth expose cote backend actuel: `42` uniquement (`/auth/42/start`, `/auth/42/callback`).
+- Pas de route OAuth Google dans l'etat actuel de `dev`.
+
 `POST /auth/register`
 - Body:
 
@@ -227,6 +234,19 @@ type Quiz = {
 - Erreurs:
   - `401 UNAUTHORIZED` si credentials invalides
   - `400 BAD_REQUEST` si body invalide
+
+`POST /auth/guest`
+- Body: vide (ou `{}` tolere)
+- Reponse: `201`, `ApiResponse<SafeUser>`, + cookie `access_token`
+- Effet: cree un utilisateur guest (`guest+...@guest.local`) et ouvre une session.
+
+`GET /auth/42/start`
+- Reponse: `302` redirect vers `https://api.intra.42.fr/oauth/authorize...`
+- Erreur de config: redirect vers `${FRONTEND_ORIGIN}/login?oauth_error=...`
+
+`GET /auth/42/callback?code=...&state=...`
+- Reponse succes: `302` vers `${FRONTEND_ORIGIN}/` + cookie `access_token`
+- Reponse erreur: `302` vers `${FRONTEND_ORIGIN}/login?oauth_error=...`
 
 `POST /auth/logout`
 - Body: vide (ou `{}` tolere)
@@ -392,7 +412,8 @@ type FriendRequestEntry = {
 - Notes:
   - Si `quizId` est fourni, le backend verifie que le quiz existe et contient au moins une question.
   - Le nombre de manches effectif est limite au nombre de questions disponibles dans le quiz.
-  - Si `quizId` est omis, la room peut encore demarrer avec la banque de questions de fallback.
+  - Si `quizId` est omis, le backend utilise le quiz par defaut `"Culture générale"` (seed Prisma) au demarrage.
+  - Si ce quiz par defaut est absent, le demarrage de partie echoue avec `409 CONFLICT`.
 
 `POST /rooms/:roomId/join`
 - Auth: cookie `access_token` requis

@@ -1,6 +1,6 @@
 # WebSocket Event Contract (Back 3)
 
-Version: `v1` (etat actuel de `dev` au 2026-04-16)  
+Version: `v1` (etat actuel de `dev` au 2026-04-17)  
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -117,7 +117,8 @@ Notes:
 - `password` requis seulement si `isPrivate=true`.
 - `quizId` optionnel, mais recommande pour les rooms creees depuis l'interface quiz.
 - Si `quizId` est fourni, les questions de la partie viennent de ce quiz.
-- `userId` optionnel (si fourni, le createur rejoint la room).
+- `userId` optionnel; l'identite est derivee du socket JWT et verifiee.
+- `quizId` invalide => `room:create:error` (`NOT_FOUND`), quiz vide => `CONFLICT`.
 
 ### `room:join`
 
@@ -286,7 +287,7 @@ Notes:
 Note:
 - Le backend n'expose pas la bonne reponse dans ce payload.
 - Si la room a un `quizId`, `question` correspond a une `QuizQuestion` persistante.
-- Sinon, le backend utilise une banque de questions de fallback pour compatibilite.
+- Sinon, le backend utilise le quiz par defaut `"Culture générale"` (seed Prisma).
 
 - `game:timer`:
 
@@ -323,8 +324,8 @@ Note:
   "questionId": 101,
   "selectedAnswerIndex": 1,
   "isCorrect": true,
-  "scoreDelta": 100,
-  "userTotalScore": 200,
+  "scoreDelta": 2,
+  "userTotalScore": 4,
   "totalAnswers": 4
 }
 ```
@@ -398,7 +399,7 @@ Codes d'erreur possibles:
 ## Regles metier MVP
 
 - `room:join` autorise seulement en `waiting`.
-- `room:start` autorise seulement en `waiting` avec au moins 1 joueur.
+- `room:start` autorise seulement en `waiting` avec au moins 3 joueurs.
 - `game:answer` autorise seulement en `playing`.
 - Un user ne peut repondre qu'une seule fois par question.
 - Un socket est lie au `userId` du JWT pour toute sa duree de vie.
@@ -409,6 +410,7 @@ Codes d'erreur possibles:
 - Un spectateur ne peut pas emettre `room:start` ni `game:answer` (UNAUTHORIZED).
 - Score cumule par user publie via `game:leaderboard`.
 - Les rooms peuvent etre liees a un quiz via `Room.quizId`; dans ce cas l'ordre, le texte, les options, la bonne reponse et les points viennent des `QuizQuestion`.
+- Si `quizId` est absent, le runtime lit le quiz par defaut `"Culture générale"`.
 - Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
 - Timeout auto d'une question puis question suivante.
 - Fin auto de partie a la fin du cycle de questions.
