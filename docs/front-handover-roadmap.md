@@ -15,7 +15,7 @@ Objectif: faire converger le front vers les modules a valider sans reouvrir la c
 ### Deja exploitable cote front
 
 - Auth locale + session cookie
-- OAuth 42 + Google
+- OAuth 42
 - Lobby rooms + join/create + game panel
 - Chat room
 - Realtime question/timer/answers/leaderboard
@@ -52,7 +52,7 @@ Priorite de fermeture (ordre recommande):
 - vue lecture seule d'une room en cours
 
 4. OAuth complet cote UX
-- boutons 42/Google deja presents
+- bouton 42 deja present
 - ajouter etats loading/erreur/retry robustes
 
 5. Multi-browser readiness

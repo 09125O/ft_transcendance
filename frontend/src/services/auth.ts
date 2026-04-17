@@ -58,10 +58,6 @@ export function loginWithFortyTwo(): void {
   window.location.href = "/auth/42/start";
 }
 
-export function loginWithGoogle(): void {
-  window.location.href = "/auth/google/start";
-}
-
 export function getSession(): Promise<SafeUser> {
   return apiRequest<SafeUser>("/auth/session");
 }
