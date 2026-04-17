@@ -7,3 +7,5 @@ frontend/dist/
 !.env.example
 certs/
 backend/.runtime/
+
+.DS_Store

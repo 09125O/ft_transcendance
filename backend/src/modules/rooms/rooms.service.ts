@@ -10,6 +10,8 @@ import * as bcrypt from "bcrypt";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
 
+const MIN_PLAYERS_TO_START = 3;
+
 export type RoomPlayer = {
   userId: number;
   joinedAt: string;
@@ -242,8 +244,10 @@ export class RoomsService {
       throw new UnauthorizedException("Only room owner can start the game");
     }
 
-    if (room.players.length < 1) {
-      throw new ConflictException("Cannot start a room without players");
+    if (room.players.length < MIN_PLAYERS_TO_START) {
+      throw new ConflictException(
+        `Cannot start a room with fewer than ${MIN_PLAYERS_TO_START} players`,
+      );
     }
 
     const updated = await this.prisma.client.room.update({

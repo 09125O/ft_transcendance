@@ -60,45 +60,28 @@ type QuestionEntry = PublicQuestion & {
   points: number;
 };
 
+const DEFAULT_QUIZ_TITLE = "Culture générale";
+
 @Injectable()
 export class GameService {
-  private readonly questionBank = new Map<number, QuestionEntry>([
-    [
-      101,
-      {
-        id: 101,
-        text: "Quel est le language principal utilise pour ce backend ?",
-        options: ["Python", "TypeScript", "Go", "Rust"],
-        correctAnswerIndex: 1,
-        points: 100,
-      },
-    ],
-    [
-      102,
-      {
-        id: 102,
-        text: "Quel endpoint est utilise pour rejoindre une room ?",
-        options: ["/room/join", "/rooms/join", "/rooms/:roomId/join", "/join-room"],
-        correctAnswerIndex: 2,
-        points: 100,
-      },
-    ],
-    [
-      103,
-      {
-        id: 103,
-        text: "Quel event WebSocket diffuse le compte a rebours ?",
-        options: ["game:start", "game:timer", "question:tick", "room:timer"],
-        correctAnswerIndex: 1,
-        points: 100,
-      },
-    ],
-  ]);
-
   constructor(
     private readonly roomsService: RoomsService,
     private readonly prisma: PrismaService,
   ) {}
+
+  private async getDefaultQuizId(): Promise<number> {
+    const quiz = await this.prisma.client.quiz.findFirst({
+      where: { title: DEFAULT_QUIZ_TITLE },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (!quiz) {
+      throw new ConflictException(
+        `Default quiz "${DEFAULT_QUIZ_TITLE}" is missing. Run prisma:seed.`,
+      );
+    }
+    return quiz.id;
+  }
 
   async getRoomState(roomId: number): Promise<GameState> {
     const room = await this.roomsService.getById(roomId);
@@ -346,16 +329,17 @@ export class GameService {
 
   async getQuestionOrder(roomId: number): Promise<number[]> {
     const room = await this.roomsService.getById(roomId);
-    if (typeof room.quizId === "number") {
-      const questions = await this.prisma.client.quizQuestion.findMany({
-        where: { quizId: room.quizId },
-        orderBy: { position: "asc" },
-        select: { id: true },
-      });
-      return questions.map((question) => question.id);
+    const quizId =
+      typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
+    const questions = await this.prisma.client.quizQuestion.findMany({
+      where: { quizId },
+      orderBy: { position: "asc" },
+      select: { id: true },
+    });
+    if (questions.length === 0) {
+      throw new ConflictException(`Quiz ${quizId} has no questions`);
     }
-
-    return [...this.questionBank.keys()].sort((a, b) => a - b);
+    return questions.map((question) => question.id);
   }
 
   async getPublicQuestion(questionId: number): Promise<PublicQuestion> {
@@ -406,30 +390,25 @@ export class GameService {
     const quizQuestion = await this.prisma.client.quizQuestion.findUnique({
       where: { id: questionId },
     });
-    if (quizQuestion) {
-      const options = this.parseAnswers(quizQuestion.answers);
-      const correctAnswerIndex = options.findIndex(
-        (answer) => answer === quizQuestion.correctAnswer,
-      );
-      if (correctAnswerIndex < 0) {
-        throw new ConflictException(
-          `Question ${questionId} has no matching correct answer`,
-        );
-      }
-      return {
-        id: quizQuestion.id,
-        text: quizQuestion.questionText,
-        options,
-        correctAnswerIndex,
-        points: quizQuestion.points,
-      };
-    }
-
-    const fallbackQuestion = this.questionBank.get(questionId);
-    if (!fallbackQuestion) {
+    if (!quizQuestion) {
       throw new ConflictException(`Question ${questionId} not configured`);
     }
-    return fallbackQuestion;
+    const options = this.parseAnswers(quizQuestion.answers);
+    const correctAnswerIndex = options.findIndex(
+      (answer) => answer === quizQuestion.correctAnswer,
+    );
+    if (correctAnswerIndex < 0) {
+      throw new ConflictException(
+        `Question ${questionId} has no matching correct answer`,
+      );
+    }
+    return {
+      id: quizQuestion.id,
+      text: quizQuestion.questionText,
+      options,
+      correctAnswerIndex,
+      points: quizQuestion.points,
+    };
   }
 
   private parseAnswers(value: Prisma.JsonValue): string[] {

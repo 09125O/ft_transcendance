@@ -56,11 +56,14 @@ async function run() {
     }
     const ownerSession = await createAuthenticatedSession(WS_BASE_URL, "owner");
     const guestSession = await createAuthenticatedSession(WS_BASE_URL, "guest");
+    const thirdSession = await createAuthenticatedSession(WS_BASE_URL, "third");
     const outsiderSession = await createAuthenticatedSession(WS_BASE_URL, "outsider");
     const owner = await connectAuthenticatedSocket(WS_NAMESPACE_URL, ownerSession.cookieHeader);
     pass(`Connexion WS OK (owner, userId=${owner.userId})`);
     const guest = await connectAuthenticatedSocket(WS_NAMESPACE_URL, guestSession.cookieHeader);
     pass(`Connexion WS OK (guest, userId=${guest.userId})`);
+    const third = await connectAuthenticatedSocket(WS_NAMESPACE_URL, thirdSession.cookieHeader);
+    pass(`Connexion WS OK (third, userId=${third.userId})`);
     const outsider = await connectAuthenticatedSocket(
       WS_NAMESPACE_URL,
       outsiderSession.cookieHeader,
@@ -68,10 +71,11 @@ async function run() {
     pass(`Connexion WS OK (outsider, userId=${outsider.userId})`);
 
     section("test websocket room lifecycle");
-    sockets.push(owner.socket, guest.socket, outsider.socket);
+    sockets.push(owner.socket, guest.socket, third.socket, outsider.socket);
     const roomId = await createRoomWithOwner(owner);
     await assertOutsiderCannotChat(outsider, roomId);
     await joinRoomAsGuest(guest, roomId);
+    await joinRoomAsGuest(third, roomId);
     await assertGuestCannotStartRoom(guest, roomId);
 
     section("test websocket room private rest/ws coherence");
@@ -93,6 +97,7 @@ async function run() {
 
     section("test websocket disconnect cleanup");
     await assertDisconnectUpdatesRoomState(owner, guest, roomId);
+    safeDisconnect(third.socket);
     await assertRoomClosedAfterLastDisconnect(guest, outsider, roomId);
     pass("WS smoke test termine avec succes");
   } finally {

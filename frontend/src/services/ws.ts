@@ -18,7 +18,41 @@ const socket: Socket = io(`${WS_BASE_URL}/ws`, {
   autoConnect: false,
   withCredentials: true,
   transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
 });
+
+export type WsConnectionState =
+  | "idle"
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected";
+
+type Listener = (state: WsConnectionState) => void;
+const listeners = new Set<Listener>();
+let currentState: WsConnectionState = "idle";
+
+function setState(next: WsConnectionState) {
+  currentState = next;
+  for (const listener of listeners) listener(next);
+}
+
+socket.on("connect", () => setState("connected"));
+socket.on("disconnect", () => setState("disconnected"));
+socket.io.on("reconnect_attempt", () => setState("reconnecting"));
+socket.io.on("reconnect", () => setState("connected"));
+socket.io.on("reconnect_failed", () => setState("disconnected"));
+
+export function subscribeWsConnection(listener: Listener): () => void {
+  listeners.add(listener);
+  listener(currentState);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 export function connectWs(): void {
   if (!socket.connected) {
