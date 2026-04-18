@@ -8,7 +8,10 @@ import {
   ParseIntPipe,
   Post,
   UseFilters,
+  UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { AuthGuard } from "@/modules/auth/guards/auth.guard";
 import { CreateQuizDto } from "./dto/create-quiz.dto";
 import { QuizzesService, type QuizResponse } from "./quizzes.service";
 
@@ -30,6 +33,8 @@ export class QuizzesController {
   }
 
   @Post()
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async createQuiz(
     @Body() dto: CreateQuizDto,
   ): Promise<ApiResponse<QuizResponse>> {

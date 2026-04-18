@@ -26,11 +26,11 @@ async function requestJson(path, { method = "GET", cookieHeader, body } = {}) {
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
-  let json = null;
+  let json;
   try {
     json = await response.json();
   } catch {
-    json = null;
+    // Ignore non-JSON responses to preserve the HTTP status for assertions.
   }
 
   return {

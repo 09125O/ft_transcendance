@@ -15,6 +15,11 @@ import { RealtimeValidationService } from "./realtime-validation.service";
 
 @Injectable()
 export class RealtimeRoomEventsService {
+  private readonly disconnectGraceMs = Number(
+    process.env.ROOM_RECONNECT_GRACE_MS || 10000,
+  );
+  private readonly pendingDisconnects = new Map<number, NodeJS.Timeout>();
+
   constructor(
     private readonly roomsService: RoomsService,
     private readonly gameService: GameService,
@@ -28,12 +33,23 @@ export class RealtimeRoomEventsService {
     const spectatingRooms = this.presence.getSpectatingRooms(clientId);
     const userId = this.presence.unregisterSocket(clientId);
     if (typeof userId === "number" && !this.presence.hasActiveSockets(userId)) {
-      await this.removeUserFromRooms(userId, server);
+      this.scheduleUserRemoval(userId, server);
     }
 
     for (const roomId of spectatingRooms) {
       this.emitSpectatorCount(roomId, server);
     }
+  }
+
+  handleReconnect(userId: number): void {
+    this.cancelPendingDisconnect(userId);
+  }
+
+  clearPendingDisconnects(): void {
+    for (const timeout of this.pendingDisconnects.values()) {
+      clearTimeout(timeout);
+    }
+    this.pendingDisconnects.clear();
   }
 
   async handleRoomList(client: Socket): Promise<void> {
@@ -47,9 +63,12 @@ export class RealtimeRoomEventsService {
   ): Promise<void> {
     const payload = this.validation.validatePayload(RoomCreateEventDto, rawPayload);
     const requesterUserId = this.presence.resolveSocketUser(client.id, payload.userId);
-    const { userId, ...createDto } = payload;
     const room = await this.roomsService.create({
-      ...createDto,
+      name: payload.name,
+      rounds: payload.rounds,
+      isPrivate: payload.isPrivate,
+      password: payload.password,
+      quizId: payload.quizId,
       ownerUserId: requesterUserId,
     });
 
@@ -217,6 +236,32 @@ export class RealtimeRoomEventsService {
     if (listUpdated) {
       await this.broadcastRoomList(server);
     }
+  }
+
+  private scheduleUserRemoval(userId: number, server: Server): void {
+    this.cancelPendingDisconnect(userId);
+
+    const timeout = setTimeout(() => {
+      this.pendingDisconnects.delete(userId);
+
+      void (async () => {
+        if (this.presence.hasActiveSockets(userId)) {
+          return;
+        }
+        await this.removeUserFromRooms(userId, server);
+      })();
+    }, this.disconnectGraceMs);
+
+    this.pendingDisconnects.set(userId, timeout);
+  }
+
+  private cancelPendingDisconnect(userId: number): void {
+    const timeout = this.pendingDisconnects.get(userId);
+    if (!timeout) {
+      return;
+    }
+    clearTimeout(timeout);
+    this.pendingDisconnects.delete(userId);
   }
 
   private async assertUserInRoom(roomId: number, userId: number) {

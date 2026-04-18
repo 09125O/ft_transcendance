@@ -52,6 +52,7 @@ export class RealtimeGateway
     try {
       const userId = await this.auth.authenticateSocket(client);
       this.presence.bindSocketToUser(client.id, userId);
+      this.roomEvents.handleReconnect(userId);
 
       client.emit(
         "ws:connected",
@@ -84,6 +85,7 @@ export class RealtimeGateway
 
   onModuleDestroy(): void {
     this.gameRuntime.stopAllTimers();
+    this.roomEvents.clearPendingDisconnects();
     this.presence.clear();
   }
 

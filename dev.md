@@ -34,7 +34,8 @@ Role actuel :
 
 - afficher une page de verification de la stack
 - interroger regulierement `/health`
-- proxifier les appels `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores` et `/quizzes` vers le backend via Webpack Dev Server
+- proxifier les appels `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends` et `/notifications` vers le backend via Webpack Dev Server
+- laisser les navigations HTML de routes ecran comme `/friends` retomber sur React Router, meme si les `fetch` correspondants passent par le proxy
 
 ### Backend
 
@@ -61,7 +62,7 @@ Role actuel :
 Le fonctionnement actuel est le suivant :
 
 1. Le navigateur appelle le frontend sur `https://localhost:3000`
-2. Le frontend React TypeScript appelle le backend via des routes proxifiees comme `/health`, `/api`, `/auth/*`, `/users/*` et `/quizzes/*`
+2. Le frontend React TypeScript appelle le backend via des routes proxifiees comme `/health`, `/api`, `/auth/*`, `/users/*`, `/friends/*`, `/notifications/*` et `/quizzes/*`
 3. Webpack Dev Server proxifie ces routes vers le backend `https://backend:4000`
 4. Le backend interroge PostgreSQL via `DATABASE_URL`
 
@@ -75,7 +76,7 @@ Le fonctionnement actuel est le suivant :
                   frontend
      React + TypeScript + Webpack Dev Server
                          |
-proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes
+proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes, /friends, /notifications
                          |
                          v
          https://backend:4000
@@ -130,6 +131,7 @@ Les variables principales sont :
 - `JWT_EXPIRES_IN`
 - `FRONTEND_ORIGIN`
 - `GAME_QUESTION_DURATION_MS`
+- `ROOM_RECONNECT_GRACE_MS`
 
 Regle d'equipe :
 

@@ -152,11 +152,11 @@ async function requestJson(baseUrl, path, payload) {
     body: JSON.stringify(payload),
   });
 
-  let json = null;
+  let json;
   try {
     json = await response.json();
   } catch {
-    json = null;
+    // Some auth failures may return an empty body; the caller still needs the status.
   }
 
   return {
@@ -182,7 +182,7 @@ function extractAccessTokenCookie(response) {
   }
 
   const tokenCookie = singleHeader
-    .split(/,(?=\s*[A-Za-z0-9_\-]+=)/)
+    .split(/,(?=\s*[A-Za-z0-9_-]+=)/)
     .map((value) => value.trim().split(";")[0])
     .find((value) => value.startsWith("access_token="));
 

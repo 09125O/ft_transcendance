@@ -341,7 +341,7 @@ export class RoomsService {
   }
 
   private stripPasswordHash(room: Room): Omit<Room, "passwordHash"> {
-    const { passwordHash, ...publicRoom } = room;
+    const { passwordHash: _passwordHash, ...publicRoom } = room;
     return publicRoom;
   }
 }

@@ -40,6 +40,13 @@ Transport: `socket.io`
 - listen `room:left`
 - listen `room:closed` (si room vide)
 - listen `room:leave:error`
+- `room:leave` est une sortie volontaire immediate.
+
+4bis. Disconnect/reconnect navigateur:
+- une coupure socket (refresh, perte reseau courte) ne retire pas immediatement le joueur de la room
+- le backend attend un delai de grace (`ROOM_RECONNECT_GRACE_MS`, defaut 10000 ms)
+- si la reconnexion a lieu avant expiration, le joueur conserve son membership room
+- si le delai expire sans reconnexion, le backend emet les mises a jour `room:state` / `room:list-updated` correspondantes
 
 5. Spectateur:
 - emit `room:spectate` `{ roomId }`

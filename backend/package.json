@@ -5,6 +5,7 @@
   "scripts": {
     "build": "npm run prisma:generate && tsc -p tsconfig.build.json",
     "deps:sync": "sh -c 'if [ -f package-lock.json ]; then npm ci; else npm install --include=dev --no-package-lock; fi'",
+    "lint": "eslint src scripts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node-dev --transpile-only -r tsconfig-paths/register prisma/seed.ts",
@@ -39,18 +40,29 @@
     "socket.io": "^4.8.3",
     "tsconfig-paths": "^4.2.0"
   },
+  "overrides": {
+    "@hono/node-server": "1.19.14",
+    "defu": "6.1.7",
+    "file-type": "22.0.1",
+    "hono": "4.12.14",
+    "multer": "2.1.1"
+  },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
+    "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.14.1",
     "dotenv": "^16.4.7",
+    "eslint": "^10.2.1",
+    "globals": "^17.5.0",
     "jest": "^30.0.5",
     "prisma": "^7.5.0",
     "socket.io-client": "^4.8.3",
     "ts-jest": "^29.4.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.58.2"
   }
 }

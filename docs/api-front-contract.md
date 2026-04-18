@@ -22,8 +22,7 @@ Consequence:
 - Backend direct: `https://localhost:4000`
 - Front dev server: `https://localhost:3000`
 - Proxy Webpack actuellement configure sur:
-  - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/socket.io`
-- Les routes `/friends` et `/notifications` ne sont pas encore proxifiees par `frontend/webpack.config.cjs` (etat actuel).
+  - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/socket.io`
 - En dev, le front peut appeler directement:
   - `/auth`
   - `/users`
@@ -523,6 +522,7 @@ type NotificationList = {
   - `404 NOT_FOUND` si quiz absent
 
 `POST /quizzes`
+- Auth: cookie `access_token` requis
 - Body:
 
 ```json
@@ -547,6 +547,9 @@ type NotificationList = {
   - `correctAnswerIndex`: int 0..3 et inferieur a `answers.length`
   - `points`: int 1..1000 optionnel
 - Reponse: `201`, `ApiResponse<Quiz>`
+- Erreurs:
+  - `401 UNAUTHORIZED`
+  - `429 TOO_MANY_REQUESTS` apres abus de creation
 
 ## Notes de stabilite
 

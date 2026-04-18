@@ -63,12 +63,12 @@ export class UsersController {
   }
 
   private sanitizeUser(user: User): SafeUser {
-    const { password, ...safeUser } = user;
+    const { password: _password, ...safeUser } = user;
     return safeUser;
   }
 
   private sanitizePublicUser(user: User): PublicUser {
-    const { password, email, ...publicUser } = user;
+    const { password: _password, email: _email, ...publicUser } = user;
     return publicUser;
   }
 }

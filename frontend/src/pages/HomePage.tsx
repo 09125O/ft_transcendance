@@ -9,7 +9,14 @@ export default function HomePage() {
     requestedRoomId !== null && Number.isInteger(requestedRoomId) && requestedRoomId > 0;
 
   return (
-    <main className="flex flex-1 px-[10%] py-6">
+    <main
+      className={[
+        "flex flex-1",
+        isRoomRoute
+          ? "px-4 py-4 sm:px-6 lg:px-[6%]"
+          : "px-4 py-6 sm:px-6 lg:px-[8%]",
+      ].join(" ")}
+    >
       {isRoomRoute ? (
         <RoomScreen requestedRoomId={requestedRoomId} />
       ) : (
