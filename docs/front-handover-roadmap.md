@@ -1,26 +1,39 @@
 # Front Handover Roadmap
 
 Date: 2026-04-18
-Contexte: le frontend et le backend sont maintenant largement alignes sur les flux principaux. Ce document suit surtout les ecarts restants avant cloture sujet.
+Contexte: le frontend et le backend sont alignes sur les flux critiques. Ce document suit les ecarts encore actifs dans le scope courant et le chemin retenu pour passer de `14` a `19` points selon `en.subject.pdf` et `Intra Projects ft_transcendence Edit.pdf`.
 
 ## 1) Resume executif
 
-Le front couvre maintenant les flux critiques :
+Le front couvre aujourd'hui :
 
 - auth locale / guest / OAuth 42
 - lobby / room / game / chat
 - creation de quiz et creation de room depuis un quiz
 - profil utilisateur
 - amis + demandes + notifications minimales
+- stats utilisateur dans le profil
 
-Le travail restant n'est plus un rattrapage global. C'est une fermeture cible des gaps suivants :
+Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
-- mode spectateur cote UI
+- completion du module notifications
 - page leaderboard globale / historique
 - recette multi-browser formelle
-- branchement end-to-end de la duree par question
+- alignement end-to-end de la duree par question
+- surface health / status minimale et dossier de preuve associe
 
-## 2) Etat actuel (factuel)
+## 2) Hors scope courant
+
+Les points suivants ne font plus partie du plan actif du projet :
+
+- mode spectateur cote UI
+- `2FA`
+- `SSR`
+
+Note:
+- la capacite backend `room:spectate` reste documentee et disponible, mais aucun parcours frontend dedie n'est prevu
+
+## 3) Etat actuel (factuel)
 
 ### Deja exploitable cote front
 
@@ -42,89 +55,108 @@ References:
 - docs/ws-event-contract.md
 - docs/backend-front-enablement-spec.md
 
-### Gaps front visibles
+### Gaps front visibles dans le scope courant
 
-- Pas de route spectateur en lecture seule dediee
 - Pas de page leaderboard globale ni d'historique de parties
 - Pas de cloche notifications en navbar ni de pattern toast unifie
 - Pas de recette multi-browser formalisee dans la doc
 - Le selecteur "temps par question" du front n'est pas encore branche au backend
-
-## 3) Cibles "sujet" a fermer cote front
-
-Priorite de fermeture (ordre recommande) :
-
-1. Spectator mode
-- vue lecture seule d'une room en cours
-- navigation claire depuis une room active
-
-2. Stats + historique
-- page leaderboard globale
-- historique de parties ou vue "derniers resultats"
-
-3. Multi-browser readiness
-- checklist recette Chrome / Firefox / Safari
-
-4. Duree par question
-- soit brancher le choix par room
-- soit retirer le selecteur UI pour rester honnete
-
-5. Notifications UX
-- cloche navbar ou pattern de surfacing plus visible
-- eviter de cacher toute la surface notif dans la seule page amis
-
-Notes:
-- SSR reste mineur et non prioritaire tant que les points ci-dessus ne sont pas clos.
-- 2FA reste hors scope front tant que le backend n'expose rien.
+- Le front courant ne subscribe pas encore `notification:new`
+- Il n'existe pas de vraie status page cote front
 
 ## 4) Backlog restant recommande
 
-### Ticket R1 - Mode spectateur UI
+Ordre retenu pour viser `19` avec le moins de risque :
 
-- Ajouter une entree claire vers le mode spectateur
-- Afficher timer / question / leaderboard sans action joueur
-- Montrer explicitement l'etat lecture seule
+1. `Game customization options`
+2. `Game statistics and match history`
+3. `Support for additional browsers`
+4. `Notification system`
+5. `Health check & status page`
+
+### Ticket R1 - Game customization options
+
+- Fermer l'ecart entre le selecteur "temps par question" et le backend
+- Ajouter au moins une surface de personnalisation lisible et demonstrable pour la partie
+- Garantir des options par defaut disponibles
+
+Reference sujet:
+- "Different maps or themes"
+- "Customizable game settings"
+- "Default options must be available"
 
 Definition of Done:
-- `room:spectate` branche cote UI
-- pas de bouton de reponse ni de start pour un spectateur
-- pas de regression sur le mode joueur
+- plus aucun faux parametre dans l'UI
+- personnalisation visible et utilisable en demo
+- la doc n'affirme rien que le code ne fait pas
 
-### Ticket R2 - Leaderboard globale et historique
+### Ticket R2 - Game statistics and match history
 
 - Ajouter une page dediee aux scores
 - Reutiliser `GET /scores/leaderboard`
-- Ajouter un bloc "historique" ou "resultats recents" si la source existe
+- Ajouter un historique de matchs avec date, resultat et adversaire(s)
+- Completer le profil ou la page scores avec les informations necessaires pour rendre le module revendicable
+
+Reference sujet:
+- "Track user game statistics (wins, losses, ranking, level, etc.)"
+- "Display match history (1v1 games, dates, results, opponents)"
+- "Show achievements and progression"
+- "Leaderboard integration"
 
 Definition of Done:
 - navigation visible depuis le front
 - etats `loading`, `empty`, `error`, `ready`
+- historique demonstrable, pas seulement des stats agregees
+- preuve de module compatible revue Intra
 
-### Ticket R3 - QA multi-browser
+### Ticket R3 - Support for additional browsers
 
-- Rediger une vraie recette Chrome / Firefox / Safari
-- Rejouer les flows auth -> room -> game -> social
+- Valider Chrome + au moins `2` navigateurs additionnels
+- Rejouer tous les flows critiques
+- Corriger les regressions specifiques
+- Versionner une recette avec limitations connues si necessaire
 
-Definition of Done:
-- checklist versionnee dans la doc
-- ecarts critiques consignes
-
-### Ticket R4 - Duree par question
-
-- Soit brancher la valeur choisie dans `RoomCreateFromQuizPanel`
-- Soit retirer temporairement le selecteur de l'UI
-
-Definition of Done:
-- plus aucun ecart entre UI et backend sur ce parametre
-
-### Ticket R5 - Notifications UX
-
-- Sortir les notifications du seul ecran amis
-- Ajouter un point d'entree plus visible (navbar, badge, toast ou autre pattern unique)
+Reference sujet:
+- "Full compatibility with at least 2 additional browsers (Firefox, Safari, Edge, etc.)"
+- "Test and fix all features in each browser"
+- "Document any browser-specific limitations"
+- "Consistent UI/UX across all supported browsers"
 
 Definition of Done:
-- pas de duplication des signaux
-- l'utilisateur voit rapidement qu'un evenement social l'attend
+- checklist versionnee
+- limitations explicites
+- aucun bug critique bloqueur sur les browsers annonces
+
+### Ticket R4 - Notification system
+
+- Sortir d'un scope "lecture HTTP minimale"
+- Couvrir creation, update et delete avec une logique notification claire
+- Decider explicitement si `notification:new` doit etre consomme en temps reel cote front
+- Ajouter une surface utilisateur visible et coherente
+
+Reference sujet:
+- "A complete notification system for all creation, update, and deletion actions"
+
+Definition of Done:
+- create/update/delete demonstrables
+- comportement front documente
+- pas de claim ambigu entre HTTP seul et WS
+- surface UI suffisante pour une demo evaluateur
+
+### Ticket R5 - Health check & status page
+
+- Conserver `/health`
+- Ajouter une vraie page ou vue de status minimale
+- Documenter les sauvegardes et la reprise
+- Preparer une demonstration concise pour la revue
+
+Reference sujet:
+- "Health check and status page system with automated backups and disaster recovery procedures"
+
+Definition of Done:
+- status page accessible
+- preuves de sauvegarde / recovery documentees
+- module revendicable sans extrapolation
 
 ## 5) Contrats techniques pour le dev front
 
@@ -148,16 +180,16 @@ Definition of Done:
 - `error`
 - `ready`
 
-## 6) Backlog priorise (copier-coller en issues)
+## 6) Backlog priorise
 
 P0:
-- R1 Mode spectateur UI
-- R3 QA front multi-browser
-- R4 Duree par question end-to-end
+- R1 Game customization options
+- R2 Game statistics and match history
 
 P1:
-- R2 Leaderboard / historique
-- R5 Notifications UX
+- R3 Support for additional browsers
+- R4 Notification system
+- R5 Health check & status page
 
 P2:
 - accessibilite / a11y de finition
@@ -165,9 +197,9 @@ P2:
 
 ## 7) Risques et dependances
 
-- Risque principal: donner l'impression d'une conformite sujet fermee alors que spectateur / historique / multi-browser ne sont pas encore demontrables
+- Risque principal: revendiquer un module trop tot alors que la revue Intra ne comptera que les modules pleinement fonctionnels
 - Dependance: rester strictement aligne avec les contrats API/WS deja exposes cote backend
-- Mitigation: traiter les deltas restants sans reouvrir l'architecture
+- Mitigation: fermer 5 modules `Minor` simples et demonstrables au lieu d'etendre le scope sur des `Major`
 - Spec backend de rattrapage: docs/backend-front-enablement-spec.md
 
 ## 8) Commandes utiles front
@@ -180,8 +212,10 @@ P2:
 
 ## 9) Livrables attendus
 
-- Navigation front enrichie: home, login, register, profil, amis, leaderboard, spectateur
+- Navigation front enrichie: home, login, register, profil, amis, leaderboard
 - UX realtime stabilisee (erreurs, etats, feedback)
+- Notifications demonstrables en create/update/delete
+- Status page minimale et preuves ops
 - Checklist QA navigateurs
 - Dossier de demo oriente sujet (preuves fonctionnelles)
 
@@ -190,7 +224,7 @@ P2:
 - A chaque PR: verifier que les sections API/WS impactees sont a jour
 - Verifier que README pointe vers les bons documents
 - Refuser merge si l'ecart doc/impl existe sur un flux critique
-- Mettre a jour la matrice apres chaque lot front restant (spectateur, stats, QA multi-browser)
+- Mettre a jour la matrice apres chaque lot ferme parmi les 5 modules cibles vers `19`
 
 ## 11) Quick wins doc
 

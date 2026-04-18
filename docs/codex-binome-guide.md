@@ -7,25 +7,56 @@ Scope: mode de travail pour 2 personnes avec Codex, sans blocage inter-scope.
 
 Ce guide definit un cadre simple:
 - garder la vitesse de livraison,
-- garder la conformite sujet,
+- garder la conformite sur le scope retenu,
 - permettre a chacun de toucher le scope de l'autre si necessaire,
 - imposer une trace documentaire claire a chaque changement.
 
 ## 2) Repartition des tickets (owner principal)
 
-- Ticket A - Duree par question vraiment branchee end-to-end:
+- Ticket A - Game customization options:
   - Owner principal: Backend
   - Support: Frontend
-- Ticket B - Fermeture spectator + stats/historique:
+- Ticket B - Stats / historique demonstrables:
   - Owner principal: Frontend
   - Support: Backend
-- Ticket C - QA multi-browser + dossier de demo + hygiene doc:
+- Ticket C - Support navigateurs additionnels + dossier de demo:
   - Owner principal: Frontend
   - Support: Backend
+- Ticket D - Notification system:
+  - Owner principal: Frontend
+  - Support: Backend
+- Ticket E - Health check + status page:
+  - Owner principal: Backend
+  - Support: Frontend
 
 Regle: un owner principal par ticket. Le support peut coder directement dans l'autre scope si cela debloque.
 
-## 3) Regle cross-scope (obligatoire)
+## 3) Hors scope courant
+
+Ne pas rouvrir ces sujets sans decision explicite:
+
+- mode spectateur cote UI
+- `2FA`
+- `SSR`
+
+## 3bis) Rappel evaluation
+
+References officielles:
+
+- `srcs_subject/en.subject.pdf`
+- `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
+
+Rappels:
+
+- `Major = 2 points`
+- `Minor = 1 point`
+- minimum requis: `14`
+- bonus pris en compte: `+5` max
+- seuls les modules pleinement fonctionnels comptent
+- un module incomplet vaut `0`
+- le README doit lister clairement les modules revendiques et leur total
+
+## 4) Regle cross-scope (obligatoire)
 
 Chacun peut modifier backend ou frontend, meme hors scope principal, a condition de:
 
@@ -34,7 +65,7 @@ Chacun peut modifier backend ou frontend, meme hors scope principal, a condition
 3. Mettre a jour la matrice sujet si statut impacte.
 4. Ajouter une preuve de verification (test, script, scenario manuel).
 
-## 4) Docs a mettre a jour selon impact
+## 5) Docs a mettre a jour selon impact
 
 Toujours verifier ces fichiers:
 - docs/sujet-conformite-matrice.md
@@ -50,7 +81,7 @@ Si WebSocket change:
 Si flux quiz -> room -> game change:
 - docs/quiz-room-game-integration.md
 
-## 5) Template PR minimum (a copier dans la description)
+## 6) Template PR minimum (a copier dans la description)
 
 Summary:
 - What changed:
@@ -72,7 +103,7 @@ Validation:
 - Manual scenario:
 - Risks and rollback:
 
-## 6) Definition of Done (binome)
+## 7) Definition of Done (binome)
 
 Une tache est terminee si:
 
@@ -82,12 +113,12 @@ Une tache est terminee si:
 4. Docs impactees mises a jour dans la meme PR.
 5. Matrice sujet mise a jour avec preuve.
 
-## 6bis) Regle commit binome
+## 7bis) Regle commit binome
 
 - Avant chaque commit `feature` ou `fix`, proposer le nom du commit et le valider.
 - Garder des messages courts, explicites, en francais.
 
-## 7) Prompt de depart Codex (recommande)
+## 8) Prompt de depart Codex (recommande)
 
 Utiliser ce prompt de base avant chaque ticket:
 
@@ -100,20 +131,18 @@ Travaille avec ces contraintes:
 - Ne laisse aucun etat UI critique sans feedback: loading/empty/error/ready.
 """
 
-## 8) Ordre de priorite commun
+## 9) Ordre de priorite commun
 
 P0:
-- Ticket A (duree par question vraiment branchee end-to-end)
-- Ticket B (spectateur + stats/historique demonstrables)
+- Ticket A (game customization options)
+- Ticket B (stats / historique demonstrables)
 
 P1:
-- Ticket C (QA navigateurs + dossier de demo + hygiene doc)
+- Ticket C (support navigateurs additionnels + dossier de demo)
+- Ticket D (notification system)
+- Ticket E (health check + status page)
 
-P2:
-- SSR
-- 2FA
-
-## 9) Anti-blocage
+## 10) Anti-blocage
 
 Si un blocage dure plus de 30 minutes:
 

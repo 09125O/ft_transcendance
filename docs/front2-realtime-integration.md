@@ -28,7 +28,8 @@ Transport: `socket.io`
 - listen `room:created`
 - listen `room:create:error`
 - quand la room est creee depuis un quiz, envoyer `quizId` pour lier la partie aux questions persistantes
-- sans `quizId`, le backend bascule sur le quiz par defaut `"Culture générale"` (seed Prisma)
+- sans `quizId`, le code tente d'utiliser un quiz par defaut `"Culture générale"`
+- le seed courant ne cree pas ce titre; en pratique il faut fournir `quizId` ou accepter un echec possible au `room:start`
 
 3. Rejoindre room:
 - emit `room:join` `{ roomId, password? }`
@@ -59,7 +60,7 @@ Transport: `socket.io`
 - listen `room:spectated`
 - listen `room:spectators:update`
 - un spectateur ne peut pas lancer `room:start` ni `game:answer`
-- le backend est pret, mais l'UI spectateur dediee n'est pas encore exposee dans le front actuel
+- cette capacite reste exposee cote backend, mais aucun parcours UI dedie n'est prevu dans le scope frontend courant
 
 ## Flux Game
 
@@ -104,8 +105,9 @@ Transport: `socket.io`
 
 ## Flux Notifications
 
-- listen `notification:new` pour nouvelles demandes d'amis
-- fallback HTTP: `GET /notifications`
+- capacite backend disponible: `notification:new` pour nouvelles demandes d'amis
+- implementation frontend actuelle: fallback HTTP via `GET /notifications`
+- le front courant ne subscribe pas encore `notification:new`
 
 ## Erreurs a gerer cote front
 

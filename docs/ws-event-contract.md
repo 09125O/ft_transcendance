@@ -241,7 +241,7 @@ Notes:
 ```
 
 Notes:
-- `reason` vaut aujourd'hui `room_empty` ou `socket_disconnect` selon le cas.
+- `reason` vaut aujourd'hui `room_empty`, `socket_disconnect`, `room_waiting_ttl_expired` ou `room_finished_ttl_expired` selon le cas.
 
 - `room:spectated`:
 
@@ -295,7 +295,8 @@ Notes:
 Note:
 - Le backend n'expose pas la bonne reponse dans ce payload.
 - Si la room a un `quizId`, `question` correspond a une `QuizQuestion` persistante.
-- Sinon, le backend utilise le quiz par defaut `"Culture générale"` (seed Prisma).
+- Sinon, le code tente d'utiliser le quiz par defaut `"Culture générale"`.
+- Le seed courant ne cree pas ce titre; sur une base seedee standard, omettre `quizId` peut donc mener a un echec de `room:start`.
 
 - `game:timer`:
 
@@ -422,7 +423,8 @@ Codes d'erreur possibles:
 - Un spectateur ne peut pas emettre `room:start` ni `game:answer` (UNAUTHORIZED).
 - Score cumule par user publie via `game:leaderboard`.
 - Les rooms peuvent etre liees a un quiz via `Room.quizId`; dans ce cas l'ordre, le texte, les options, la bonne reponse et les points viennent des `QuizQuestion`.
-- Si `quizId` est absent, le runtime lit le quiz par defaut `"Culture générale"`.
+- Si `quizId` est absent, le runtime tente de lire un quiz par defaut `"Culture générale"`.
+- Le seed courant ne cree pas ce titre; sur une base seedee standard, il ne faut pas supposer que ce fallback sera disponible.
 - Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
 - Timeout auto d'une question puis question suivante.
 - Fin auto de partie a la fin du cycle de questions.

@@ -41,11 +41,11 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 ## Regles backend
 
 - `quizId` est optionnel pour garder la compatibilite avec les rooms sans quiz.
-- Si `quizId` est absent, le jeu utilise le quiz par defaut `"Culture générale"` present en DB (seed Prisma).
+- Si `quizId` est absent, le code tente d'utiliser un quiz par defaut `"Culture générale"`.
 - Si `quizId` est fourni et invalide, la creation de room echoue.
 - Si le quiz ne contient aucune question, la creation de room echoue.
 - `rounds` est limite au nombre de questions disponibles dans le quiz.
-- Si `quizId` est absent et que le quiz par defaut est introuvable, `room:start` echoue (`409 CONFLICT`).
+- Le seed courant ne cree pas ce titre par defaut; sur une base seedee standard, omettre `quizId` peut donc faire echouer `room:start` (`409 CONFLICT`).
 - `POST /quizzes` est protege par auth et throttle a `10/min`.
 - Le selecteur front "temps par question" n'est pas encore transporte dans `POST /rooms`; le timer reste global via `GAME_QUESTION_DURATION_MS`.
 

@@ -54,7 +54,8 @@ Realtime:
 
 Notes:
 - Les notifications sont derivees des demandes d'ami (`friendRequests`) en base.
-- Le front actuel les affiche et les marque comme lues.
+- Le front actuel les affiche et les marque comme lues via HTTP.
+- Le front actuel n'ecoute pas encore `notification:new`.
 - Il n'existe pas encore de suppression de notification ni de cloche navbar dediee.
 
 ### Bloc D - Quiz / room lies
@@ -72,11 +73,12 @@ Notes:
 - Le front actuel peut creer un quiz puis creer une room depuis ce quiz.
 - Le backend expose aussi `playCount` et `activeRoomCount` dans les quiz listés pour supporter une popularité implicite.
 - Le seed de dev fournit désormais un catalogue de lancement orienté 42 au lieu d'un simple quiz générique.
+- Si `quizId` est omis, le code tente d'utiliser un quiz par defaut `"Culture générale"`; ce titre n'est pas cree par le seed courant.
 - Le backend ne supporte pas encore une duree par question configurable par room; le timer reste global via `GAME_QUESTION_DURATION_MS`.
 
 ### Bloc E - Spectateur
 
-Statut: implemente cote backend
+Statut: capacite backend exposee, hors scope frontend courant
 
 Events WS:
 - inbound `room:spectate`
@@ -85,7 +87,7 @@ Events WS:
 
 Regles:
 - un spectateur ne peut pas faire `room:start` ni `game:answer` (`UNAUTHORIZED`)
-- la route UI spectateur dediee n'est pas encore exposee cote front
+- aucun parcours UI dedie n'est prevu dans le projet courant
 
 ## Contrats a utiliser
 
@@ -97,9 +99,9 @@ Regles:
 ## Points hors scope ou partiels
 
 - OAuth Google: non expose dans les routes backend actuelles
-- 2FA: non implemente
-- SSR: non implemente
-- Mode spectateur UI: pas encore implemente cote front, meme si le backend est pret
+- 2FA: hors scope du projet courant
+- SSR: hors scope du projet courant
+- Mode spectateur UI: hors scope du projet courant, meme si la capacite WS backend est conservee
 - Notifications delete/archive: non implemente
 
 ## Checklist front de branchement rapide

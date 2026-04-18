@@ -411,8 +411,8 @@ type FriendRequestEntry = {
 - Notes:
   - Si `quizId` est fourni, le backend verifie que le quiz existe et contient au moins une question.
   - Le nombre de manches effectif est limite au nombre de questions disponibles dans le quiz.
-  - Si `quizId` est omis, le backend utilise le quiz par defaut `"Culture générale"` (seed Prisma) au demarrage.
-  - Si ce quiz par defaut est absent, le demarrage de partie echoue avec `409 CONFLICT`.
+  - Si `quizId` est omis, le code tente d'utiliser un quiz par defaut nomme `"Culture générale"` au demarrage.
+  - Le seed courant ne cree pas ce titre par defaut; sur une base seedee standard, omettre `quizId` peut donc faire echouer `room:start` avec `409 CONFLICT`.
   - La duree par question n'est pas configurable par room dans le contrat actuel; elle reste globale via `GAME_QUESTION_DURATION_MS`.
 
 `POST /rooms/:roomId/join`

@@ -26,11 +26,67 @@ Disponible et demonstrable aujourd'hui :
 
 Points encore partiels ou non implementes :
 
-- pas de route UI spectateur dediee, meme si le backend supporte `room:spectate`
 - pas de page leaderboard globale ni d'historique de parties dedie
 - le selecteur "temps par question" de creation de room n'est pas encore branche au backend
 - pas de recette multi-browser formelle documentee
-- `2FA` et `SSR` non implementes
+- les notifications restent principalement consommees via HTTP dans la page amis; le front n'ecoute pas encore `notification:new`
+
+Hors scope du projet courant :
+
+- mode spectateur UI
+- `2FA`
+- `SSR`
+
+## References evaluation
+
+Sources officielles pour le barème et la revue :
+
+- `srcs_subject/en.subject.pdf`
+- `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
+
+Rappels issus de ces PDFs :
+
+- `Major = 2 points`
+- `Minor = 1 point`
+- minimum requis pour valider : `14 points`
+- seuls les modules pleinement fonctionnels comptent
+- un module incomplet ou non demonstrable vaut `0 point`
+- le bonus au-dela de `14` est plafonne a `+5`
+
+## Modules claimed
+
+Score valide aujourd'hui par l'implementation courante : `14 / 14`
+
+Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
+
+- `[Major][2]` Use a framework for both frontend and backend
+- `[Major][2]` Implement real-time features
+- `[Major][2]` Allow users to interact with other users
+- `[Minor][1]` Use an ORM
+- `[Minor][1]` Remote authentication
+- `[Major][2]` Web-based game
+- `[Major][2]` Remote players
+- `[Major][2]` Multiplayer (>2 players)
+
+Total revendicable aujourd'hui : `14 points`
+
+## Path to 19
+
+Chemin retenu pour atteindre `19 / 14` avec le moins de risque :
+
+- `[Minor][1]` Notification system
+- `[Minor][1]` Support for additional browsers
+- `[Minor][1]` Game statistics and match history
+- `[Minor][1]` Game customization options
+- `[Minor][1]` Health check & status page
+
+Ces 5 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
+
+Regle pratique pour la revue Intra :
+
+- preferer `5` modules `Minor` fermes proprement plutot qu'un `Major` partiel
+- ne pas rouvrir `mode spectateur UI`, `2FA` ou `SSR` pour la cible `19`
+- garder le README honnete : only claim what can actually be demonstrated
 
 ## Demarrage local
 
@@ -99,7 +155,11 @@ Variables principales :
 - `JWT_EXPIRES_IN`
 - `FRONTEND_ORIGIN`
 - `GAME_QUESTION_DURATION_MS`
+- `GAME_ANSWER_GRACE_MS`
 - `ROOM_RECONNECT_GRACE_MS`
+- `ROOM_CLEANUP_INTERVAL_MS`
+- `ROOM_WAITING_TTL_MS`
+- `ROOM_FINISHED_TTL_MS`
 - `AUTH_COOKIE_SAMESITE`
 - `AUTH_COOKIE_SECURE`
 - `FT_CLIENT_ID`
@@ -162,6 +222,7 @@ Important en dev :
 - l'auth OAuth exposee dans l'etat actuel est 42 uniquement
 - `POST /quizzes` est protege par `AuthGuard` et throttle a `10` creations par minute
 - le seed de dev charge maintenant un premier catalogue de quiz ancrés dans l'univers 42
+- si `quizId` est omis a la creation d'une room, le code tente de demarrer avec un quiz par defaut nomme `"Culture générale"`; ce quiz n'est pas cree par le seed courant, donc fournir `quizId` est recommande
 - la duree par question reste globalement pilotee par `GAME_QUESTION_DURATION_MS`; elle n'est pas encore configurable par room
 
 ## Cartographie documentaire
@@ -183,13 +244,14 @@ Documents de reference a lire en priorite :
 
 ## Conformite sujet
 
-Etat documentaire courant :
-
-- `8` lignes `Fait`
-- `7` lignes `Partiel`
-- `2` lignes `A faire`
-
 La source de verite est `docs/sujet-conformite-matrice.md`.
+Les statuts courants utilises par cette matrice sont `Fait`, `Partiel` et `Hors scope`.
+
+Pour la cible produit actuelle :
+
+- score valide aujourd'hui : `14`
+- score vise a terme : `19`
+- modules actifs pour passer de `14` a `19` : `notifications`, `additional browsers`, `stats/history`, `game customization`, `health/status`
 
 ## Quand ajouter nginx
 
