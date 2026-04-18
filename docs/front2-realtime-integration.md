@@ -108,8 +108,8 @@ Transport: `socket.io`
 ## Flux Notifications
 
 - capacite backend disponible: `notification:new` pour nouvelles demandes d'amis
-- implementation frontend actuelle: fallback HTTP via `GET /notifications`
-- le front courant ne subscribe pas encore `notification:new`
+- implementation frontend actuelle: ecoute WS (`notification:new`, `friends:sync`) + refresh HTTP via `GET /notifications`, `GET /friends`, `GET /friends/requests`
+- `friends:sync` sert de signal pour rendre instantanees les mises a jour de demandes et relations (create/accept/decline/remove)
 
 ## Erreurs a gerer cote front
 

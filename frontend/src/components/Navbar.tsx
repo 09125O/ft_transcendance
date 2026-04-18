@@ -5,6 +5,7 @@ import { logout } from "../services/auth";
 import { subscribeFriendsBadgeRefresh } from "../services/friendsBadge";
 import { listRequests } from "../services/friends";
 import { listNotifications, type NotificationItem } from "../services/notifications";
+import { offWs, onWs, type WsResponse } from "../services/ws";
 import PrimaryButton from "./PrimaryButton";
 
 function isFriendRequestNotification(notification: NotificationItem): boolean {
@@ -14,6 +15,12 @@ function isFriendRequestNotification(notification: NotificationItem): boolean {
 function isFortyTwoOauthUser(email: string): boolean {
   return /^42-\d+@oauth\.local$/i.test(email);
 }
+
+type FriendsSyncPayload = {
+  reason: "request_created" | "request_accepted" | "request_declined" | "friend_removed";
+  requestId?: number;
+  actorUserId: number;
+};
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -59,6 +66,36 @@ export default function Navbar() {
     return () => {
       window.clearInterval(interval);
       unsubscribeBadgeRefresh();
+    };
+  }, [currentUser, refreshFriendsBadge]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    const handleNotificationNew = (payload: WsResponse<NotificationItem>) => {
+      if (!payload.success) {
+        return;
+      }
+
+      void refreshFriendsBadge();
+    };
+
+    const handleFriendsSync = (payload: WsResponse<FriendsSyncPayload>) => {
+      if (!payload.success) {
+        return;
+      }
+
+      void refreshFriendsBadge();
+    };
+
+    onWs("notification:new", handleNotificationNew);
+    onWs("friends:sync", handleFriendsSync);
+
+    return () => {
+      offWs("notification:new", handleNotificationNew);
+      offWs("friends:sync", handleFriendsSync);
     };
   }, [currentUser, refreshFriendsBadge]);
 

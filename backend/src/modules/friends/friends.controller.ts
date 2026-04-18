@@ -17,6 +17,7 @@ import {
 } from "@nestjs/common";
 import { CreateFriendRequestDto } from "./dto/create-friend-request.dto";
 import {
+  FriendRequestRecord,
   FriendListEntry,
   FriendRequestCreated,
   FriendRequestLists,
@@ -67,6 +68,15 @@ export class FriendsController {
       createdAt: created.createdAt,
     });
 
+    const syncPayload = {
+      reason: "request_created",
+      requestId: created.requestId,
+      actorUserId: auth.sub,
+    };
+
+    this.notifier.emitOkToUser(created.receiverUserId, "friends:sync", syncPayload);
+    this.notifier.emitOkToUser(auth.sub, "friends:sync", syncPayload);
+
     return ok(created);
   }
 
@@ -75,7 +85,10 @@ export class FriendsController {
     @CurrentUser() auth: AuthPayload,
     @Param("requestId", ParseIntPipe) requestId: number,
   ): Promise<ApiResponse<FriendRequestUpdated>> {
-    return ok(await this.friendsService.acceptRequest(auth.sub, requestId));
+    const request = await this.friendsService.getRequestOrThrow(requestId);
+    const updated = await this.friendsService.acceptRequest(auth.sub, requestId);
+    this.emitFriendSyncToParticipants(request, "request_accepted", auth.sub);
+    return ok(updated);
   }
 
   @Post("requests/:requestId/decline")
@@ -83,7 +96,10 @@ export class FriendsController {
     @CurrentUser() auth: AuthPayload,
     @Param("requestId", ParseIntPipe) requestId: number,
   ): Promise<ApiResponse<FriendRequestUpdated>> {
-    return ok(await this.friendsService.declineRequest(auth.sub, requestId));
+    const request = await this.friendsService.getRequestOrThrow(requestId);
+    const updated = await this.friendsService.declineRequest(auth.sub, requestId);
+    this.emitFriendSyncToParticipants(request, "request_declined", auth.sub);
+    return ok(updated);
   }
 
   @Delete(":userId")
@@ -92,6 +108,27 @@ export class FriendsController {
     @Param("userId", ParseIntPipe) userId: number,
   ): Promise<ApiResponse<{ removed: true }>> {
     await this.friendsService.removeFriend(auth.sub, userId);
+    const syncPayload = {
+      reason: "friend_removed",
+      actorUserId: auth.sub,
+    };
+    this.notifier.emitOkToUser(auth.sub, "friends:sync", syncPayload);
+    this.notifier.emitOkToUser(userId, "friends:sync", syncPayload);
     return ok({ removed: true });
+  }
+
+  private emitFriendSyncToParticipants(
+    request: FriendRequestRecord,
+    reason: "request_accepted" | "request_declined",
+    actorUserId: number,
+  ): void {
+    const payload = {
+      reason,
+      requestId: request.id,
+      actorUserId,
+    };
+
+    this.notifier.emitOkToUser(request.senderId, "friends:sync", payload);
+    this.notifier.emitOkToUser(request.receiverId, "friends:sync", payload);
   }
 }

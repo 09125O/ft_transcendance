@@ -21,6 +21,13 @@ import {
 } from "../services/notifications";
 import { notifyFriendsBadgeRefresh } from "../services/friendsBadge";
 import { getUserByIdentifier } from "../services/users";
+import { offWs, onWs, type WsResponse } from "../services/ws";
+
+type FriendsSyncPayload = {
+  reason: "request_created" | "request_accepted" | "request_declined" | "friend_removed";
+  requestId?: number;
+  actorUserId: number;
+};
 
 export default function FriendsPage() {
   const { user } = useAuth();
@@ -56,6 +63,38 @@ export default function FriendsPage() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const handleNotificationNew = (payload: WsResponse<NotificationItem>) => {
+      if (!payload.success) {
+        return;
+      }
+
+      void refresh();
+      notifyFriendsBadgeRefresh();
+    };
+
+    const handleFriendsSync = (payload: WsResponse<FriendsSyncPayload>) => {
+      if (!payload.success) {
+        return;
+      }
+
+      void refresh();
+      notifyFriendsBadgeRefresh();
+    };
+
+    onWs("notification:new", handleNotificationNew);
+    onWs("friends:sync", handleFriendsSync);
+
+    return () => {
+      offWs("notification:new", handleNotificationNew);
+      offWs("friends:sync", handleFriendsSync);
+    };
+  }, [refresh, user]);
 
   const markFriendAvatarBroken = (userId: number) => {
     setBrokenFriendAvatarIds((previousIds) => {

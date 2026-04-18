@@ -50,6 +50,13 @@ export type FriendRequestUpdated = {
   status: FriendshipStatus;
 };
 
+export type FriendRequestRecord = {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  status: FriendshipStatus;
+};
+
 @Injectable()
 export class FriendsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -280,6 +287,17 @@ export class FriendsService {
         ],
       },
     });
+  }
+
+  async getRequestOrThrow(requestId: number): Promise<FriendRequestRecord> {
+    const request = await this.findRequestOrThrow(requestId);
+
+    return {
+      id: request.id,
+      senderId: request.senderId,
+      receiverId: request.receiverId,
+      status: request.status,
+    };
   }
 
   private toRequestEntry(

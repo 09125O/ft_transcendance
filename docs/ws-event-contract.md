@@ -393,6 +393,20 @@ Notes:
 }
 ```
 
+- `friends:sync`:
+
+```json
+{
+  "reason": "request_accepted",
+  "requestId": 44,
+  "actorUserId": 7
+}
+```
+
+Notes:
+- `reason` peut valoir `request_created`, `request_accepted`, `request_declined` ou `friend_removed`.
+- Cet event est un signal de resynchronisation UI (recharger listes friends/requests/notifications), pas une source d'etat complete.
+
 ## Error events
 
 - `room:create:error`
