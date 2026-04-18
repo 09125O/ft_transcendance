@@ -22,6 +22,12 @@ export class CreateRoomDto {
   rounds: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(5000)
+  @Max(30000)
+  questionDurationMs?: number;
+
+  @IsOptional()
   @IsBoolean()
   isPrivate?: boolean;
 

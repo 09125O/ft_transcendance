@@ -189,7 +189,7 @@ export default function LobbyOverviewPanel({
                       {stripGeneratedTimeSuffix(room.name)}
                     </p>
                     <p className="ui-muted mt-1 text-xs sm:text-sm">
-                      {room.players.length} joueur{room.players.length > 1 ? "s" : ""} • {room.rounds} manches
+                      {room.players.length} joueur{room.players.length > 1 ? "s" : ""} • {room.rounds} manches • {Math.round(room.questionDurationMs / 1000)}s/question
                     </p>
                   </div>
                   <PrimaryButton

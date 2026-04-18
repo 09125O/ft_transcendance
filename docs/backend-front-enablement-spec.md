@@ -75,7 +75,8 @@ Notes:
 - Le backend expose aussi `playCount` et `activeRoomCount` dans les quiz listés pour supporter une popularité implicite.
 - Le seed de dev fournit désormais un catalogue de lancement orienté 42 au lieu d'un simple quiz générique.
 - Si `quizId` est omis, le code tente d'utiliser un quiz par defaut `"Culture générale"`; ce titre n'est pas cree par le seed courant.
-- Le backend ne supporte pas encore une duree par question configurable par room; le timer reste global via `GAME_QUESTION_DURATION_MS`.
+- `POST /rooms` accepte maintenant `questionDurationMs` pour configurer la duree par question au niveau room.
+- Si `questionDurationMs` est absent, le backend applique la valeur par defaut `GAME_QUESTION_DURATION_MS`.
 
 ### Bloc E - Spectateur
 

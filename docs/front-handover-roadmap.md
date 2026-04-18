@@ -24,7 +24,6 @@ Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
 - page leaderboard globale / historique
 - recette multi-browser formelle
-- alignement end-to-end de la duree par question
 - surface health / status minimale et dossier de preuve associe
 
 ## 2) Modules non vises dans le plan interne courant
@@ -65,7 +64,6 @@ References:
 - Pas de page leaderboard globale ni d'historique de parties
 - Pas de cloche notifications en navbar ni de pattern toast unifie
 - Pas de recette multi-browser formalisee dans la doc
-- Le selecteur "temps par question" du front n'est pas encore branche au backend
 - Il n'existe pas de vraie status page cote front
 
 ## 4) Backlog restant recommande
@@ -77,21 +75,20 @@ Ordre retenu pour viser `19` avec le moins de risque :
 3. `Support for additional browsers`
 4. `Health check & status page`
 
-### Ticket R1 - Game customization options
+### Ticket R1 - Game customization options (ferme)
 
-- Fermer l'ecart entre le selecteur "temps par question" et le backend
-- Ajouter au moins une surface de personnalisation lisible et demonstrable pour la partie
-- Garantir des options par defaut disponibles
+- `questionDurationMs` est transporte dans `POST /rooms`
+- la creation de room depuis `QuizReadyPage` passe par un panneau de configuration dedie
+- la duree reste visible en lobby, dans la room et pendant le timer de partie
+- une option par defaut reste disponible via `GAME_QUESTION_DURATION_MS`
 
 Reference sujet:
 - "Different maps or themes"
 - "Customizable game settings"
 - "Default options must be available"
 
-Definition of Done:
-- plus aucun faux parametre dans l'UI
-- personnalisation visible et utilisable en demo
-- la doc n'affirme rien que le code ne fait pas
+Statut:
+- ferme et demonstrable
 
 ### Ticket R2 - Game statistics and match history
 
@@ -186,7 +183,6 @@ Definition of Done:
 ## 6) Backlog priorise
 
 P0:
-- R1 Game customization options
 - R2 Game statistics and match history
 
 P1:
@@ -201,7 +197,7 @@ P2:
 
 - Risque principal: revendiquer un module trop tot alors que la revue Intra ne comptera que les modules pleinement fonctionnels
 - Dependance: rester strictement aligne avec les contrats API/WS deja exposes cote backend
-- Mitigation: fermer 5 modules `Minor` simples et demonstrables au lieu d'etendre le scope sur des `Major`
+- Mitigation: fermer les 3 modules `Minor` restants de facon simple et demonstrable au lieu d'etendre le scope sur des `Major`
 - Spec backend de rattrapage: docs/backend-front-enablement-spec.md
 
 ## 8) Commandes utiles front
@@ -225,7 +221,7 @@ P2:
 - A chaque PR: verifier que les sections API/WS impactees sont a jour
 - Verifier que README pointe vers les bons documents
 - Refuser merge si l'ecart doc/impl existe sur un flux critique
-- Mettre a jour la matrice apres chaque lot ferme parmi les 5 modules cibles vers `19`
+- Mettre a jour la matrice apres chaque lot ferme parmi les 3 modules encore cibles vers `19`
 
 ## 11) Quick wins doc
 

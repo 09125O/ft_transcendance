@@ -117,6 +117,7 @@ type Room = {
   ownerUserId?: number;
   quizId?: number;
   rounds: number;
+  questionDurationMs: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
   players: Array<{ userId: number; joinedAt: string }>;
@@ -395,6 +396,7 @@ type FriendRequestEntry = {
 {
   "name": "Lobby #1",
   "rounds": 5,
+  "questionDurationMs": 10000,
   "isPrivate": false,
   "quizId": 1
 }
@@ -406,6 +408,7 @@ type FriendRequestEntry = {
 {
   "name": "Private room",
   "rounds": 3,
+  "questionDurationMs": 15000,
   "isPrivate": true,
   "quizId": 1,
   "password": "room1234"
@@ -413,10 +416,11 @@ type FriendRequestEntry = {
 ```
 
 - Validation:
-  - `name`: string 2..40
-  - `rounds`: int 1..20
-  - `isPrivate`: boolean optionnel
-  - `quizId`: int optionnel, lie la room aux questions du quiz
+- `name`: string 2..40
+- `rounds`: int 1..20
+- `questionDurationMs`: int optionnel 5000..30000
+- `isPrivate`: boolean optionnel
+- `quizId`: int optionnel, lie la room aux questions du quiz
   - `password`: requis si `isPrivate=true`, string 4..64
 - Reponse: `201`, `ApiResponse<Room>`
 - Notes:
@@ -424,7 +428,7 @@ type FriendRequestEntry = {
   - Le nombre de manches effectif est limite au nombre de questions disponibles dans le quiz.
   - Si `quizId` est omis, le code tente d'utiliser un quiz par defaut nomme `"Culture générale"` au demarrage.
   - Le seed courant ne cree pas ce titre par defaut; sur une base seedee standard, omettre `quizId` peut donc faire echouer `room:start` avec `409 CONFLICT`.
-  - La duree par question n'est pas configurable par room dans le contrat actuel; elle reste globale via `GAME_QUESTION_DURATION_MS`.
+  - Si `questionDurationMs` est omis, le backend applique la valeur par defaut `GAME_QUESTION_DURATION_MS`.
 
 `POST /rooms/:roomId/join`
 - Auth: cookie `access_token` requis

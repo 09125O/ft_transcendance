@@ -31,6 +31,10 @@ Ce guide definit un cadre simple:
 
 Regle: un owner principal par ticket. Le support peut coder directement dans l'autre scope si cela debloque.
 
+Statut courant:
+- Ticket A ferme le 2026-04-18
+- Ticket D ferme le 2026-04-18
+
 ## 3) Modules non vises dans le plan interne courant
 
 Ne pas rouvrir ces sujets sans decision explicite:
@@ -138,12 +142,10 @@ Travaille avec ces contraintes:
 ## 9) Ordre de priorite commun
 
 P0:
-- Ticket A (game customization options)
 - Ticket B (stats / historique demonstrables)
 
 P1:
 - Ticket C (support navigateurs additionnels + dossier de demo)
-- Ticket D (notification system)
 - Ticket E (health check + status page)
 
 ## 10) Anti-blocage

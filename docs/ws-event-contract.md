@@ -455,7 +455,7 @@ Codes d'erreur possibles:
 - Les rooms peuvent etre liees a un quiz via `Room.quizId`; dans ce cas l'ordre, le texte, les options, la bonne reponse et les points viennent des `QuizQuestion`.
 - Si `quizId` est absent, le runtime tente de lire un quiz par defaut `"Culture générale"`.
 - Le seed courant ne cree pas ce titre; sur une base seedee standard, il ne faut pas supposer que ce fallback sera disponible.
-- Timer serveur par question (defaut 10s via `GAME_QUESTION_DURATION_MS`).
+- Timer serveur par question configurable par room via `questionDurationMs`, avec fallback sur `GAME_QUESTION_DURATION_MS`.
 - Timeout auto d'une question puis question suivante.
 - Fin auto de partie a la fin du cycle de questions.
 - Fermeture auto de room quand elle devient vide.

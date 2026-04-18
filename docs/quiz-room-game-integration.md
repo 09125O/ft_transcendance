@@ -18,6 +18,7 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 {
   "name": "Room quiz",
   "rounds": 5,
+  "questionDurationMs": 10000,
   "isPrivate": false,
   "quizId": 1
 }
@@ -33,9 +34,10 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 ## Contrats impactes
 
 - `Room` expose maintenant `quizId?: number`.
-- `CreateRoomDto` accepte `quizId?: number`.
-- `POST /rooms` peut recevoir `quizId`.
-- `room:create` peut recevoir `quizId`.
+- `Room` expose aussi `questionDurationMs: number`.
+- `CreateRoomDto` accepte `quizId?: number` et `questionDurationMs?: number`.
+- `POST /rooms` peut recevoir `quizId` et `questionDurationMs`.
+- `room:create` peut recevoir `quizId` et `questionDurationMs`.
 - `game:question:started` continue a masquer la bonne reponse.
 
 ## Regles backend
@@ -45,9 +47,10 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 - Si `quizId` est fourni et invalide, la creation de room echoue.
 - Si le quiz ne contient aucune question, la creation de room echoue.
 - `rounds` est limite au nombre de questions disponibles dans le quiz.
+- `questionDurationMs` personnalise le timer par question au niveau room.
+- si `questionDurationMs` est absent, le backend retombe sur `GAME_QUESTION_DURATION_MS`.
 - Le seed courant ne cree pas ce titre par defaut; sur une base seedee standard, omettre `quizId` peut donc faire echouer `room:start` (`409 CONFLICT`).
 - `POST /quizzes` est protege par auth et throttle a `10/min`.
-- Le selecteur front "temps par question" n'est pas encore transporte dans `POST /rooms`; le timer reste global via `GAME_QUESTION_DURATION_MS`.
 
 ## Migration
 

@@ -1,5 +1,5 @@
 import { GameService } from "@/modules/game/game.service";
-import { RoomsService } from "@/modules/rooms/rooms.service";
+import { Room, RoomsService } from "@/modules/rooms/rooms.service";
 import { ScoresService } from "@/modules/scores/scores.service";
 import { ConflictException, Injectable } from "@nestjs/common";
 import { Server } from "socket.io";
@@ -14,7 +14,7 @@ import { RealtimeResponseService } from "./realtime-response.service";
 @Injectable()
 export class RealtimeGameRuntimeService {
   private readonly activeTimers = new Map<number, RoomTimerRuntime>();
-  private readonly questionDurationMs = Number(
+  private readonly defaultQuestionDurationMs = Number(
     process.env.GAME_QUESTION_DURATION_MS || 10000,
   );
   private readonly answerGraceMs = Number(
@@ -60,21 +60,28 @@ export class RealtimeGameRuntimeService {
   }
 
   async startGameLoop(
-    roomId: number,
-    roomRounds: number,
+    room: Pick<Room, "id" | "rounds" | "questionDurationMs">,
     server: Server,
   ): Promise<void> {
-    const questionOrder = await this.gameService.getQuestionOrder(roomId);
+    const questionOrder = await this.gameService.getQuestionOrder(room.id);
     if (questionOrder.length === 0) {
       throw new ConflictException("No questions configured");
     }
-    const totalQuestions = Math.min(Math.max(1, roomRounds), questionOrder.length);
-    await this.gameService.startGame(roomId, totalQuestions, this.questionDurationMs);
-    server.to(roomChannel(roomId)).emit(
+    const questionDurationMs =
+      room.questionDurationMs > 0
+        ? room.questionDurationMs
+        : this.defaultQuestionDurationMs;
+    const totalQuestions = Math.min(Math.max(1, room.rounds), questionOrder.length);
+    await this.gameService.startGame(room.id, totalQuestions, questionDurationMs);
+    server.to(roomChannel(room.id)).emit(
       "game:started",
-      this.response.ok({ roomId, totalQuestions, questionDurationMs: this.questionDurationMs }),
+      this.response.ok({
+        roomId: room.id,
+        totalQuestions,
+        questionDurationMs,
+      }),
     );
-    await this.startQuestionTimer(roomId, 1, totalQuestions, server);
+    await this.startQuestionTimer(room.id, 1, totalQuestions, questionDurationMs, server);
   }
 
   async closeRoom(
@@ -137,6 +144,7 @@ export class RealtimeGameRuntimeService {
       roomId,
       runtime.questionNumber + 1,
       runtime.totalQuestions,
+      runtime.questionDurationMs,
       server,
     );
   }
@@ -145,6 +153,7 @@ export class RealtimeGameRuntimeService {
     roomId: number,
     questionNumber: number,
     totalQuestions: number,
+    questionDurationMs: number,
     server: Server,
   ): Promise<void> {
     this.stopRoomTimer(roomId);
@@ -155,7 +164,7 @@ export class RealtimeGameRuntimeService {
       questionNumber,
     );
     const startsAtMs = Date.now();
-    const endsAtMs = startsAtMs + this.questionDurationMs;
+    const endsAtMs = startsAtMs + questionDurationMs;
     const question = await this.gameService.getPublicQuestion(questionId);
     const channel = roomChannel(roomId);
     const startsAt = new Date(startsAtMs).toISOString();
@@ -166,13 +175,14 @@ export class RealtimeGameRuntimeService {
       questionId,
       questionNumber,
       totalQuestions,
+      questionDurationMs,
       endsAtMs,
       tickInterval: setInterval(() => {
         this.emitTimerTick(roomId, questionId, questionNumber, totalQuestions, server);
       }, this.timerTickMs),
       endTimeout: setTimeout(() => {
         void this.onQuestionTimeout(roomId, server);
-      }, this.questionDurationMs),
+      }, questionDurationMs),
     });
 
     const state = await this.gameService.startQuestion({
@@ -180,7 +190,7 @@ export class RealtimeGameRuntimeService {
       questionId,
       questionNumber,
       totalQuestions,
-      questionDurationMs: this.questionDurationMs,
+      questionDurationMs,
       startsAt,
       endsAt,
     });
@@ -193,7 +203,7 @@ export class RealtimeGameRuntimeService {
         question,
         questionNumber,
         totalQuestions,
-        durationMs: this.questionDurationMs,
+        durationMs: questionDurationMs,
         startsAt,
         endsAt,
       }),
@@ -257,6 +267,7 @@ export class RealtimeGameRuntimeService {
       roomId,
       runtime.questionNumber + 1,
       runtime.totalQuestions,
+      runtime.questionDurationMs,
       server,
     );
   }

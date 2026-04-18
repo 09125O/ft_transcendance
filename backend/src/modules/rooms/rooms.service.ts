@@ -12,6 +12,9 @@ import { JoinRoomDto } from "./dto/join-room.dto";
 
 const MIN_PLAYERS_TO_START = 3;
 const MIN_PLAYERS_TO_START_WITH_QUIZ = 1;
+const DEFAULT_ROOM_QUESTION_DURATION_MS = Number(
+  process.env.GAME_QUESTION_DURATION_MS || 10000,
+);
 
 export type RoomPlayer = {
   userId: number;
@@ -24,6 +27,7 @@ export type Room = {
   ownerUserId?: number;
   quizId?: number;
   rounds: number;
+  questionDurationMs: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
   players: RoomPlayer[];
@@ -72,6 +76,10 @@ export class RoomsService {
       dto.isPrivate === true &&
       typeof dto.password === "string" &&
       dto.password.length > 0;
+    const questionDurationMs =
+      typeof dto.questionDurationMs === "number"
+        ? dto.questionDurationMs
+        : DEFAULT_ROOM_QUESTION_DURATION_MS;
     const passwordHash = shouldStorePasswordHash
       ? await bcrypt.hash(dto.password as string, 10)
       : undefined;
@@ -99,6 +107,7 @@ export class RoomsService {
         ownerId: dto.ownerUserId,
         quizId: dto.quizId,
         rounds,
+        questionDurationMs,
         isPrivate: dto.isPrivate ?? false,
         status: "waiting",
         ...(passwordHash ? { passwordHash } : {}),
@@ -369,6 +378,7 @@ export class RoomsService {
       ownerUserId: room.ownerId ?? undefined,
       quizId: room.quizId ?? undefined,
       rounds: room.rounds,
+      questionDurationMs: room.questionDurationMs,
       isPrivate: room.isPrivate,
       status: room.status,
       players: room.players.map((player) => ({

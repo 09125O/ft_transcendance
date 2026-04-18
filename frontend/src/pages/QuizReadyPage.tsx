@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Panel from "../components/Panel";
 import PrimaryButton from "../components/PrimaryButton";
+import RoomCreateFromQuizPanel from "../components/Quiz/RoomCreateFromQuizPanel";
 import {
   decorateQuiz,
   getCommunityQuizzes,
@@ -9,7 +10,7 @@ import {
 } from "../content/quizCatalog";
 import { useQuizLibrary } from "../hooks/useQuizLibrary";
 import { useAuth } from "../providers/AuthProvider";
-import { createRoom } from "../services/quiz";
+import { createRoom, type CreateRoomPayload } from "../services/quiz";
 import type { Quiz } from "../services/quizzes";
 
 const SCRIPT_GENERATED_QUIZ_TITLE_PATTERNS = [
@@ -47,10 +48,10 @@ export default function QuizReadyPage() {
   const visibleQuizzes = quizzes.filter((quiz) => !isScriptGeneratedQuiz(quiz));
   const launchQuizzes = getLaunchQuizzes(visibleQuizzes);
   const communityQuizzes = getCommunityQuizzes(visibleQuizzes);
-  const [creatingRoomQuizId, setCreatingRoomQuizId] = useState<number | null>(null);
-  const [createRoomError, setCreateRoomError] = useState<string | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
-  const handleCreateRoomFromQuiz = async (quiz: Quiz) => {
+  const handleOpenRoomConfigurator = (quiz: Quiz) => {
     if (isSessionLoading) {
       return;
     }
@@ -60,26 +61,28 @@ export default function QuizReadyPage() {
       return;
     }
 
-    setCreateRoomError(null);
-    setCreatingRoomQuizId(quiz.id);
+    setSelectedQuiz({
+      ...quiz,
+      title: buildRoomName(quiz.title),
+    });
+  };
 
+  const handleCreateRoomFromQuiz = async (payload: CreateRoomPayload) => {
+    if (!sessionUser) {
+      navigate("/login");
+      throw new Error("Authentification requise.");
+    }
+
+    setIsCreatingRoom(true);
     try {
-      const createdRoom = await createRoom({
-        name: buildRoomName(quiz.title),
-        rounds: Math.max(1, Math.min(20, quiz.questionCount)),
-        isPrivate: false,
-        quizId: quiz.id,
-      });
-
+      const createdRoom = await createRoom(payload);
       navigate(`/room/${createdRoom.id}`);
     } catch (error) {
-      setCreateRoomError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de créer la room depuis ce quiz.",
-      );
+      throw error instanceof Error
+        ? error
+        : new Error("Impossible de créer la room depuis ce quiz.");
     } finally {
-      setCreatingRoomQuizId(null);
+      setIsCreatingRoom(false);
     }
   };
 
@@ -93,11 +96,11 @@ export default function QuizReadyPage() {
     return (
       <button
         className="flex h-full w-full cursor-pointer flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_rgba(2,6,23,0.9)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={creatingRoomQuizId !== null}
+        disabled={isCreatingRoom}
         key={quiz.id}
         type="button"
         onClick={() => {
-          void handleCreateRoomFromQuiz(quiz);
+          handleOpenRoomConfigurator(quiz);
         }}
       >
         <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -132,6 +135,18 @@ export default function QuizReadyPage() {
     );
   };
 
+  if (selectedQuiz) {
+    return (
+      <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
+        <RoomCreateFromQuizPanel
+          quiz={selectedQuiz}
+          onBack={() => setSelectedQuiz(null)}
+          onCreateRoom={handleCreateRoomFromQuiz}
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
       <div className="flex w-full flex-col gap-6">
@@ -159,12 +174,6 @@ export default function QuizReadyPage() {
         </Panel>
 
         <Panel className="px-6 py-6 sm:px-8">
-          {createRoomError ? (
-            <p className="m-0 mb-4 rounded-[22px] border border-red-300/25 bg-red-400/10 px-4 py-4 text-sm text-red-100">
-              {createRoomError}
-            </p>
-          ) : null}
-
           {quizzesLoading ? (
             <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
               Chargement des quiz...

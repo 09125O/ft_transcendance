@@ -114,6 +114,7 @@ export class RealtimeRoomEventsService {
     const room = await this.roomsService.create({
       name: payload.name,
       rounds: payload.rounds,
+      questionDurationMs: payload.questionDurationMs,
       isPrivate: payload.isPrivate,
       password: payload.password,
       quizId: payload.quizId,
@@ -198,7 +199,7 @@ export class RealtimeRoomEventsService {
 
     const room = await this.roomsService.start(payload.roomId, requesterUserId);
     server.to(this.roomChannel(payload.roomId)).emit("room:started", this.response.ok(room));
-    await this.gameRuntime.startGameLoop(payload.roomId, room.rounds, server);
+    await this.gameRuntime.startGameLoop(room, server);
     await this.broadcastRoomList(server);
   }
 

@@ -32,6 +32,57 @@ describe("RoomsService", () => {
     await expect(service.join(7, 42)).rejects.toBeInstanceOf(ConflictException);
   });
 
+  it("uses the configured question duration when creating a room", async () => {
+    const prisma = {
+      client: {
+        room: {
+          create: jest.fn().mockResolvedValue({
+            id: 12,
+            name: "Custom room",
+            ownerId: 7,
+            quizId: null,
+            rounds: 4,
+            questionDurationMs: 15000,
+            isPrivate: false,
+            status: "waiting",
+            createdAt: new Date("2026-01-01T00:00:00.000Z"),
+            startedAt: null,
+            finishedAt: null,
+            passwordHash: null,
+            players: [
+              {
+                userId: 7,
+                roomId: 12,
+                joinedAt: new Date("2026-01-01T00:00:00.000Z"),
+              },
+            ],
+          }),
+        },
+      },
+    };
+    const service = new RoomsService(prisma as any);
+
+    await expect(
+      service.create({
+        ownerUserId: 7,
+        name: "Custom room",
+        rounds: 4,
+        questionDurationMs: 15000,
+      }),
+    ).resolves.toMatchObject({
+      id: 12,
+      questionDurationMs: 15000,
+    });
+
+    expect(prisma.client.room.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          questionDurationMs: 15000,
+        }),
+      }),
+    );
+  });
+
   it("rejects joining a private room when requester is not host friend", async () => {
     const prisma = {
       client: {
@@ -99,10 +150,11 @@ describe("RoomsService", () => {
           update: jest.fn().mockResolvedValue({
             id: 19,
             name: "Quiz solo",
-            ownerId: 5,
-            quizId: 42,
-            rounds: 5,
-            isPrivate: false,
+          ownerId: 5,
+          quizId: 42,
+          rounds: 5,
+          questionDurationMs: 10000,
+          isPrivate: false,
             status: "playing",
             createdAt: new Date("2026-01-01T00:00:00.000Z"),
             startedAt: new Date("2026-01-01T00:01:00.000Z"),

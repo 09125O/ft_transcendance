@@ -4,6 +4,7 @@ import PrimaryButton from "../PrimaryButton";
 import {
   QUIZ_ROOM_NAME_MIN_LENGTH,
   QUIZ_ROOM_PASSWORD_MIN_LENGTH,
+  QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS,
   type CreateRoomPayload,
 } from "../../services/quiz";
 import type { Quiz } from "../../services/quizzes";
@@ -25,7 +26,9 @@ export default function RoomCreateFromQuizPanel({
 }: RoomCreateFromQuizPanelProps) {
   const [roomName, setRoomName] = useState(quiz.title);
   const [questionDurationSeconds, setQuestionDurationSeconds] =
-    useState<QuestionDurationSeconds>(10);
+    useState<QuestionDurationSeconds>(
+      (QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS / 1000) as QuestionDurationSeconds,
+    );
   const [isPrivateRoom, setIsPrivateRoom] = useState(false);
   const [password, setPassword] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
@@ -33,7 +36,9 @@ export default function RoomCreateFromQuizPanel({
 
   useEffect(() => {
     setRoomName(quiz.title);
-    setQuestionDurationSeconds(10);
+    setQuestionDurationSeconds(
+      (QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS / 1000) as QuestionDurationSeconds,
+    );
     setIsPrivateRoom(false);
     setPassword("");
     setCreateError(null);
@@ -67,6 +72,7 @@ export default function RoomCreateFromQuizPanel({
       await onCreateRoom({
         name: roomName.trim(),
         rounds: quiz.questionCount,
+        questionDurationMs: questionDurationSeconds * 1000,
         isPrivate: isPrivateRoom,
         quizId: quiz.id,
         ...(isPrivateRoom ? { password } : {}),
@@ -245,7 +251,10 @@ export default function RoomCreateFromQuizPanel({
               Ce quiz contient {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}.
             </p>
             <p className="m-0 mt-2">
-              Configure la room puis lance la partie quand tu es prêt.
+              Partie configurée sur {questionDurationSeconds} secondes par question.
+            </p>
+            <p className="m-0 mt-2">
+              {isPrivateRoom ? "Salon privé protégé par mot de passe." : "Salon public accessible immédiatement."}
             </p>
           </div>
         </div>

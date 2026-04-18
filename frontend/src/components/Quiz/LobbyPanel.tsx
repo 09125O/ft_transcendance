@@ -4,6 +4,7 @@ import PrimaryButton from "../PrimaryButton";
 import {
   QUIZ_ROOM_NAME_MIN_LENGTH,
   QUIZ_ROOM_PASSWORD_MIN_LENGTH,
+  QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS,
   QUIZ_ROOM_ROUNDS_DEFAULT,
   type CreateRoomPayload,
   type Room,
@@ -33,6 +34,9 @@ export default function LobbyPanel({
   const [isPrivateRoom, setIsPrivateRoom] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [rounds, setRounds] = useState(QUIZ_ROOM_ROUNDS_DEFAULT);
+  const [questionDurationMs, setQuestionDurationMs] = useState(
+    QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS,
+  );
   const [password, setPassword] = useState("");
   const [createError, setCreateError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -62,6 +66,7 @@ export default function LobbyPanel({
     const payload: CreateRoomPayload = {
       name: roomName.trim(),
       rounds,
+      questionDurationMs,
       isPrivate: isPrivateRoom,
       ...(isPrivateRoom ? { password } : {}),
     };
@@ -72,6 +77,7 @@ export default function LobbyPanel({
       await onCreateRoom(payload);
       setRoomName("");
       setRounds(QUIZ_ROOM_ROUNDS_DEFAULT);
+      setQuestionDurationMs(QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS);
       setPassword("");
       setIsPrivateRoom(false);
     } catch (error) {
@@ -132,7 +138,7 @@ export default function LobbyPanel({
                     ) : null}
                   </p>
                   <p className="m-0 mt-1 text-sm text-text/60">
-                    {room.players.length} joueurs • {room.rounds} manches
+                    {room.players.length} joueurs • {room.rounds} manches • {Math.round(room.questionDurationMs / 1000)}s/question
                   </p>
                 </div>
                 <PrimaryButton
@@ -214,6 +220,27 @@ export default function LobbyPanel({
               <option value={8}>8 manches</option>
               <option value={9}>9 manches</option>
               <option value={10}>10 manches</option>
+            </select>
+          </div>
+          <div>
+            <label
+              className="mb-2 block text-sm font-medium text-text/70"
+              htmlFor="room-question-duration"
+            >
+              Temps par question
+            </label>
+            <select
+              className="h-12 w-full rounded-xl border border-white/10 bg-background px-4 text-text outline-none"
+              id="room-question-duration"
+              value={questionDurationMs}
+              onChange={(event) => setQuestionDurationMs(Number(event.target.value))}
+            >
+              <option value={5000}>5 secondes</option>
+              <option value={10000}>10 secondes</option>
+              <option value={15000}>15 secondes</option>
+              <option value={20000}>20 secondes</option>
+              <option value={25000}>25 secondes</option>
+              <option value={30000}>30 secondes</option>
             </select>
           </div>
           <div>

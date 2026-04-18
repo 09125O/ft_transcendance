@@ -34,7 +34,7 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `15 / 14`
+Estimation interne argumentee aujourd'hui: `16 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -44,20 +44,20 @@ Modules actuellement revendicables sans sur-promesse:
 - `[Minor][1]` ORM
 - `[Minor][1]` Notification system
 - `[Minor][1]` Remote auth OAuth2
+- `[Minor][1]` Game customization options
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
 
-Total: `15`
+Total: `16`
 
 Chemin interne retenu pour viser `19 / 14`:
 
 - `[Minor][1]` Support navigateurs additionnels
 - `[Minor][1]` Stats + historique
-- `[Minor][1]` Game customization options
 - `[Minor][1]` Health check + status page
 
-Ces 5 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demonstrables.
+Ces 3 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demonstrables.
 
 ## Matrice de conformite
 
@@ -76,14 +76,14 @@ Ces 5 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 | Web-based game realtime multiplayer | Major | Fait | `rooms/game/ws` backend + `frontend/src/components/Quiz/GamePanel.tsx` + flux quiz -> room -> game | - | Fullstack Game | PR #4 + PR #12 + lot audit/remediation 2026-04-18 |
 | Remote players (machines separees) | Major | Fait | architecture client/server + WS + smoke tests WebSocket | - | Fullstack Realtime | Historique + lot audit/remediation 2026-04-18 |
 | Multiplayer >2 | Major | Fait | rooms multi-joueurs, protections metier, `scores/leaderboard` | - | Backend Game | Historique |
-| Game customization options | Minor | Partiel | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, creation de quiz cote front | le selecteur UI "temps par question" n'est pas encore branche au backend | Product + Frontend | PR #12 + lot audit/remediation 2026-04-18 |
+| Game customization options | Minor | Fait | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, `questionDurationMs` transporte dans `POST /rooms`, creation de room parametree depuis `frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx`, affichage du temps en lobby et pre-match | - | Product + Frontend | lot game-customization 2026-04-18 |
 | Spectator mode | Minor | Non vise | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le plan interne courant | Frontend Realtime | Decision produit 2026-04-18 |
 | SSR | Minor | Non vise | - | retire du plan interne courant | Frontend | Decision produit 2026-04-18 |
 | Health check + status page | Minor | Partiel | `/health`, `scripts/smoke-test.sh`, `make test-stack` | pas de vraie status page ni de doc ops/backup formalisee | DevOps | lot audit/remediation 2026-04-18 |
 
 ## Cible 19 points
 
-Les 4 modules actifs a fermer en priorite sont:
+Les 3 modules actifs a fermer en priorite sont:
 
 1. `Support navigateurs additionnels`
 Ce que demande le sujet: compatibilite complete avec au moins `2` navigateurs additionnels, test/fix des features dans chaque navigateur, limitations documentees, UI/UX coherente.
@@ -91,10 +91,7 @@ Ce que demande le sujet: compatibilite complete avec au moins `2` navigateurs ad
 2. `Stats + historique`
 Ce que demande le sujet: statistiques de jeu, historique de matchs, progression/achievements et integration leaderboard. Ce module exige deja un jeu fonctionnel.
 
-3. `Game customization options`
-Ce que demande le sujet: differents maps ou themes, reglages de jeu personnalisables et options par defaut disponibles. Ce module exige deja un jeu fonctionnel.
-
-4. `Health check + status page`
+3. `Health check + status page`
 Ce que demande le sujet: health/status page avec sauvegardes automatisees et procedures de reprise/disaster recovery.
 
 ## Plan d'action documentaire
@@ -110,8 +107,8 @@ Ce que demande le sujet: health/status page avec sauvegardes automatisees et pro
 ## Preuves de demo (parcours cible)
 
 1. Authentification locale, guest ou OAuth 42 puis verification de session.
-2. Creation ou jointure de room, puis verification des etats `waiting` / `playing`.
-3. Demarrage de partie et reception question/timer en temps reel.
+2. Creation ou jointure de room, avec verification visible de `questionDurationMs` et des etats `waiting` / `playing`.
+3. Demarrage de partie et reception question/timer en temps reel avec la duree configuree.
 4. Soumission de reponse et mise a jour du leaderboard room.
 5. Consultation des stats utilisateur dans le profil.
 6. Envoi d'une demande d'ami puis acceptation.

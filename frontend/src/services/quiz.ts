@@ -3,6 +3,7 @@ import { apiRequest } from "./api";
 export const QUIZ_ROOM_NAME_MIN_LENGTH = 2;
 export const QUIZ_ROOM_PASSWORD_MIN_LENGTH = 4;
 export const QUIZ_ROOM_ROUNDS_DEFAULT = 5;
+export const QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS = 10000;
 
 export type RoomPlayer = {
   userId: number;
@@ -15,6 +16,7 @@ export type Room = {
   ownerUserId?: number;
   quizId?: number;
   rounds: number;
+  questionDurationMs: number;
   isPrivate: boolean;
   status: "waiting" | "playing" | "finished";
   players: RoomPlayer[];
@@ -26,6 +28,7 @@ export type Room = {
 export type CreateRoomPayload = {
   name: string;
   rounds: number;
+  questionDurationMs?: number;
   isPrivate: boolean;
   quizId?: number;
   password?: string;

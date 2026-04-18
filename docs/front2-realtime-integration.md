@@ -24,10 +24,11 @@ Transport: `socket.io`
 - listen `room:list-updated` (diffusions globales)
 
 2. Creation room:
-- emit `room:create` `{ name, rounds, isPrivate, quizId?, password? }`
+- emit `room:create` `{ name, rounds, questionDurationMs?, isPrivate, quizId?, password? }`
 - listen `room:created`
 - listen `room:create:error`
 - quand la room est creee depuis un quiz, envoyer `quizId` pour lier la partie aux questions persistantes
+- `questionDurationMs` permet de personnaliser la duree par question de la room
 - sans `quizId`, le code tente d'utiliser un quiz par defaut `"Culture générale"`
 - le seed courant ne cree pas ce titre; en pratique il faut fournir `quizId` ou accepter un echec possible au `room:start`
 

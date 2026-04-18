@@ -27,7 +27,6 @@ Disponible et demonstrable aujourd'hui :
 Points encore partiels ou non implementes :
 
 - pas de page leaderboard globale ni d'historique de parties dedie
-- le selecteur "temps par question" de creation de room n'est pas encore branche au backend
 - pas de recette multi-browser formelle documentee
 
 Decisions internes de priorisation pour le projet courant :
@@ -64,7 +63,7 @@ Regle de lecture documentaire :
 
 ## Modules claimed
 
-Estimation interne argumentee aujourd'hui : `15 / 14`
+Estimation interne argumentee aujourd'hui : `16 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -74,11 +73,12 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Minor][1]` Use an ORM
 - `[Minor][1]` Notification system
 - `[Minor][1]` Remote authentication
+- `[Minor][1]` Game customization options
 - `[Major][2]` Web-based game
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `15 points`
+Total estime revendicable aujourd'hui : `16 points`
 
 ## Path to 19
 
@@ -86,10 +86,9 @@ Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
 
 - `[Minor][1]` Support for additional browsers
 - `[Minor][1]` Game statistics and match history
-- `[Minor][1]` Game customization options
 - `[Minor][1]` Health check & status page
 
-Ces 5 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
+Ces 3 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
 
 Regle pratique pour la revue Intra :
 
@@ -233,7 +232,7 @@ Important en dev :
 - `POST /quizzes` est protege par `AuthGuard` et throttle a `10` creations par minute
 - le seed de dev charge maintenant un premier catalogue de quiz ancrés dans l'univers 42
 - si `quizId` est omis a la creation d'une room, le code tente de demarrer avec un quiz par defaut nomme `"Culture générale"`; ce quiz n'est pas cree par le seed courant, donc fournir `quizId` est recommande
-- la duree par question reste globalement pilotee par `GAME_QUESTION_DURATION_MS`; elle n'est pas encore configurable par room
+- `questionDurationMs` peut etre fourni a la creation d'une room; sans valeur explicite, le backend retombe sur `GAME_QUESTION_DURATION_MS`
 
 ## Cartographie documentaire
 

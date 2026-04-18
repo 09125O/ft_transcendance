@@ -188,6 +188,7 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
       <PreMatchPanel
         roomName={currentRoom.name}
         rounds={currentRoom.rounds}
+        questionDurationMs={currentRoom.questionDurationMs}
         scoreEntries={scoreEntries}
         canStartRoom={currentRoom.status === "waiting"}
         onStartRoom={handleStartRoom}

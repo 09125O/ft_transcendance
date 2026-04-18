@@ -10,6 +10,7 @@ type ScoreEntry = {
 type PreMatchPanelProps = {
   roomName: string;
   rounds: number;
+  questionDurationMs: number;
   scoreEntries: ScoreEntry[];
   canStartRoom: boolean;
   onStartRoom: () => void;
@@ -24,6 +25,7 @@ function stripGeneratedTimeSuffix(roomName: string): string {
 export default function PreMatchPanel({
   roomName,
   rounds,
+  questionDurationMs,
   scoreEntries,
   canStartRoom,
   onStartRoom,
@@ -49,7 +51,7 @@ export default function PreMatchPanel({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
               <p className="ui-kicker m-0 text-xs text-text/55">Joueurs</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{scoreEntries.length}</p>
@@ -57,6 +59,12 @@ export default function PreMatchPanel({
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
               <p className="ui-kicker m-0 text-xs text-text/55">Manches</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{rounds}</p>
+            </div>
+            <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
+              <p className="ui-kicker m-0 text-xs text-text/55">Temps</p>
+              <p className="m-0 mt-2 text-2xl font-semibold text-text">
+                {Math.round(questionDurationMs / 1000)}s
+              </p>
             </div>
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
               <p className="ui-kicker m-0 text-xs text-text/55">Etat</p>
