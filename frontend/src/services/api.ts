@@ -22,11 +22,11 @@ export async function apiRequest<T>(
     },
   });
 
-  let json: ApiResponse<T> | null = null;
+  let json: ApiResponse<T> | undefined;
   try {
     json = (await response.json()) as ApiResponse<T>;
   } catch {
-    json = null;
+    // Some failing responses may not include JSON, so fall back to the status code.
   }
 
   if (!response.ok) {

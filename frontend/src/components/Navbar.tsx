@@ -9,14 +9,14 @@ export default function Navbar() {
 
   return (
     <nav className="bg-surface text-text">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Link
           className="text-sm font-medium uppercase tracking-[0.18em]"
           to="/"
         >
           Transcendance
         </Link>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:gap-5">
           {currentUser !== null ? (
             <>
               <Link className="text-sm font-medium text-text" to="/profile">

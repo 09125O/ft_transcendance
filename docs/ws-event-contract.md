@@ -415,7 +415,8 @@ Codes d'erreur possibles:
 - Timeout auto d'une question puis question suivante.
 - Fin auto de partie a la fin du cycle de questions.
 - Fermeture auto de room quand elle devient vide.
-- Si un user se deconnecte (plus aucun socket actif pour ce user), il est retire automatiquement des rooms.
+- Si un user se deconnecte (plus aucun socket actif pour ce user), il est retire automatiquement des rooms apres un delai de grace de reconnexion (`ROOM_RECONNECT_GRACE_MS`, defaut 10000 ms).
+- Si le user se reconnecte avant la fin du delai de grace, il reste membre des rooms en cours.
 
 ## Notes scope
 

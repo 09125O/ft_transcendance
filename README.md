@@ -48,6 +48,7 @@ Variables attendues :
 - `JWT_EXPIRES_IN`
 - `FRONTEND_ORIGIN`
 - `GAME_QUESTION_DURATION_MS`
+- `ROOM_RECONNECT_GRACE_MS`
 
 ## CI
 
@@ -66,6 +67,12 @@ Le workflow peut fonctionner de deux facons :
 
 - sans secret GitHub, avec des valeurs CI de secours
 - avec des secrets de repo nommes `CI_POSTGRES_USER`, `CI_POSTGRES_PASSWORD`, `CI_POSTGRES_DB`, `CI_POSTGRES_PORT`, `CI_DATABASE_URL`, `CI_BACKEND_PORT`, `CI_FRONTEND_PORT`, `CI_JWT_SECRET`
+
+Commandes qualite utiles :
+
+- `cd backend && npm run lint`
+- `cd frontend && npm run lint`
+- `bash scripts/lint-shell.sh` (`shellcheck` natif ou fallback Docker)
 
 ## URLs utiles
 
@@ -123,7 +130,7 @@ Note architecture (resume):
 - `GET /scores/users/:userId`
 - `GET /quizzes`
 - `GET /quizzes/:quizId`
-- `POST /quizzes`
+- `POST /quizzes` avec cookie `access_token`
 
 Temps reel:
 - namespace Socket.IO: `/ws`
@@ -155,9 +162,11 @@ Reponse d'erreur standard:
 Important pour le front en dev:
 
 - le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game` et `/scores`
-- il couvre aussi `/quizzes`, `/friends` et `/notifications`
+- il couvre aussi `/quizzes`, `/friends` et `/notifications` pour les appels API
+- la navigation navigateur vers `/friends` reste servie par React Router; seules les requetes non HTML partent au backend
 - le front peut donc appeler ces routes directement sur `https://localhost:3000`
 - le WebSocket Socket.IO passe lui aussi par le meme origin frontend, sans mixed content
+- une reconnexion room apres refresh/perte reseau courte conserve la place pendant `ROOM_RECONNECT_GRACE_MS` (10000 ms par defaut)
 - la confiance navigateur/Node repose sur `mkcert`; lancer `make tls-trust` une fois par machine
 - utiliser `credentials: "include"` pour que la session cookie fonctionne
 - l'auth OAuth du projet est desormais limitee a 42 (`/auth/42/start`)

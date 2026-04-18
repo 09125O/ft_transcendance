@@ -14,9 +14,16 @@ const BACKEND_HOST = process.env.BACKEND_HOST || "localhost";
 const WS_BASE_URL =
   process.env.WS_BASE_URL || `https://${BACKEND_HOST}:${BACKEND_PORT}`;
 const WS_NAMESPACE_URL = `${WS_BASE_URL}/ws`;
+const TEST_QUIZ_ANSWER_INDEX = 1;
+const ROOM_RECONNECT_GRACE_MS = Number(process.env.ROOM_RECONNECT_GRACE_MS || 10000);
+const DISCONNECT_EVENT_TIMEOUT_MS = Math.max(25000, ROOM_RECONNECT_GRACE_MS + 12000);
 
 function section(title) {
   console.log(`\n== ${title} ==`);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function printTestCatalog() {
@@ -69,7 +76,7 @@ async function run() {
       outsiderSession.cookieHeader,
     );
     pass(`Connexion WS OK (outsider, userId=${outsider.userId})`);
-    const quizId = await ensureQuizId(WS_BASE_URL);
+    const quizId = await ensureQuizId(WS_BASE_URL, ownerSession.cookieHeader);
 
     section("test websocket room lifecycle");
     sockets.push(owner.socket, guest.socket, third.socket, outsider.socket);
@@ -256,27 +263,21 @@ async function assertPrivateRoomRestJoinThenWsChat(
   pass("Room privee: join REST + attach WS + chat OK");
 }
 
-async function ensureQuizId(baseUrl) {
-  const listResponse = await fetch(`${baseUrl}/quizzes`);
-  if (!listResponse.ok) {
-    fail(`Quiz list endpoint failed (${listResponse.status})`);
-  }
-  const listPayload = await listResponse.json();
-  const existingQuizId = listPayload?.data?.[0]?.id;
-  if (typeof existingQuizId === "number") {
-    return existingQuizId;
-  }
-
+// Always create a dedicated quiz so the smoke test controls the expected answer.
+async function ensureQuizId(baseUrl, cookieHeader) {
   const createResponse = await fetch(`${baseUrl}/quizzes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookieHeader,
+    },
     body: JSON.stringify({
       title: `WS Smoke Quiz ${Date.now()}`,
       questions: [
         {
           questionText: "Question smoke test",
           answers: ["A", "B", "C", "D"],
-          correctAnswerIndex: 1,
+          correctAnswerIndex: TEST_QUIZ_ANSWER_INDEX,
           points: 1,
         },
       ],
@@ -331,7 +332,12 @@ async function submitAndValidateAnswer(guest, roomId, questionId) {
     "game:answer:result",
     (payload) => payload?.success === true && payload?.data?.userId === guest.userId,
   );
-  guest.socket.emit("game:answer", { roomId, userId: guest.userId, questionId, answerIndex: 1 });
+  guest.socket.emit("game:answer", {
+    roomId,
+    userId: guest.userId,
+    questionId,
+    answerIndex: TEST_QUIZ_ANSWER_INDEX,
+  });
   const answer = await answerPromise;
   if (typeof answer?.data?.userTotalScore !== "number") fail("Missing userTotalScore");
   pass("Reponse + scoring OK");
@@ -343,7 +349,12 @@ async function assertDuplicateAnswerConflict(guest, roomId, questionId) {
     "game:answer:error",
     (payload) => payload?.success === false && payload?.error?.code === "CONFLICT",
   );
-  guest.socket.emit("game:answer", { roomId, userId: guest.userId, questionId, answerIndex: 1 });
+  guest.socket.emit("game:answer", {
+    roomId,
+    userId: guest.userId,
+    questionId,
+    answerIndex: TEST_QUIZ_ANSWER_INDEX,
+  });
   await duplicateErrorPromise;
   pass("Anti double-reponse OK");
 }
@@ -422,10 +433,12 @@ async function assertDisconnectUpdatesRoomState(owner, guest, roomId) {
       payload?.success === true &&
       payload?.data?.id === roomId &&
       !payload?.data?.players?.some((p) => p.userId === owner.userId),
+    DISCONNECT_EVENT_TIMEOUT_MS,
   );
   safeDisconnect(owner.socket);
+  await assertNoImmediateOwnerRemoval(guest, roomId, owner.userId);
   await roomStatePromise;
-  pass("Disconnect owner -> room mise a jour");
+  pass("Disconnect owner -> room mise a jour apres delai de grace");
 }
 
 async function assertRoomClosedAfterLastDisconnect(guest, outsider, roomId) {
@@ -436,10 +449,43 @@ async function assertRoomClosedAfterLastDisconnect(guest, outsider, roomId) {
       payload?.success === true &&
       Array.isArray(payload?.data) &&
       !payload.data.some((room) => room.id === roomId),
+    DISCONNECT_EVENT_TIMEOUT_MS,
   );
   safeDisconnect(guest.socket);
   await roomRemovedPromise;
-  pass("Disconnect dernier joueur -> room fermee");
+  pass("Disconnect dernier joueur -> room fermee apres delai de grace");
+}
+
+async function assertNoImmediateOwnerRemoval(guest, roomId, ownerUserId) {
+  if (ROOM_RECONNECT_GRACE_MS <= 0) {
+    return;
+  }
+
+  const immediateWindowMs = Math.max(
+    250,
+    Math.min(2000, Math.floor(ROOM_RECONNECT_GRACE_MS / 2)),
+  );
+  let ownerRemovedTooEarly = false;
+
+  const onRoomState = (payload) => {
+    if (
+      payload?.success === true &&
+      payload?.data?.id === roomId &&
+      !payload?.data?.players?.some((player) => player.userId === ownerUserId)
+    ) {
+      ownerRemovedTooEarly = true;
+    }
+  };
+
+  guest.socket.on("room:state", onRoomState);
+  await wait(immediateWindowMs);
+  guest.socket.off("room:state", onRoomState);
+
+  if (ownerRemovedTooEarly) {
+    fail("Owner removed before reconnect grace period elapsed");
+  }
+
+  pass("Disconnect transitoire: pas de sortie immediate");
 }
 
 run().catch((error) => {

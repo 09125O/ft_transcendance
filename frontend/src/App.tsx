@@ -1,30 +1,44 @@
+import { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
-import LoginPage from "./pages/LoginPage";
-import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
-import RegisterPage from "./pages/RegisterPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import TermsPage from "./pages/TermsPage";
-import ProfilePage from "./pages/ProfilePage";
-import FriendsPage from "./pages/FriendsPage";
 import WsStatusBanner from "./components/WsStatusBanner";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const FriendsPage = lazy(() => import("./pages/FriendsPage"));
+
+function RouteFallback() {
+  return (
+    <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+      <div className="w-full max-w-xl rounded-[24px] border border-white/10 bg-surface/90 px-6 py-8 text-center text-sm text-text/70 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.85)] backdrop-blur">
+        Chargement de l&apos;interface...
+      </div>
+    </main>
+  );
+}
 
 export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/room/:roomId" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/:userId" element={<ProfilePage />} />
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/room/:roomId" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+        </Routes>
+      </Suspense>
       <Footer />
       <WsStatusBanner />
     </div>

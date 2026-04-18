@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
@@ -321,6 +321,7 @@ INVALID_LOGIN_PAYLOAD='{"email":"not-an-email","password":"short"}'
 WRONG_PASSWORD_PAYLOAD=$(printf '{"email":"%s","password":"wrongpassword123!"}' "$TEST_EMAIL")
 GHOST_REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"ghost"}' "$GHOST_EMAIL" "$GHOST_PASSWORD")
 GHOST_LOGIN_PAYLOAD=$(printf '{"email":"%s","password":"%s"}' "$GHOST_EMAIL" "$GHOST_PASSWORD")
+QUIZ_PAYLOAD='{"title":"Smoke quiz","questions":[{"questionText":"Capital of France?","answers":["Paris","Rome"],"correctAnswerIndex":0,"points":2}]}'
 
 cleanup_user "$TEST_EMAIL"
 cleanup_user "$GHOST_EMAIL"
@@ -340,6 +341,13 @@ assert_body_contains '"success":false'
 assert_body_contains '"code":"UNAUTHORIZED"'
 assert_body_contains '"message":"Authentication required"'
 pass "/users/me refuse sans cookie"
+
+request_with_curl POST "${BACKEND_BASE_URL}/quizzes" "$QUIZ_PAYLOAD" "$COOKIE_JAR"
+assert_status 401
+assert_body_contains '"success":false'
+assert_body_contains '"code":"UNAUTHORIZED"'
+assert_body_contains '"message":"Authentication required"'
+pass "/quizzes refuse sans cookie"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "" "Cookie: access_token=invalid-token"
 assert_status 401
@@ -457,6 +465,13 @@ assert_body_contains "\"id\":${TEST_USER_ID}"
 assert_body_contains '"status":"online"'
 assert_body_not_contains '"password"'
 pass "/users/me OK"
+
+request_with_curl POST "${BACKEND_BASE_URL}/quizzes" "$QUIZ_PAYLOAD" "$COOKIE_JAR"
+assert_status 201
+assert_body_contains '"success":true'
+assert_body_contains '"title":"Smoke quiz"'
+assert_body_contains '"questionText":"Capital of France?"'
+pass "/quizzes accepte avec session"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/logout" '{}' "$COOKIE_JAR"
 assert_status_any 200 201

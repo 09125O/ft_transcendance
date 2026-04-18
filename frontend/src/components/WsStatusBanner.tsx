@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
-import {
-  subscribeWsConnection,
-  type WsConnectionState,
-} from "../services/ws";
+import type { WsConnectionState } from "../services/ws";
+import { useRealtime } from "../providers/RealtimeProvider";
 
 const LABELS: Record<WsConnectionState, { label: string; tone: string } | null> = {
   idle: null,
@@ -16,9 +13,7 @@ const LABELS: Record<WsConnectionState, { label: string; tone: string } | null> 
 };
 
 export default function WsStatusBanner() {
-  const [state, setState] = useState<WsConnectionState>("idle");
-
-  useEffect(() => subscribeWsConnection(setState), []);
+  const { connectionState: state } = useRealtime();
 
   const meta = LABELS[state];
   if (!meta) return null;

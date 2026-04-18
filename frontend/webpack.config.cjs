@@ -10,6 +10,43 @@ const tlsCertPath = process.env.TLS_CERT_FILE || "/certs/dev-localhost.crt";
 const trustedCaPath = process.env.NODE_EXTRA_CA_CERTS || "/certs/mkcert-rootCA.pem";
 const hasCustomTlsFiles =
   fs.existsSync(tlsKeyPath) && fs.existsSync(tlsCertPath);
+const proxyPrefixes = [
+  "/api",
+  "/health",
+  "/auth",
+  "/users",
+  "/rooms",
+  "/game",
+  "/scores",
+  "/quizzes",
+  "/friends",
+  "/notifications",
+  "/socket.io",
+];
+const spaRoutePrefixes = ["/friends", "/notifications"];
+const oauthDocumentPrefixes = ["/auth/42/start", "/auth/42/callback"];
+
+function matchesPrefix(pathname, prefix) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+function shouldProxy(pathname, request) {
+  if (!proxyPrefixes.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return false;
+  }
+
+  if (oauthDocumentPrefixes.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return true;
+  }
+
+  const acceptHeader = request.headers.accept || "";
+  const isHtmlNavigation = acceptHeader.includes("text/html");
+  if (isHtmlNavigation && spaRoutePrefixes.some((prefix) => matchesPrefix(pathname, prefix))) {
+    return false;
+  }
+
+  return true;
+}
 
 module.exports = {
   entry: "./src/main.tsx",
@@ -58,17 +95,7 @@ module.exports = {
     historyApiFallback: true,
     proxy: [
       {
-        context: [
-          "/api",
-          "/health",
-          "/auth",
-          "/users",
-          "/rooms",
-          "/game",
-          "/scores",
-          "/quizzes",
-          "/socket.io",
-        ],
+        context: shouldProxy,
         target: backendTarget,
         changeOrigin: true,
         secure: fs.existsSync(trustedCaPath),
