@@ -8,6 +8,8 @@ import { useAuth } from "../../providers/AuthProvider";
 import type { PublicQuestion } from "../../types/game";
 import { emitWs } from "../../services/ws";
 import GamePanel from "./GamePanel";
+import PreMatchPanel from "./PreMatchPanel";
+import ResultsPanel from "./ResultsPanel";
 import RulesPanel from "./RulesPanel";
 
 type RoomScreenProps = {
@@ -18,6 +20,7 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
   const navigate = useNavigate();
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [answerFeedback, setAnswerFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<PublicQuestion | null>(null);
   const { user: sessionUser } = useAuth();
   const {
@@ -66,10 +69,23 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     onQuestionStarted: (question) => {
       setCurrentQuestion(question);
       setSelectedAnswer(null);
+      setAnswerFeedback(null);
     },
     onGameEnded: () => {
       setCurrentQuestion(null);
       setSelectedAnswer(null);
+      setAnswerFeedback(null);
+    },
+    onAnswerResult: (payload) => {
+      if (sessionUser?.id !== payload.userId) {
+        return;
+      }
+      if (currentQuestion?.id !== payload.questionId) {
+        return;
+      }
+
+      setSelectedAnswer(payload.selectedAnswerIndex);
+      setAnswerFeedback(payload.isCorrect ? "correct" : "incorrect");
     },
   });
 
@@ -81,6 +97,28 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     isSelf: sessionUser?.id === message.userId,
   }));
 
+  const handleLeaveRoom = () => {
+    if (currentRoom && sessionUser) {
+      emitWs("room:leave", {
+        roomId: currentRoom.id,
+        userId: sessionUser.id,
+      });
+    }
+    clearCurrentRoom();
+    setSelectedAnswer(null);
+    setAnswerFeedback(null);
+    navigate("/");
+  };
+
+  const handleStartRoom = () => {
+    if (currentRoom && sessionUser) {
+      emitWs("room:start", {
+        roomId: currentRoom.id,
+        userId: sessionUser.id,
+      });
+    }
+  };
+
   if (isRulesOpen) {
     return (
       <div className="min-h-[80vh] w-full">
@@ -89,31 +127,55 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     );
   }
 
+  if (!currentRoom) {
+    return (
+      <div className="flex min-h-[80vh] w-full items-center justify-center">
+        <div className="w-full max-w-2xl rounded-[24px] border border-white/10 bg-surface/90 px-6 py-8 text-center text-sm text-text/70 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.85)] backdrop-blur">
+          Chargement de la room...
+        </div>
+      </div>
+    );
+  }
+
+  if (currentRoom.status === "waiting") {
+    return (
+      <PreMatchPanel
+        roomName={currentRoom.name}
+        rounds={currentRoom.rounds}
+        scoreEntries={scoreEntries}
+        canStartRoom={currentRoom.status === "waiting"}
+        onStartRoom={handleStartRoom}
+        onLeaveRoom={handleLeaveRoom}
+        onOpenRules={() => setIsRulesOpen(true)}
+      />
+    );
+  }
+
+  if (currentRoom.status === "finished") {
+    return (
+      <ResultsPanel
+        roomName={currentRoom.name}
+        scoreEntries={scoreEntries}
+        onLeaveRoom={handleLeaveRoom}
+        onOpenRules={() => setIsRulesOpen(true)}
+      />
+    );
+  }
+
   return (
     <GamePanel
       onToggleRules={() => setIsRulesOpen((currentValue) => !currentValue)}
-      canStartRoom={currentRoom?.status === "waiting"}
-      onStartRoom={() => {
-        if (currentRoom && sessionUser) {
-          emitWs("room:start", {
-            roomId: currentRoom.id,
-            userId: sessionUser.id,
-          });
-        }
-      }}
-      onLeaveRoom={() => {
-        if (currentRoom && sessionUser) {
-          emitWs("room:leave", {
-            roomId: currentRoom.id,
-            userId: sessionUser.id,
-          });
-        }
-        clearCurrentRoom();
-        setSelectedAnswer(null);
-        navigate("/");
-      }}
+      canStartRoom={false}
+      roomStatus={currentRoom.status}
+      onStartRoom={handleStartRoom}
+      onLeaveRoom={handleLeaveRoom}
       selectedAnswer={selectedAnswer}
+      answerFeedback={answerFeedback}
       onSelectAnswer={(answerIndex) => {
+        if (selectedAnswer !== null) {
+          return;
+        }
+
         setSelectedAnswer(answerIndex);
         if (currentRoom && sessionUser && currentQuestion) {
           emitWs("game:answer", {

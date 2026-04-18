@@ -5,21 +5,13 @@ export const QUIZ_QUESTION_MIN_LENGTH = 1;
 export const QUIZ_MIN_ANSWERS = 2;
 export const QUIZ_MAX_ANSWERS = 4;
 
-export type QuizQuestion = {
-  id: number;
-  questionText: string;
-  answers: string[];
-  correctAnswer: string;
-  position: number;
-  points: number;
-  createdAt: string;
-};
-
 export type Quiz = {
   id: number;
   title: string;
   createdAt: string;
-  questions: QuizQuestion[];
+  playCount: number;
+  activeRoomCount: number;
+  questionCount: number;
 };
 
 export type CreateQuizQuestionPayload = {

@@ -129,6 +129,11 @@ Notes:
 }
 ```
 
+Notes:
+- `room:join` reste autorise uniquement en `waiting`.
+- Pour une room privee, le `password` est obligatoire.
+- Pour une room privee, l'utilisateur doit etre ami avec le owner (`FriendRequests.status=accepted`), sauf le owner lui-meme.
+
 ### `room:leave`
 
 ```json
@@ -402,7 +407,11 @@ Codes d'erreur possibles:
 ## Regles metier MVP
 
 - `room:join` autorise seulement en `waiting`.
-- `room:start` autorise seulement en `waiting` avec au moins 3 joueurs.
+- `room:join` sur room privee exige un mot de passe valide et une relation d'amitie acceptee avec le owner (sauf owner).
+- `room:start` autorise seulement en `waiting`.
+- Minimum joueurs au start:
+  - room liee a un `quizId`: solo ou multijoueur (>= 1 joueur)
+  - room sans `quizId`: >= 3 joueurs
 - `game:answer` autorise seulement en `playing`.
 - Un user ne peut repondre qu'une seule fois par question.
 - Un socket est lie au `userId` du JWT pour toute sa duree de vie.
@@ -420,6 +429,10 @@ Codes d'erreur possibles:
 - Fermeture auto de room quand elle devient vide.
 - Si un user se deconnecte (plus aucun socket actif pour ce user), il est retire automatiquement des rooms apres un delai de grace de reconnexion (`ROOM_RECONNECT_GRACE_MS`, defaut 10000 ms).
 - Si le user se reconnecte avant la fin du delai de grace, il reste membre des rooms en cours.
+- Fermeture auto des rooms en attente (`waiting`) apres `ROOM_WAITING_TTL_MS` (defaut 1800000 ms, base sur `createdAt`).
+- Fermeture auto des rooms terminees (`finished`) apres `ROOM_FINISHED_TTL_MS` (defaut 300000 ms, base sur `finishedAt`).
+- Le nettoyage TTL est execute periodiquement toutes les `ROOM_CLEANUP_INTERVAL_MS` (defaut 30000 ms).
+- Mettre `ROOM_WAITING_TTL_MS`, `ROOM_FINISHED_TTL_MS` ou `ROOM_CLEANUP_INTERVAL_MS` a `0` desactive la fermeture TTL correspondante.
 
 ## Notes scope
 

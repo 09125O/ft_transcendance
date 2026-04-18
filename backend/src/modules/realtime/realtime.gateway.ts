@@ -30,6 +30,10 @@ export class RealtimeGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy, OnGatewayInit
 {
   private readonly logger = new Logger(RealtimeGateway.name);
+  private readonly roomCleanupIntervalMs = Number(
+    process.env.ROOM_CLEANUP_INTERVAL_MS || 30000,
+  );
+  private roomCleanupInterval: NodeJS.Timeout | null = null;
 
   @WebSocketServer()
   server!: Server;
@@ -46,6 +50,16 @@ export class RealtimeGateway
 
   afterInit(server: Server): void {
     this.notifier.bindServer(server);
+
+    if (this.roomCleanupIntervalMs > 0) {
+      this.roomCleanupInterval = setInterval(() => {
+        void this.roomEvents.cleanupExpiredRooms(server).catch((exception) => {
+          const message =
+            exception instanceof Error ? exception.message : "Unknown room cleanup error";
+          this.logger.error(`Failed to auto-close expired rooms: ${message}`);
+        });
+      }, this.roomCleanupIntervalMs);
+    }
   }
 
   async handleConnection(client: Socket): Promise<void> {
@@ -84,6 +98,10 @@ export class RealtimeGateway
   }
 
   onModuleDestroy(): void {
+    if (this.roomCleanupInterval) {
+      clearInterval(this.roomCleanupInterval);
+      this.roomCleanupInterval = null;
+    }
     this.gameRuntime.stopAllTimers();
     this.roomEvents.clearPendingDisconnects();
     this.presence.clear();

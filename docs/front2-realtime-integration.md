@@ -34,6 +34,7 @@ Transport: `socket.io`
 - emit `room:join` `{ roomId, password? }`
 - listen `room:joined`
 - listen `room:join:error`
+- si la room est privee: `password` requis + membre oblige d'etre ami accepte du owner (sauf owner)
 
 4. Quitter room:
 - emit `room:leave` `{ roomId }`
@@ -48,6 +49,11 @@ Transport: `socket.io`
 - si la reconnexion a lieu avant expiration, le joueur conserve son membership room
 - si le delai expire sans reconnexion, le backend emet les mises a jour `room:state` / `room:list-updated` correspondantes
 
+4ter. Fermeture auto room (TTL):
+- une room `waiting` peut etre fermee automatiquement apres `ROOM_WAITING_TTL_MS`
+- une room `finished` peut etre fermee automatiquement apres `ROOM_FINISHED_TTL_MS`
+- ecouter `room:closed` (reasons possibles: `room_waiting_ttl_expired`, `room_finished_ttl_expired`)
+
 5. Spectateur:
 - emit `room:spectate` `{ roomId }`
 - listen `room:spectated`
@@ -61,7 +67,9 @@ Transport: `socket.io`
 - emit `room:start` `{ roomId }`
 - listen `room:started`
 - listen `room:start:error`
-- precondition metier: au moins 3 joueurs dans la room
+- precondition metier:
+  - room liee a un `quizId`: solo ou multijoueur (>= 1 joueur)
+  - room sans `quizId`: au moins 3 joueurs dans la room
 
 2. Question / timer:
 - listen `game:started`

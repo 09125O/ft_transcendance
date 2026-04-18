@@ -1,26 +1,12 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuizLibrary } from "../../hooks/useQuizLibrary";
 import { useQuizLobby } from "../../hooks/useQuizLobby";
 import { useAuth } from "../../providers/AuthProvider";
-import type { Quiz } from "../../services/quizzes";
 import LobbyOverviewPanel from "./LobbyOverviewPanel";
 import PasswordModal from "./PasswordModal";
-import QuizCreatePanel from "./QuizCreatePanel";
-import RoomCreateFromQuizPanel from "./RoomCreateFromQuizPanel";
 
 export default function LobbyScreen() {
   const navigate = useNavigate();
-  const [isQuizCreateOpen, setIsQuizCreateOpen] = useState(false);
-  const [selectedRoomQuiz, setSelectedRoomQuiz] = useState<Quiz | null>(null);
   const { user: sessionUser, isLoading: isSessionLoading } = useAuth();
-  const {
-    quizzes,
-    quizzesLoading,
-    quizzesError,
-    isCreatingQuiz,
-    createQuizAndRefresh,
-  } = useQuizLibrary();
   const {
     rooms,
     roomsLoading,
@@ -34,7 +20,6 @@ export default function LobbyScreen() {
     closeJoinModal,
     requestJoinRoom,
     confirmJoinRoom,
-    createRoomAndJoin,
   } = useQuizLobby({ userId: sessionUser?.id ?? null });
   const actionsDisabled = isSessionLoading || sessionUser === null;
 
@@ -44,44 +29,21 @@ export default function LobbyScreen() {
 
   return (
     <>
-      {selectedRoomQuiz ? (
-        <RoomCreateFromQuizPanel
-          quiz={selectedRoomQuiz}
-          onBack={() => setSelectedRoomQuiz(null)}
-          onCreateRoom={async (payload) => {
-            const room = await createRoomAndJoin(payload);
-            setSelectedRoomQuiz(null);
+      <LobbyOverviewPanel
+        rooms={rooms}
+        roomsLoading={roomsLoading}
+        roomsError={roomsError}
+        actionsDisabled={actionsDisabled}
+        onGoToReadyQuizzes={() => navigate("/quiz-ready")}
+        onGoToCreateQuiz={() => navigate("/quiz-create")}
+        onJoinRoom={async (room) => {
+          await requestJoinRoom(room);
+          if (!room.isPrivate) {
             navigate(`/room/${room.id}`);
-          }}
-        />
-      ) : isQuizCreateOpen ? (
-        <QuizCreatePanel
-          isCreatingQuiz={isCreatingQuiz}
-          actionsDisabled={actionsDisabled}
-          onBack={() => setIsQuizCreateOpen(false)}
-          onCreateQuiz={createQuizAndRefresh}
-          onRequireAuth={requireAuth}
-        />
-      ) : (
-        <LobbyOverviewPanel
-          rooms={rooms}
-          roomsLoading={roomsLoading}
-          roomsError={roomsError}
-          quizzes={quizzes}
-          quizzesLoading={quizzesLoading}
-          quizzesError={quizzesError}
-          actionsDisabled={actionsDisabled}
-          onCreateQuiz={() => setIsQuizCreateOpen(true)}
-          onCreateRoomFromQuiz={setSelectedRoomQuiz}
-          onJoinRoom={async (room) => {
-            await requestJoinRoom(room);
-            if (!room.isPrivate) {
-              navigate(`/room/${room.id}`);
-            }
-          }}
-          onRequireAuth={requireAuth}
-        />
-      )}
+          }
+        }}
+        onRequireAuth={requireAuth}
+      />
 
       <PasswordModal
         isOpen={isJoinModalOpen}

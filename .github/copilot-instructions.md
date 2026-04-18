@@ -11,17 +11,22 @@ Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer 
 - docs/front-handover-roadmap.md
 - docs/sujet-conformite-matrice.md
 
-2. Ne jamais casser les flux critiques:
+2. Respecter le module design UI/UX:
+- docs/design-system/transcendance-web-app/MASTER.md
+- docs/design-system/transcendance-web-app/pages/lobby.md
+- docs/design-system/transcendance-web-app/pages/game-room.md
+
+3. Ne jamais casser les flux critiques:
 - auth/session
 - room join/start
 - game answer loop
 - websocket auth
 
-3. Si un changement modifie un contrat API/WS:
+4. Si un changement modifie un contrat API/WS:
 - mettre a jour la documentation dans la meme PR.
 - decrire l'impact dans le resume PR.
 
-4. Toute PR qui ferme un gap sujet doit mettre a jour:
+5. Toute PR qui ferme un gap sujet doit mettre a jour:
 - docs/sujet-conformite-matrice.md
 - statut: Fait / Partiel / A faire
 - preuve technique (endpoint, event, test, ecran)
@@ -41,6 +46,10 @@ Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer 
 3. Pour chaque ticket front:
 - proposer au moins 1 amelioration UX creative non bloquante
 - expliciter le compromis (simplicite, performance, lisibilite)
+
+4. Skill UI/UX Pro Max (Copilot prompt):
+- sur les demandes UI/UX, utiliser le workflow de `.github/prompts/ui-ux-pro-max/PROMPT.md`
+- utiliser les commandes Python du prompt avec le chemin workspace `.github/prompts/ui-ux-pro-max/scripts/search.py`
 
 ## Definition of Done
 

@@ -9,7 +9,7 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
     <Panel className="h-full w-full px-8 py-6">
       <div className="mb-6 flex items-center justify-end">
         <button
-          className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
+          className="ui-btn-secondary px-4 py-2 text-sm"
           type="button"
           onClick={onClose}
         >

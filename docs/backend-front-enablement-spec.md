@@ -70,6 +70,8 @@ Endpoints:
 Notes:
 - `POST /quizzes` est protege par auth et throttle a `10/min`.
 - Le front actuel peut creer un quiz puis creer une room depuis ce quiz.
+- Le backend expose aussi `playCount` et `activeRoomCount` dans les quiz listés pour supporter une popularité implicite.
+- Le seed de dev fournit désormais un catalogue de lancement orienté 42 au lieu d'un simple quiz générique.
 - Le backend ne supporte pas encore une duree par question configurable par room; le timer reste global via `GAME_QUESTION_DURATION_MS`.
 
 ### Bloc E - Spectateur

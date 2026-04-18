@@ -56,7 +56,7 @@ export default function RoomCreateFromQuizPanel({
       return;
     }
 
-    if (quiz.questions.length < 1) {
+    if (quiz.questionCount < 1) {
       setCreateError("Impossible de créer une room avec un quiz vide.");
       return;
     }
@@ -66,7 +66,7 @@ export default function RoomCreateFromQuizPanel({
     try {
       await onCreateRoom({
         name: roomName.trim(),
-        rounds: quiz.questions.length,
+        rounds: quiz.questionCount,
         isPrivate: isPrivateRoom,
         quizId: quiz.id,
         ...(isPrivateRoom ? { password } : {}),
@@ -140,7 +140,7 @@ export default function RoomCreateFromQuizPanel({
               id="room-rounds"
               readOnly
               type="text"
-              value={`${quiz.questions.length} question${quiz.questions.length > 1 ? "s" : ""}`}
+              value={`${quiz.questionCount} question${quiz.questionCount > 1 ? "s" : ""}`}
             />
           </div>
 
@@ -236,15 +236,18 @@ export default function RoomCreateFromQuizPanel({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-background px-5 py-5">
-          <p className="m-0 text-lg font-semibold text-text">Questions du quiz</p>
+          <p className="m-0 text-lg font-semibold text-text">Résumé du quiz</p>
           <p className="m-0 mt-1 text-sm text-text/60">
-            {quiz.questions.length} question{quiz.questions.length > 1 ? "s" : ""}
+            Paramètres de la partie sélectionnée.
           </p>
-          <ol className="mt-5 space-y-3 pl-5 text-sm text-text/70">
-            {quiz.questions.map((question) => (
-              <li key={question.id}>{question.questionText}</li>
-            ))}
-          </ol>
+          <div className="mt-5 rounded-xl border border-white/10 bg-background/70 px-4 py-4 text-sm text-text/70">
+            <p className="m-0">
+              Ce quiz contient {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}.
+            </p>
+            <p className="m-0 mt-2">
+              Configure la room puis lance la partie quand tu es prêt.
+            </p>
+          </div>
         </div>
       </div>
     </Panel>

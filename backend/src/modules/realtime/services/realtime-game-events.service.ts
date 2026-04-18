@@ -38,7 +38,7 @@ export class RealtimeGameEventsService {
       throw new UnauthorizedException("User is not in this room");
     }
 
-    this.gameRuntime.ensureActiveQuestion(payload.roomId, payload.questionId);
+    await this.gameRuntime.ensureActiveQuestion(payload.roomId, payload.questionId);
 
     const answer = await this.gameService.submitAnswer(payload, userId);
     const gameState = await this.gameService.getRoomState(payload.roomId);

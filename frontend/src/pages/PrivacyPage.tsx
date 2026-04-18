@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">1. Responsable du traitement</h2>
           <p>
-            Transcendance est un projet pédagogique réalisé dans le cadre du cursus
+            Quiz Arena est un projet pédagogique réalisé dans le cadre du cursus
             42. Il n&apos;a pas de finalité commerciale. Les données collectées
             servent uniquement au fonctionnement du service de quiz en ligne.
           </p>

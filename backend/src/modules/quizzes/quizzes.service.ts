@@ -1,37 +1,25 @@
 import { PrismaService } from "@/prisma/prisma.service";
-import { Prisma } from "@generated/prisma/client";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateQuizDto } from "./dto/create-quiz.dto";
-
-type QuizQuestionResponse = {
-  id: number;
-  questionText: string;
-  answers: string[];
-  position: number;
-  points: number;
-  createdAt: string;
-};
 
 export type QuizResponse = {
   id: number;
   title: string;
   createdAt: string;
-  questions: QuizQuestionResponse[];
+  playCount: number;
+  activeRoomCount: number;
+  questionCount: number;
 };
 
-type QuizWithQuestions = {
+type QuizWithCounts = {
   id: number;
   title: string;
   createdAt: Date;
-  questions: Array<{
-    id: number;
-    questionText: string;
-    answers: Prisma.JsonValue;
-    correctAnswer: string;
-    position: number;
-    points: number;
-    createdAt: Date;
-  }>;
+  _count: {
+    games: number;
+    rooms: number;
+    questions: number;
+  };
 };
 
 @Injectable()
@@ -59,13 +47,15 @@ export class QuizzesService {
         },
       },
       include: {
-        questions: {
-          orderBy: {
-            position: "asc",
+        _count: {
+          select: {
+            games: true,
+            rooms: true,
+            questions: true,
           },
         },
       },
-    })) as QuizWithQuestions;
+    })) as QuizWithCounts;
 
     return this.toQuizResponse(quiz);
   }
@@ -76,13 +66,15 @@ export class QuizzesService {
         createdAt: "desc",
       },
       include: {
-        questions: {
-          orderBy: {
-            position: "asc",
+        _count: {
+          select: {
+            games: true,
+            rooms: true,
+            questions: true,
           },
         },
       },
-    })) as QuizWithQuestions[];
+    })) as QuizWithCounts[];
 
     return quizzes.map((quiz) => this.toQuizResponse(quiz));
   }
@@ -91,13 +83,15 @@ export class QuizzesService {
     const quiz = (await this.prisma.client.quiz.findUnique({
       where: { id: quizId },
       include: {
-        questions: {
-          orderBy: {
-            position: "asc",
+        _count: {
+          select: {
+            games: true,
+            rooms: true,
+            questions: true,
           },
         },
       },
-    })) as QuizWithQuestions | null;
+    })) as QuizWithCounts | null;
 
     if (!quiz) {
       throw new NotFoundException(`Quiz ${quizId} not found`);
@@ -116,30 +110,14 @@ export class QuizzesService {
     });
   }
 
-  private toQuizResponse(quiz: QuizWithQuestions): QuizResponse {
+  private toQuizResponse(quiz: QuizWithCounts): QuizResponse {
     return {
       id: quiz.id,
       title: quiz.title,
       createdAt: quiz.createdAt.toISOString(),
-      questions: quiz.questions.map((question) => ({
-        id: question.id,
-        questionText: question.questionText,
-        answers: this.parseAnswers(question.answers),
-        position: question.position,
-        points: question.points,
-        createdAt: question.createdAt.toISOString(),
-      })),
+      playCount: quiz._count.games,
+      activeRoomCount: quiz._count.rooms,
+      questionCount: quiz._count.questions,
     };
-  }
-
-  private parseAnswers(value: Prisma.JsonValue): string[] {
-    if (
-      Array.isArray(value) &&
-      value.every((entry) => typeof entry === "string")
-    ) {
-      return [...value];
-    }
-
-    throw new BadRequestException("Quiz answers are not stored in the expected format");
   }
 }

@@ -10,7 +10,7 @@ export default function TermsPage() {
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">1. Objet</h2>
           <p>
-            Transcendance est une plateforme de quiz en ligne multijoueur temps
+            Quiz Arena est une plateforme de quiz en ligne multijoueur temps
             réel. L&apos;accès au service est gratuit et nécessite la création
             d&apos;un compte ou une connexion via OAuth 42.
           </p>
