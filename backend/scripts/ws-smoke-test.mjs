@@ -88,6 +88,13 @@ async function run() {
     await assertGuestCannotStartRoom(guest, roomId);
 
     section("test websocket room private rest/ws coherence");
+    await ensurePrivateRoomFriendship(
+      WS_BASE_URL,
+      owner.userId,
+      guest.userId,
+      ownerSession.cookieHeader,
+      guestSession.cookieHeader,
+    );
     await assertPrivateRoomRestJoinThenWsChat(
       owner,
       guest,
@@ -262,6 +269,73 @@ async function assertPrivateRoomRestJoinThenWsChat(
   });
   await chatPromise;
   pass("Room privee: join REST + attach WS + chat OK");
+}
+
+async function ensurePrivateRoomFriendship(
+  baseUrl,
+  ownerUserId,
+  guestUserId,
+  ownerCookieHeader,
+  guestCookieHeader,
+) {
+  const createResponse = await fetch(`${baseUrl}/friends/requests`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: ownerCookieHeader,
+    },
+    body: JSON.stringify({
+      receiverUserId: guestUserId,
+    }),
+  });
+
+  if (createResponse.status === 409) {
+    const payload = await safeJson(createResponse);
+    if (payload?.error?.message === "Users are already friends") {
+      pass("Precondition friends deja satisfaite pour room privee");
+      return;
+    }
+
+    fail(
+      `Friend request precondition failed (${createResponse.status}) ${payload?.error?.message ?? "unknown conflict"}`,
+    );
+  }
+
+  if (!createResponse.ok) {
+    fail(`Friend request creation failed (${createResponse.status})`);
+  }
+
+  const createPayload = await safeJson(createResponse);
+  const requestId = createPayload?.data?.requestId;
+  if (typeof requestId !== "number") {
+    fail("Friend request response missing requestId");
+  }
+
+  const acceptResponse = await fetch(`${baseUrl}/friends/requests/${requestId}/accept`, {
+    method: "POST",
+    headers: {
+      Cookie: guestCookieHeader,
+    },
+  });
+
+  if (!acceptResponse.ok) {
+    fail(`Friend request accept failed (${acceptResponse.status})`);
+  }
+
+  const acceptPayload = await safeJson(acceptResponse);
+  if (acceptPayload?.data?.status !== "accepted") {
+    fail("Friend request accept payload missing accepted status");
+  }
+
+  pass(`Friendship precondition OK (${ownerUserId}<->${guestUserId})`);
+}
+
+async function safeJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 // Always create a dedicated quiz so the smoke test controls the expected answer.

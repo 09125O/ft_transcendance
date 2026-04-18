@@ -470,7 +470,10 @@ request_with_curl POST "${BACKEND_BASE_URL}/quizzes" "$QUIZ_PAYLOAD" "$COOKIE_JA
 assert_status 201
 assert_body_contains '"success":true'
 assert_body_contains '"title":"Smoke quiz"'
-assert_body_contains '"questionText":"Capital of France?"'
+assert_body_contains '"questionCount":1'
+assert_body_contains '"playCount":0'
+assert_body_contains '"activeRoomCount":0'
+assert_body_not_contains '"questionText":"Capital of France?"'
 pass "/quizzes accepte avec session"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/logout" '{}' "$COOKIE_JAR"
