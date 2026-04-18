@@ -3,6 +3,7 @@ import { ok, type ApiResponse } from "@/common/http/api-response";
 import { CurrentUser } from "@/modules/auth/decorators/current-user.decorator";
 import { AuthGuard } from "@/modules/auth/guards/auth.guard";
 import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
+import { NotificationsService } from "@/modules/notifications/notifications.service";
 import { RealtimeNotifierService } from "@/modules/realtime/services/realtime-notifier.service";
 import {
   Body,
@@ -31,6 +32,7 @@ import {
 export class FriendsController {
   constructor(
     private readonly friendsService: FriendsService,
+    private readonly notificationsService: NotificationsService,
     private readonly notifier: RealtimeNotifierService,
   ) {}
 
@@ -87,6 +89,17 @@ export class FriendsController {
   ): Promise<ApiResponse<FriendRequestUpdated>> {
     const request = await this.friendsService.getRequestOrThrow(requestId);
     const updated = await this.friendsService.acceptRequest(auth.sub, requestId);
+    const notification = await this.notificationsService.createNotification({
+      userId: request.senderId,
+      type: "FRIEND_REQUEST_ACCEPTED",
+      title: "Demande d'ami acceptee",
+      payload: {
+        actorUserId: auth.sub,
+        actorUsername: auth.username ?? request.receiverUsername,
+        requestId: request.id,
+      },
+    });
+    this.notifier.emitOkToUser(request.senderId, "notification:new", notification);
     this.emitFriendSyncToParticipants(request, "request_accepted", auth.sub);
     return ok(updated);
   }
@@ -98,6 +111,17 @@ export class FriendsController {
   ): Promise<ApiResponse<FriendRequestUpdated>> {
     const request = await this.friendsService.getRequestOrThrow(requestId);
     const updated = await this.friendsService.declineRequest(auth.sub, requestId);
+    const notification = await this.notificationsService.createNotification({
+      userId: request.senderId,
+      type: "FRIEND_REQUEST_DECLINED",
+      title: "Demande d'ami refusee",
+      payload: {
+        actorUserId: auth.sub,
+        actorUsername: auth.username ?? request.receiverUsername,
+        requestId: request.id,
+      },
+    });
+    this.notifier.emitOkToUser(request.senderId, "notification:new", notification);
     this.emitFriendSyncToParticipants(request, "request_declined", auth.sub);
     return ok(updated);
   }
@@ -108,10 +132,20 @@ export class FriendsController {
     @Param("userId", ParseIntPipe) userId: number,
   ): Promise<ApiResponse<{ removed: true }>> {
     await this.friendsService.removeFriend(auth.sub, userId);
+    const notification = await this.notificationsService.createNotification({
+      userId,
+      type: "FRIEND_REMOVED",
+      title: "Un ami a ete retire",
+      payload: {
+        actorUserId: auth.sub,
+        actorUsername: auth.username ?? "Utilisateur",
+      },
+    });
     const syncPayload = {
       reason: "friend_removed",
       actorUserId: auth.sub,
     };
+    this.notifier.emitOkToUser(userId, "notification:new", notification);
     this.notifier.emitOkToUser(auth.sub, "friends:sync", syncPayload);
     this.notifier.emitOkToUser(userId, "friends:sync", syncPayload);
     return ok({ removed: true });

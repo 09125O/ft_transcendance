@@ -9,7 +9,7 @@ Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, no
   - `auth` (login/register/session/logout via `User`)
   - `users` (`/users/me`, `/users/:id`, `/users/me` patch)
   - `friends` (`/friends`, `/friends/requests`, actions accept/decline/remove)
-  - `notifications` (`/notifications`, `/notifications/:id/read`, `/notifications/read-all`)
+  - `notifications` (`/notifications`, `/notifications/:id/read`, `/notifications/read-all`, `/notifications/:id`)
   - `quizzes` (`/quizzes`, `/quizzes/:quizId`)
 - `rooms`, `game` et `scores` sont egalement persistes via PostgreSQL/Prisma.
 
@@ -506,15 +506,16 @@ Note front actuelle:
 ```ts
 type NotificationItem = {
   id: number;
-  type: "FRIEND_REQUEST_RECEIVED";
+  type:
+    | "FRIEND_REQUEST_RECEIVED"
+    | "FRIEND_REQUEST_ACCEPTED"
+    | "FRIEND_REQUEST_DECLINED"
+    | "FRIEND_REMOVED";
   title: string;
-  payload: {
-    requestId: number;
-    fromUserId: number;
-    fromUsername: string;
-  };
+  payload: Record<string, unknown>;
   read: boolean;
   createdAt: string;
+  dismissible: true;
 };
 
 type NotificationList = {
@@ -531,8 +532,13 @@ type NotificationList = {
 - Auth: cookie `access_token` requis
 - Reponse: `200`, `ApiResponse<{ readAll: true }>`
 
-Limite actuelle:
-- aucun endpoint de suppression n'est expose dans l'etat actuel
+`DELETE /notifications/:id`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<{ removed: true }>`
+
+Notes:
+- `id > 0` designe une notification derivee d'une demande d'ami pending
+- `id < 0` designe une notification persistée cote backend
 
 ### Quizzes
 

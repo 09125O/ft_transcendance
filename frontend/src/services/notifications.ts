@@ -7,6 +7,7 @@ export type NotificationItem = {
   payload: Record<string, unknown>;
   read: boolean;
   createdAt: string;
+  dismissible: boolean;
 };
 
 type NotificationsPage = {
@@ -29,5 +30,11 @@ export function markAllRead() {
   return apiRequest("/notifications/read-all", {
     method: "PATCH",
     body: JSON.stringify({}),
+  });
+}
+
+export function deleteNotification(id: number) {
+  return apiRequest(`/notifications/${id}`, {
+    method: "DELETE",
   });
 }

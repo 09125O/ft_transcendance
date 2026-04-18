@@ -34,7 +34,7 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `14 / 14`
+Estimation interne argumentee aujourd'hui: `15 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -42,16 +42,16 @@ Modules actuellement revendicables sans sur-promesse:
 - `[Major][2]` Features temps reel
 - `[Major][2]` Interaction utilisateurs
 - `[Minor][1]` ORM
+- `[Minor][1]` Notification system
 - `[Minor][1]` Remote auth OAuth2
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
 
-Total: `14`
+Total: `15`
 
 Chemin interne retenu pour viser `19 / 14`:
 
-- `[Minor][1]` Notifications create/update/delete
 - `[Minor][1]` Support navigateurs additionnels
 - `[Minor][1]` Stats + historique
 - `[Minor][1]` Game customization options
@@ -67,7 +67,7 @@ Ces 5 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 | Features temps reel | Major | Fait | Socket.IO `/ws`, `frontend/src/hooks/useRoomRealtime.ts`, contrats `docs/ws-event-contract.md` | - | Backend Realtime | Historique + lot audit/remediation 2026-04-18 |
 | Interaction utilisateurs (chat, profil, amis) | Major | Fait | chat room WS (`backend/src/modules/realtime`), `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, APIs `friends/users` | - | Frontend + Backend Social | PR #12 + lot audit/remediation 2026-04-18 |
 | ORM | Minor | Fait | Prisma schema + migrations (`backend/prisma`) | - | Backend Data | Historique |
-| Notifications create/update/delete | Minor | Partiel | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, event `notification:new`, UI dans `frontend/src/pages/FriendsPage.tsx` | pas de suppression cote API/UI, pas de cloche navbar/toasts, pas d'ecoute front de `notification:new` | Frontend | lot audit/remediation 2026-04-18 |
+| Notifications create/update/delete | Minor | Fait | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `DELETE /notifications/:id`, event `notification:new`, UI dans `frontend/src/pages/FriendsPage.tsx`, test `backend/scripts/social-integration-test.mjs` | - | Frontend | lot notifications 2026-04-18 |
 | Support navigateurs additionnels | Minor | Partiel | verifications locales de flux et roadmap `docs/front-handover-roadmap.md` | recette formelle Chrome/Firefox/Safari a consigner | QA Front | A faire |
 | User management (profile/avatar/friends/status) | Major | Partiel | `GET/PATCH /users/me`, `GET /users/:id`, `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, status online/offline alimente par auth | pas d'edition manuelle du status, avatar par URL uniquement, pas d'upload natif | Frontend | PR #12 + lot audit/remediation 2026-04-18 |
 | Stats + historique | Minor | Partiel | `GET /scores/leaderboard`, `GET /scores/users/:userId`, bloc stats profil `frontend/src/pages/ProfilePage.tsx` | pas de page leaderboard globale ni d'historique de parties dedie | Frontend | lot audit/remediation 2026-04-18 |
@@ -83,21 +83,18 @@ Ces 5 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 
 ## Cible 19 points
 
-Les 5 modules actifs a fermer en priorite sont:
+Les 4 modules actifs a fermer en priorite sont:
 
-1. `Notifications create/update/delete`
-Ce que demande le sujet: "A complete notification system for all creation, update, and deletion actions."
-
-2. `Support navigateurs additionnels`
+1. `Support navigateurs additionnels`
 Ce que demande le sujet: compatibilite complete avec au moins `2` navigateurs additionnels, test/fix des features dans chaque navigateur, limitations documentees, UI/UX coherente.
 
-3. `Stats + historique`
+2. `Stats + historique`
 Ce que demande le sujet: statistiques de jeu, historique de matchs, progression/achievements et integration leaderboard. Ce module exige deja un jeu fonctionnel.
 
-4. `Game customization options`
+3. `Game customization options`
 Ce que demande le sujet: differents maps ou themes, reglages de jeu personnalisables et options par defaut disponibles. Ce module exige deja un jeu fonctionnel.
 
-5. `Health check + status page`
+4. `Health check + status page`
 Ce que demande le sujet: health/status page avec sauvegardes automatisees et procedures de reprise/disaster recovery.
 
 ## Plan d'action documentaire

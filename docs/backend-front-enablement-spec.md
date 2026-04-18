@@ -40,23 +40,24 @@ Notes:
 - Regles metier en place: pas d'auto-demande, pas de doublon pending, controle receiver sur accept/decline.
 - Le front actuel consomme deja ces endpoints dans `frontend/src/pages/FriendsPage.tsx`.
 
-### Bloc C - Notifications minimales
+### Bloc C - Notifications
 
-Statut: implemente (MVP)
+Statut: implemente
 
 Endpoints:
 - `GET /notifications?limit=20&cursor=...`
 - `PATCH /notifications/:id/read`
 - `PATCH /notifications/read-all`
+- `DELETE /notifications/:id`
 
 Realtime:
 - event WS `notification:new` emis a la creation d'une demande d'ami
+- event WS `notification:new` emis aussi pour `FRIEND_REQUEST_ACCEPTED`, `FRIEND_REQUEST_DECLINED` et `FRIEND_REMOVED`
 
 Notes:
-- Les notifications sont derivees des demandes d'ami (`friendRequests`) en base.
-- Le front actuel les affiche et les marque comme lues via HTTP.
-- Le front actuel n'ecoute pas encore `notification:new`.
-- Il n'existe pas encore de suppression de notification ni de cloche navbar dediee.
+- Les notifications `FRIEND_REQUEST_RECEIVED` restent derivees des demandes d'ami pending.
+- Les notifications d'acceptation, refus et suppression d'ami sont persistees en base via `Notification`.
+- Le front actuel ecoute `notification:new`, affiche les notifications, les marque comme lues et permet leur suppression.
 
 ### Bloc D - Quiz / room lies
 
@@ -102,7 +103,6 @@ Regles:
 - 2FA: hors scope du projet courant
 - SSR: hors scope du projet courant
 - Mode spectateur UI: hors scope du projet courant, meme si la capacite WS backend est conservee
-- Notifications delete/archive: non implemente
 
 ## Checklist front de branchement rapide
 

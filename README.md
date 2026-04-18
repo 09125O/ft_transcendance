@@ -21,7 +21,7 @@ Disponible et demonstrable aujourd'hui :
 - partie realtime avec timer serveur, reponses, leaderboard et chat
 - creation de quiz et creation de room depuis un quiz
 - pages `profile` et `friends`
-- centre de notifications minimal dans la page amis
+- centre de notifications dans la page amis avec lecture, suppression et temps reel
 - reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
 
 Points encore partiels ou non implementes :
@@ -29,7 +29,6 @@ Points encore partiels ou non implementes :
 - pas de page leaderboard globale ni d'historique de parties dedie
 - le selecteur "temps par question" de creation de room n'est pas encore branche au backend
 - pas de recette multi-browser formelle documentee
-- les notifications restent principalement consommees via HTTP dans la page amis; le front n'ecoute pas encore `notification:new`
 
 Decisions internes de priorisation pour le projet courant :
 
@@ -65,7 +64,7 @@ Regle de lecture documentaire :
 
 ## Modules claimed
 
-Estimation interne argumentee aujourd'hui : `14 / 14`
+Estimation interne argumentee aujourd'hui : `15 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -73,18 +72,18 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Major][2]` Implement real-time features
 - `[Major][2]` Allow users to interact with other users
 - `[Minor][1]` Use an ORM
+- `[Minor][1]` Notification system
 - `[Minor][1]` Remote authentication
 - `[Major][2]` Web-based game
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `14 points`
+Total estime revendicable aujourd'hui : `15 points`
 
 ## Path to 19
 
 Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
 
-- `[Minor][1]` Notification system
 - `[Minor][1]` Support for additional browsers
 - `[Minor][1]` Game statistics and match history
 - `[Minor][1]` Game customization options
@@ -214,6 +213,7 @@ Exemples de routes clefs :
 - `GET /friends`
 - `GET /friends/requests`
 - `GET /notifications`
+- `DELETE /notifications/:id`
 - `GET /rooms`
 - `POST /rooms`
 - `GET /game/:roomId/state`
@@ -261,7 +261,8 @@ Pour la cible produit actuelle :
 
 - score valide aujourd'hui : `14`
 - score vise a terme : `19`
-- modules actifs pour passer de `14` a `19` : `notifications`, `additional browsers`, `stats/history`, `game customization`, `health/status`
+- score interne estime aujourd'hui : `15`
+- modules actifs pour passer de `15` a `19` : `additional browsers`, `stats/history`, `game customization`, `health/status`
 
 ## Quand ajouter nginx
 

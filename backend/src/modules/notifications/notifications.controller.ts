@@ -6,6 +6,7 @@ import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
 import {
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -47,5 +48,13 @@ export class NotificationsController {
     @CurrentUser() auth: AuthPayload,
   ): Promise<ApiResponse<{ readAll: true }>> {
     return ok(await this.notificationsService.markAllRead(auth.sub));
+  }
+
+  @Delete(":id")
+  async remove(
+    @CurrentUser() auth: AuthPayload,
+    @Param("id", ParseIntPipe) id: number,
+  ): Promise<ApiResponse<{ removed: true }>> {
+    return ok(await this.notificationsService.remove(auth.sub, id));
   }
 }

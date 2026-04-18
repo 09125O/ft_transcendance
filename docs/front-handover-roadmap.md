@@ -17,12 +17,11 @@ Le front couvre aujourd'hui :
 - lobby / room / game / chat
 - creation de quiz et creation de room depuis un quiz
 - profil utilisateur
-- amis + demandes + notifications minimales
+- amis + demandes + notifications create/update/delete
 - stats utilisateur dans le profil
 
 Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
-- completion du module notifications
 - page leaderboard globale / historique
 - recette multi-browser formelle
 - alignement end-to-end de la duree par question
@@ -67,7 +66,6 @@ References:
 - Pas de cloche notifications en navbar ni de pattern toast unifie
 - Pas de recette multi-browser formalisee dans la doc
 - Le selecteur "temps par question" du front n'est pas encore branche au backend
-- Le front courant ne subscribe pas encore `notification:new`
 - Il n'existe pas de vraie status page cote front
 
 ## 4) Backlog restant recommande
@@ -77,8 +75,7 @@ Ordre retenu pour viser `19` avec le moins de risque :
 1. `Game customization options`
 2. `Game statistics and match history`
 3. `Support for additional browsers`
-4. `Notification system`
-5. `Health check & status page`
+4. `Health check & status page`
 
 ### Ticket R1 - Game customization options
 
@@ -133,12 +130,12 @@ Definition of Done:
 - limitations explicites
 - aucun bug critique bloqueur sur les browsers annonces
 
-### Ticket R4 - Notification system
+### Ticket R4 - Notification system (ferme)
 
-- Sortir d'un scope "lecture HTTP minimale"
-- Couvrir creation, update et delete avec une logique notification claire
-- Decider explicitement si `notification:new` doit etre consomme en temps reel cote front
-- Ajouter une surface utilisateur visible et coherente
+- `notification:new` consomme cote front
+- lecture individuelle et globale (`markRead`, `markAllRead`)
+- suppression disponible dans l'UI (`DELETE /notifications/:id`)
+- notifications derivees des demandes pending + notifications persistees pour accept/refuse/remove
 
 Reference sujet:
 - "A complete notification system for all creation, update, and deletion actions"
@@ -194,7 +191,6 @@ P0:
 
 P1:
 - R3 Support for additional browsers
-- R4 Notification system
 - R5 Health check & status page
 
 P2:
@@ -220,7 +216,6 @@ P2:
 
 - Navigation front enrichie: home, login, register, profil, amis, leaderboard
 - UX realtime stabilisee (erreurs, etats, feedback)
-- Notifications demonstrables en create/update/delete
 - Status page minimale et preuves ops
 - Checklist QA navigateurs
 - Dossier de demo oriente sujet (preuves fonctionnelles)

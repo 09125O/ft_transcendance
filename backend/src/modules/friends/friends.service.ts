@@ -55,6 +55,8 @@ export type FriendRequestRecord = {
   senderId: number;
   receiverId: number;
   status: FriendshipStatus;
+  senderUsername: string;
+  receiverUsername: string;
 };
 
 @Injectable()
@@ -297,6 +299,8 @@ export class FriendsService {
       senderId: request.senderId,
       receiverId: request.receiverId,
       status: request.status,
+      senderUsername: request.sender.username,
+      receiverUsername: request.receiver.username,
     };
   }
 
@@ -318,6 +322,18 @@ export class FriendsService {
   private async findRequestOrThrow(requestId: number) {
     const request = await this.prisma.client.friendRequests.findUnique({
       where: { id: requestId },
+      include: {
+        sender: {
+          select: {
+            username: true,
+          },
+        },
+        receiver: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     if (!request) {

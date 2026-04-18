@@ -31,6 +31,12 @@ enum GameStatus {
   finished
 }
 
+enum NotificationType {
+  FRIEND_REQUEST_ACCEPTED
+  FRIEND_REQUEST_DECLINED
+  FRIEND_REMOVED
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   email    String @unique
@@ -53,6 +59,7 @@ model User {
 
   sentFriendRequests     FriendRequests[] @relation("FriendRequestSender")
   receivedFriendRequests FriendRequests[] @relation("FriendRequestReceiver")
+  notifications          Notification[]
 }
 
 model FriendRequests {
@@ -65,8 +72,24 @@ model FriendRequests {
   receiverId Int
 
   status    FriendshipStatus @default(pending)
-  receiverReadAt DateTime?
-  createdAt DateTime         @default(now())
+  receiverReadAt    DateTime?
+  receiverDeletedAt DateTime?
+  createdAt         DateTime         @default(now())
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  type    NotificationType
+  title   String
+  payload Json
+  readAt  DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Room {

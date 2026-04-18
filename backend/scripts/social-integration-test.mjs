@@ -138,6 +138,32 @@ async function main() {
 
   pass("Notifications read state persistence OK");
 
+  const deletePendingNotification = await requestJson(
+    `/notifications/${firstNotification.id}`,
+    {
+      method: "DELETE",
+      cookieHeader: receiverSession.cookieHeader,
+    },
+  );
+
+  if (deletePendingNotification.status !== 200 || deletePendingNotification?.json?.success !== true) {
+    fail(`Failed to delete pending notification (${deletePendingNotification.status})`);
+  }
+
+  const notificationsAfterDelete = await requestJson("/notifications?limit=10", {
+    cookieHeader: receiverSession.cookieHeader,
+  });
+
+  const deletedPendingStillVisible = notificationsAfterDelete?.json?.data?.items?.some(
+    (entry) => entry.id === firstNotification.id,
+  );
+
+  if (deletedPendingStillVisible) {
+    fail("Pending notification should disappear after delete");
+  }
+
+  pass("Pending notifications can be deleted without removing the request");
+
   const requestLists = await requestJson("/friends/requests", {
     cookieHeader: receiverSession.cookieHeader,
   });
@@ -180,6 +206,37 @@ async function main() {
   }
 
   pass("Friends acceptance flow OK");
+
+  const senderNotifications = await requestJson("/notifications?limit=10", {
+    cookieHeader: senderSession.cookieHeader,
+  });
+
+  const acceptedNotification = senderNotifications?.json?.data?.items?.find(
+    (entry) => entry.type === "FRIEND_REQUEST_ACCEPTED",
+  );
+
+  if (!acceptedNotification) {
+    fail("Missing FRIEND_REQUEST_ACCEPTED notification for sender");
+  }
+
+  const deleteAcceptedNotification = await requestJson(
+    `/notifications/${acceptedNotification.id}`,
+    {
+      method: "DELETE",
+      cookieHeader: senderSession.cookieHeader,
+    },
+  );
+
+  if (
+    deleteAcceptedNotification.status !== 200 ||
+    deleteAcceptedNotification?.json?.success !== true
+  ) {
+    fail(
+      `Failed to delete accepted notification (${deleteAcceptedNotification.status})`,
+    );
+  }
+
+  pass("Persisted notifications can be deleted after accept");
 
   const roomCreate = await requestJson("/rooms", {
     method: "POST",

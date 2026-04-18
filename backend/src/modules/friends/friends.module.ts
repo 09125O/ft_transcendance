@@ -1,3 +1,4 @@
+import { NotificationsModule } from "@/modules/notifications/notifications.module";
 import { PrismaModule } from "@/prisma/prisma.module";
 import { RealtimeModule } from "@/modules/realtime/realtime.module";
 import { Module } from "@nestjs/common";
@@ -6,7 +7,7 @@ import { FriendsController } from "./friends.controller";
 import { FriendsService } from "./friends.service";
 
 @Module({
-  imports: [PrismaModule, RealtimeModule],
+  imports: [PrismaModule, RealtimeModule, NotificationsModule],
   controllers: [FriendsController],
   providers: [FriendsService, AuthGuard],
   exports: [FriendsService],

@@ -14,6 +14,7 @@ import {
   type FriendRequestLists,
 } from "../services/friends";
 import {
+  deleteNotification,
   listNotifications,
   markAllRead,
   markRead,
@@ -28,6 +29,30 @@ type FriendsSyncPayload = {
   requestId?: number;
   actorUserId: number;
 };
+
+function getNotificationDescription(notification: NotificationItem): string | null {
+  const actorUsername =
+    typeof notification.payload.actorUsername === "string"
+      ? notification.payload.actorUsername
+      : null;
+  const fromUsername =
+    typeof notification.payload.fromUsername === "string"
+      ? notification.payload.fromUsername
+      : null;
+
+  switch (notification.type) {
+    case "FRIEND_REQUEST_RECEIVED":
+      return fromUsername ? `${fromUsername} souhaite vous ajouter.` : null;
+    case "FRIEND_REQUEST_ACCEPTED":
+      return actorUsername ? `${actorUsername} a accepte votre demande.` : null;
+    case "FRIEND_REQUEST_DECLINED":
+      return actorUsername ? `${actorUsername} a refuse votre demande.` : null;
+    case "FRIEND_REMOVED":
+      return actorUsername ? `${actorUsername} vous a retire de sa liste d'amis.` : null;
+    default:
+      return null;
+  }
+}
 
 export default function FriendsPage() {
   const { user } = useAuth();
@@ -178,6 +203,12 @@ export default function FriendsPage() {
     notifyFriendsBadgeRefresh();
   }
 
+  async function handleDeleteNotification(id: number) {
+    await deleteNotification(id);
+    await refresh();
+    notifyFriendsBadgeRefresh();
+  }
+
   if (!user) {
     return (
       <main className="flex flex-1 items-center justify-center">
@@ -299,19 +330,35 @@ export default function FriendsPage() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="m-0 font-medium text-text">{notification.title}</p>
+                      {getNotificationDescription(notification) ? (
+                        <p className="mt-2 text-sm text-text/68">
+                          {getNotificationDescription(notification)}
+                        </p>
+                      ) : null}
                       <p className="mt-2 text-xs text-text/60">
                         {new Date(notification.createdAt).toLocaleString("fr-FR")}
                       </p>
                     </div>
-                    {!notification.read ? (
-                      <button
-                        className="shrink-0 rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-primary/40 hover:text-text"
-                        onClick={() => handleMarkOne(notification.id)}
-                        type="button"
-                      >
-                        Marquer comme lu
-                      </button>
-                    ) : null}
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {!notification.read ? (
+                        <button
+                          className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-primary/40 hover:text-text"
+                          onClick={() => handleMarkOne(notification.id)}
+                          type="button"
+                        >
+                          Marquer comme lu
+                        </button>
+                      ) : null}
+                      {notification.dismissible ? (
+                        <button
+                          className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-white/35 hover:text-text"
+                          onClick={() => handleDeleteNotification(notification.id)}
+                          type="button"
+                        >
+                          Supprimer
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </li>
               ))}

@@ -389,9 +389,19 @@ Notes:
     "fromUsername": "alice"
   },
   "read": false,
-  "createdAt": "2026-04-16T10:00:00.000Z"
+  "createdAt": "2026-04-16T10:00:00.000Z",
+  "dismissible": true
 }
 ```
+
+Autres valeurs possibles:
+- `FRIEND_REQUEST_ACCEPTED`
+- `FRIEND_REQUEST_DECLINED`
+- `FRIEND_REMOVED`
+
+Notes:
+- `id > 0` represente une notification derivee d'une demande d'ami pending
+- `id < 0` represente une notification persistée cote backend
 
 - `friends:sync`:
 
