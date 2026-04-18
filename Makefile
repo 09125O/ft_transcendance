@@ -17,7 +17,7 @@ BRANCH := $(shell git branch --show-current 2>/dev/null)
 # **************************************************************************** #
 
 all:
-	@if ! $(MAKE) env-check; then \
+	@if [ ! -f .env ]; then \
 		$(MAKE) env-init; \
 	fi
 	@$(MAKE) up
@@ -34,10 +34,10 @@ help:
 	@echo "  make logs-back           -> Follow backend logs"
 	@echo "  make logs-front          -> Follow frontend logs"
 	@echo "  make logs-db             -> Follow database logs"
-	@echo "  make page                -> Open the frontend in Firefox"
+	@echo "  make page                -> Open the frontend in the default browser"
 	@echo "  make ps                  -> Show running containers"
 	@echo "  make test-stack          -> Check frontend, backend and database status quickly"
-	@echo "  make smoke-test          -> Run the general smoke test (dev op, db, websocket api, authentifcation, front end)"
+	@echo "  make smoke-test          -> Run the general smoke test (dev env, db, websocket api, authentication, frontend)"
 	@echo "  make smoke-test-ws       -> Run only the backend WebSocket smoke test"
 	@echo "  make env-init            -> Create .env from .env.example if missing"
 	@echo "  make env-check           -> Check required variables in .env"
@@ -55,9 +55,9 @@ help:
 	@echo "  make duplicate_branch name=issue_1/copy/ma-branche"
 	@echo "                           -> Duplicate current branch into a copy branch"
 	@echo "  make push m=\"your message\""
-	@echo "                           -> Add, commit and push current branch"
+	@echo "                           -> Commit staged changes and push current branch"
 	@echo "  make push-dev m=\"your message\""
-	@echo "                           -> Add, commit and push dev branch"
+	@echo "                           -> Commit staged changes and push dev branch"
 	@echo "  make status              -> Git status"
 	@echo "  make pull-dev            -> Update dev, then sync current branch with it"
 	@echo "  make pull-branch name=issue_1/feature/ma-branche"
@@ -72,7 +72,7 @@ help:
 
 compose-check:
 	@$(COMPOSE) version >/dev/null 2>&1 || { \
-		echo "❌ Ni 'docker compose' ni 'docker-compose' n'est disponible sur cette machine."; \
+		echo "Ni 'docker compose' ni 'docker-compose' n'est disponible sur cette machine."; \
 		exit 1; \
 	}
 
@@ -93,7 +93,8 @@ re: fclean up
 
 restart: env-check compose-check
 	bash scripts/generate-dev-cert.sh
-	$(COMPOSE) down && $(COMPOSE) up --build
+	$(COMPOSE) down
+	$(COMPOSE) up --build -d --wait
 
 logs: compose-check
 	$(COMPOSE) logs -f
@@ -107,17 +108,27 @@ logs-front: compose-check
 logs-db: compose-check
 	$(COMPOSE) logs -f db
 
-page:
-	open -a Firefox "https://localhost:$${FRONTEND_PORT:-3000}"
+page: env-check
+	@set -a; . ./.env; set +a; \
+	url="https://localhost:$${FRONTEND_PORT}"; \
+	if command -v open >/dev/null 2>&1; then \
+		open "$$url"; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "$$url"; \
+	else \
+		echo "Aucun lanceur de navigateur disponible (open ou xdg-open)."; \
+		exit 1; \
+	fi
 
 ps: compose-check
 	$(COMPOSE) ps
 
-test-stack: compose-check
+test-stack: env-check compose-check
 	$(COMPOSE) ps
-	@echo "Frontend : https://localhost:$${FRONTEND_PORT:-3000}"
-	@echo "Backend  : https://localhost:$${BACKEND_PORT:-4000}/health"
-	@echo "Database : localhost:$${POSTGRES_PORT:-5432}"
+	@set -a; . ./.env; set +a; \
+	echo "Frontend : https://localhost:$${FRONTEND_PORT}"; \
+	echo "Backend  : https://localhost:$${BACKEND_PORT}/health"; \
+	echo "Database : localhost:$${POSTGRES_PORT}"
 
 smoke-test: env-check compose-check
 	bash scripts/smoke-test.sh
@@ -127,10 +138,10 @@ smoke-test-ws: compose-check
 
 env-init:
 	@if [ -f .env ]; then \
-		echo "⚠️ .env existe deja, aucune action faite"; \
+		echo ".env existe deja, aucune action faite"; \
 	else \
 		cp .env.example .env; \
-		echo "✅ .env cree depuis .env.example"; \
+		echo ".env cree depuis .env.example"; \
 	fi
 
 env-check:
@@ -142,14 +153,14 @@ tls-cert:
 tls-trust:
 	mkcert -install
 
-shell-back:
-	docker exec -it quiz_backend sh
+shell-back: compose-check
+	$(COMPOSE) exec backend sh
 
-shell-front:
-	docker exec -it quiz_frontend sh
+shell-front: compose-check
+	$(COMPOSE) exec frontend sh
 
-shell-db:
-	docker exec -it quiz_db sh -lc 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+shell-db: compose-check
+	$(COMPOSE) exec db sh -lc 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
 # **************************************************************************** #
 #                                    GIT                                       #
@@ -164,144 +175,155 @@ status:
 pull-dev:
 	@branch=$$(git branch --show-current); \
 	if [ -z "$$branch" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
-	if ! git diff --quiet || ! git diff --cached --quiet; then \
-		echo "❌ Working tree non clean. Commit ou stash tes changements avant d'utiliser pull-dev."; \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant d'utiliser pull-dev."; \
 		exit 1; \
 	fi; \
-	echo "📦 Branche actuelle: $$branch"; \
+	echo "Branche actuelle: $$branch"; \
 	git checkout dev || exit 1; \
 	git pull --ff-only origin dev || exit 1; \
 	if [ "$$branch" = "dev" ]; then \
-		echo "✅ Branche dev mise à jour"; \
+		echo "Branche dev mise a jour"; \
 		exit 0; \
 	fi; \
 	git checkout "$$branch" || exit 1; \
-	echo "🔄 Merge de dev dans $$branch"; \
+	echo "Merge de dev dans $$branch"; \
 	git merge dev
 
 pull-branch:
 	@if [ -z "$(name)" ]; then \
-		echo "❌ Usage: make pull-branch name=issue_1/feature/ma-branche"; \
+		echo "Usage: make pull-branch name=issue_1/feature/ma-branche"; \
 		exit 1; \
 	fi; \
 	current=$$(git branch --show-current); \
 	if [ -z "$$current" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
-	if ! git diff --quiet || ! git diff --cached --quiet; then \
-		echo "❌ Working tree non clean. Commit ou stash tes changements avant d'utiliser pull-branch."; \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant d'utiliser pull-branch."; \
 		exit 1; \
 	fi; \
-	echo "📦 Branche actuelle: $$current"; \
-	echo "🎯 Branche source: $(name)"; \
+	echo "Branche actuelle: $$current"; \
+	echo "Branche source: $(name)"; \
 	git checkout "$(name)" || exit 1; \
 	git pull --ff-only origin "$(name)" || exit 1; \
 	if [ "$$current" = "$(name)" ]; then \
-		echo "✅ Branche $(name) mise à jour"; \
+		echo "Branche $(name) mise a jour"; \
 		exit 0; \
 	fi; \
 	git checkout "$$current" || exit 1; \
-	echo "🔄 Merge de $(name) dans $$current"; \
+	echo "Merge de $(name) dans $$current"; \
 	git merge "$(name)"
 
 merge-dev:
 	@branch=$$(git branch --show-current); \
 	if [ -z "$$branch" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
 	if [ "$$branch" = "main" ] || [ "$$branch" = "dev" ]; then \
-		echo "❌ Cette commande est faite pour merger une branche feature/fix/chore vers dev"; \
+		echo "Cette commande est faite pour merger une branche feature/fix/chore vers dev"; \
 		exit 1; \
 	fi; \
-	if ! git diff --quiet || ! git diff --cached --quiet; then \
-		echo "❌ Working tree non clean. Commit ou stash tes changements avant le merge."; \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant le merge."; \
 		exit 1; \
 	fi; \
-	echo "📦 Branche source: $$branch"; \
+	echo "Branche source: $$branch"; \
 	git checkout dev || exit 1; \
-	git pull origin dev || exit 1; \
+	git pull --ff-only origin dev || exit 1; \
 	git merge --no-ff "$$branch" || exit 1
 
 branch-create:
 	@if [ -z "$(name)" ]; then \
-		echo "❌ Usage: make branch-create name=issue_1/feature/ma-branche"; \
+		echo "Usage: make branch-create name=issue_1/feature/ma-branche"; \
 		exit 1; \
 	fi; \
 	current=$$(git branch --show-current); \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant branch-create."; \
+		exit 1; \
+	fi; \
 	if [ "$$current" != "dev" ]; then \
-		echo "⚠️ Tu n'es pas sur dev (actuel: $$current)"; \
-		echo "➡️ Switch automatique vers dev"; \
+		echo "Tu n'es pas sur dev (actuel: $$current)"; \
+		echo "Switch automatique vers dev"; \
 		git checkout dev || exit 1; \
 	fi; \
-	git pull origin dev || exit 1; \
+	git pull --ff-only origin dev || exit 1; \
 	git checkout -b $(name)
 
 branch-create-push:
 	@if [ -z "$(name)" ]; then \
-		echo "❌ Usage: make branch-create-push name=issue_1/feature/ma-branche"; \
+		echo "Usage: make branch-create-push name=issue_1/feature/ma-branche"; \
 		exit 1; \
 	fi; \
 	current=$$(git branch --show-current); \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant branch-create-push."; \
+		exit 1; \
+	fi; \
 	if [ "$$current" != "dev" ]; then \
-		echo "⚠️ Tu n'es pas sur dev (actuel: $$current)"; \
-		echo "➡️ Switch automatique vers dev"; \
+		echo "Tu n'es pas sur dev (actuel: $$current)"; \
+		echo "Switch automatique vers dev"; \
 		git checkout dev || exit 1; \
 	fi; \
-	git pull origin dev || exit 1; \
+	git pull --ff-only origin dev || exit 1; \
 	git checkout -b $(name) || exit 1; \
 	git push -u origin $(name)
 
 duplicate_branch:
 	@if [ -z "$(name)" ]; then \
-		echo "❌ Usage: make duplicate_branch name=issue_1/copy/ma-branche"; \
+		echo "Usage: make duplicate_branch name=issue_1/copy/ma-branche"; \
 		exit 1; \
 	fi; \
 	case "$(name)" in \
 		issue_*/copy/*) ;; \
 		*) \
-			echo "❌ Le nom doit respecter le format issue_X/copy/..."; \
+			echo "Le nom doit respecter le format issue_X/copy/..."; \
 			exit 1; \
 			;; \
 	esac; \
 	current=$$(git branch --show-current); \
 	if [ -z "$$current" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
 	if git show-ref --verify --quiet refs/heads/$(name); then \
-		echo "❌ La branche $(name) existe déjà en local"; \
+		echo "La branche $(name) existe deja en local"; \
 		exit 1; \
 	fi; \
-	echo "📦 Branche source: $$current"; \
-	echo "🪄 Nouvelle branche: $(name)"; \
+	echo "Branche source: $$current"; \
+	echo "Nouvelle branche: $(name)"; \
 	git checkout -b $(name)
 
 push:
 	@branch=$$(git branch --show-current); \
 	if [ -z "$$branch" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
 	if [ "$$branch" = "main" ]; then \
-		echo "❌ Interdit de push sur main directement"; \
+		echo "Interdit de push sur main directement"; \
 		exit 1; \
 	fi; \
 	if [ "$$branch" = "dev" ]; then \
-		echo "❌ Interdit de push directement sur dev"; \
+		echo "Interdit de push directement sur dev"; \
 		exit 1; \
 	fi; \
 	if [ -z "$(m)" ]; then \
-		echo "❌ Usage: make push m=\"message\""; \
+		echo "Usage: make push m=\"message\""; \
 		exit 1; \
 	fi; \
-	git add .; \
 	if git diff --cached --quiet; then \
-		echo "⚠️ Aucun changement à commit"; \
+		echo "Aucun changement stage. Utilise git add <fichiers> avant make push."; \
+		exit 1; \
+	fi; \
+	if ! git diff --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Stage explicitement les fichiers a inclure avant make push."; \
 		exit 1; \
 	fi; \
 	git commit -m "$(m)" || exit 1; \
@@ -310,20 +332,23 @@ push:
 push-dev:
 	@branch=$$(git branch --show-current); \
 	if [ -z "$$branch" ]; then \
-		echo "❌ Impossible de détecter la branche courante"; \
+		echo "Impossible de detecter la branche courante"; \
 		exit 1; \
 	fi; \
 	if [ "$$branch" != "dev" ]; then \
-		echo "❌ Cette commande push uniquement la branche dev (actuelle: $$branch)"; \
+		echo "Cette commande push uniquement la branche dev (actuelle: $$branch)"; \
 		exit 1; \
 	fi; \
 	if [ -z "$(m)" ]; then \
-		echo "❌ Usage: make push-dev m=\"message\""; \
+		echo "Usage: make push-dev m=\"message\""; \
 		exit 1; \
 	fi; \
-	git add .; \
 	if git diff --cached --quiet; then \
-		echo "⚠️ Aucun changement à commit"; \
+		echo "Aucun changement stage. Utilise git add <fichiers> avant make push-dev."; \
+		exit 1; \
+	fi; \
+	if ! git diff --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Stage explicitement les fichiers a inclure avant make push-dev."; \
 		exit 1; \
 	fi; \
 	git commit -m "$(m)" || exit 1; \
@@ -332,7 +357,11 @@ push-dev:
 rebase-dev:
 	@branch=$$(git branch --show-current); \
 	if [ "$$branch" = "main" ] || [ "$$branch" = "dev" ]; then \
-		echo "❌ Cette commande est faite pour une branche feature/fix/chore"; \
+		echo "Cette commande est faite pour une branche feature/fix/chore"; \
+		exit 1; \
+	fi; \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant le rebase."; \
 		exit 1; \
 	fi; \
 	git fetch origin || exit 1; \
@@ -340,20 +369,40 @@ rebase-dev:
 
 push-file-dev:
 	@if [ -z "$(file)" ]; then \
-		echo "❌ Usage: make push-file-dev file=Makefile"; \
+		echo "Usage: make push-file-dev file=Makefile"; \
 		exit 1; \
 	fi; \
 	current=$$(git branch --show-current); \
-	echo "📦 Branche actuelle: $$current"; \
-	echo "📄 Fichier: $(file)"; \
+	if [ -z "$$current" ]; then \
+		echo "Impossible de detecter la branche courante"; \
+		exit 1; \
+	fi; \
+	if [ "$$current" = "dev" ]; then \
+		echo "Utilise cette commande depuis une branche autre que dev."; \
+		exit 1; \
+	fi; \
+	if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$$(git ls-files --others --exclude-standard)" ]; then \
+		echo "Working tree non clean. Commit, stage ou stash tes changements avant push-file-dev."; \
+		exit 1; \
+	fi; \
+	if ! git cat-file -e "$$current:$(file)" 2>/dev/null; then \
+		echo "Le fichier $(file) est absent de $$current."; \
+		exit 1; \
+	fi; \
+	echo "Branche actuelle: $$current"; \
+	echo "Fichier: $(file)"; \
+	trap 'git checkout "$$current" >/dev/null 2>&1 || true' EXIT; \
 	git fetch origin || exit 1; \
 	git checkout dev || exit 1; \
-	git pull origin dev || exit 1; \
-	git checkout $$current -- $(file) || exit 1; \
-	git add $(file); \
+	git pull --ff-only origin dev || exit 1; \
+	git checkout "$$current" -- "$(file)" || exit 1; \
+	git add -- "$(file)"; \
+	if git diff --cached --quiet; then \
+		echo "Aucune difference a commit pour $(file)."; \
+		exit 1; \
+	fi; \
 	git commit -m "chore: update $(file) from $$current" || exit 1; \
-	git push origin dev; \
-	git checkout $$current
+	git push origin dev
 
 # **************************************************************************** #
 #                                   PHONY                                      #
@@ -363,5 +412,6 @@ push-file-dev:
 	all \
 	compose-check \
 	up down clean fclean re restart logs logs-back logs-front logs-db page ps test-stack smoke-test smoke-test-ws \
+	env-init env-check tls-cert tls-trust \
 	shell-back shell-front shell-db \
 	push push-dev branch branch-create branch-create-push duplicate_branch status pull-dev pull-branch merge-dev rebase-dev push-file-dev
