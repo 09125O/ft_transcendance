@@ -20,8 +20,12 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
   const navigate = useNavigate();
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [correctAnswerIndex, setCorrectAnswerIndex] = useState<number | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<"correct" | "incorrect" | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<PublicQuestion | null>(null);
+  const [timerDurationMs, setTimerDurationMs] = useState<number | null>(null);
+  const [timerRemainingMs, setTimerRemainingMs] = useState<number | null>(null);
+  const [timerEndsAtMs, setTimerEndsAtMs] = useState<number | null>(null);
   const { user: sessionUser } = useAuth();
   const {
     currentRoom,
@@ -66,15 +70,24 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     },
     onRoomJoined: resetChat,
     onLeaderboard: applyLeaderboard,
-    onQuestionStarted: (question) => {
+    onQuestionStarted: ({ question, durationMs, endsAt }) => {
       setCurrentQuestion(question);
       setSelectedAnswer(null);
+      setCorrectAnswerIndex(null);
       setAnswerFeedback(null);
+      setTimerDurationMs(durationMs);
+      const parsedEndsAtMs = Date.parse(endsAt);
+      setTimerEndsAtMs(Number.isNaN(parsedEndsAtMs) ? null : parsedEndsAtMs);
+      setTimerRemainingMs(durationMs);
     },
     onGameEnded: () => {
       setCurrentQuestion(null);
       setSelectedAnswer(null);
+      setCorrectAnswerIndex(null);
       setAnswerFeedback(null);
+      setTimerDurationMs(null);
+      setTimerRemainingMs(null);
+      setTimerEndsAtMs(null);
     },
     onAnswerResult: (payload) => {
       if (sessionUser?.id !== payload.userId) {
@@ -85,9 +98,38 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
       }
 
       setSelectedAnswer(payload.selectedAnswerIndex);
+      setCorrectAnswerIndex(payload.correctAnswerIndex);
       setAnswerFeedback(payload.isCorrect ? "correct" : "incorrect");
     },
+    onTimerTick: (payload) => {
+      const parsedEndsAtMs = Date.parse(payload.endsAt);
+      if (!Number.isNaN(parsedEndsAtMs)) {
+        setTimerEndsAtMs(parsedEndsAtMs);
+      }
+      setTimerRemainingMs(payload.remainingMs);
+    },
   });
+
+  useEffect(() => {
+    if (timerEndsAtMs === null) {
+      return;
+    }
+
+    let rafId: number;
+
+    const refreshTimer = () => {
+      const remaining = Math.max(0, timerEndsAtMs - Date.now());
+      setTimerRemainingMs(remaining);
+      if (remaining > 0) {
+        rafId = window.requestAnimationFrame(refreshTimer);
+      }
+    };
+
+    rafId = window.requestAnimationFrame(refreshTimer);
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [timerEndsAtMs]);
 
   const chatEntries = chatMessages.map((message) => ({
     ...message,
@@ -106,7 +148,11 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     }
     clearCurrentRoom();
     setSelectedAnswer(null);
+    setCorrectAnswerIndex(null);
     setAnswerFeedback(null);
+    setTimerDurationMs(null);
+    setTimerRemainingMs(null);
+    setTimerEndsAtMs(null);
     navigate("/");
   };
 
@@ -156,6 +202,9 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
       <ResultsPanel
         roomName={currentRoom.name}
         scoreEntries={scoreEntries}
+        chatMessages={chatEntries}
+        chatError={chatError}
+        onSendChatMessage={sendChatMessage}
         onLeaveRoom={handleLeaveRoom}
         onOpenRules={() => setIsRulesOpen(true)}
       />
@@ -170,7 +219,10 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
       onStartRoom={handleStartRoom}
       onLeaveRoom={handleLeaveRoom}
       selectedAnswer={selectedAnswer}
+      correctAnswerIndex={correctAnswerIndex}
       answerFeedback={answerFeedback}
+      timerDurationMs={timerDurationMs}
+      timerRemainingMs={timerRemainingMs}
       onSelectAnswer={(answerIndex) => {
         if (selectedAnswer !== null) {
           return;

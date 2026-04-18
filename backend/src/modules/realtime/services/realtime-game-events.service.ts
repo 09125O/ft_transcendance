@@ -54,6 +54,8 @@ export class RealtimeGameEventsService {
         leaderboard,
       }),
     );
+
+    await this.gameRuntime.tryAdvanceAfterAnswer(payload.roomId, server);
   }
 
   private roomChannel(roomId: number): string {

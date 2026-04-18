@@ -24,7 +24,10 @@ type GamePanelProps = {
   canStartRoom: boolean;
   roomStatus: "waiting" | "playing" | "finished" | null;
   selectedAnswer: number | null;
+  correctAnswerIndex: number | null;
   answerFeedback: "correct" | "incorrect" | null;
+  timerDurationMs: number | null;
+  timerRemainingMs: number | null;
   onSelectAnswer: (answerIndex: number) => void;
   currentQuestion: PublicQuestion | null;
   scoreEntries: ScoreEntry[];
@@ -40,7 +43,10 @@ export default function GamePanel({
   canStartRoom,
   roomStatus,
   selectedAnswer,
+  correctAnswerIndex,
   answerFeedback,
+  timerDurationMs,
+  timerRemainingMs,
   onSelectAnswer,
   currentQuestion,
   scoreEntries,
@@ -54,6 +60,10 @@ export default function GamePanel({
   const hasQuestion = currentQuestion !== null;
   const isFinished = roomStatus === "finished";
   const leader = scoreEntries[0] ?? null;
+  const timerProgress =
+    timerDurationMs && timerDurationMs > 0 && typeof timerRemainingMs === "number"
+      ? Math.max(0, Math.min(100, (timerRemainingMs / timerDurationMs) * 100))
+      : null;
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -144,13 +154,13 @@ export default function GamePanel({
                       : "Le salon est prêt. Lance la partie quand tout le monde est installé.")}
                 </p>
               </div>
-              <p className="ui-muted m-0 max-w-2xl text-sm sm:text-base">
-                {hasQuestion
-                  ? "Choisis rapidement une réponse. Le centre de l’écran porte toute l’action, les panneaux latéraux restent utilitaires."
-                  : isFinished
+              {!hasQuestion ? (
+                <p className="ui-muted m-0 max-w-2xl text-sm sm:text-base">
+                  {isFinished
                     ? "La partie est finie. Consulte le classement final ou quitte la room."
                     : "Le panneau principal sert maintenant d’espace focal. Dès qu’une question démarre, les propositions prennent tout le premier rôle."}
-              </p>
+                </p>
+              ) : null}
               {selectedAnswer !== null ? (
                 <p
                   className={[
@@ -165,9 +175,26 @@ export default function GamePanel({
                   {answerFeedback === "correct"
                     ? "Bonne reponse"
                     : answerFeedback === "incorrect"
-                      ? "Mauvaise reponse"
+                      ? `Mauvaise reponse${correctAnswerIndex !== null ? ` - la bonne etait la reponse ${correctAnswerIndex + 1}` : ""}`
                       : "Reponse envoyee..."}
                 </p>
+              ) : null}
+              {hasQuestion && timerProgress !== null ? (
+                <div className="mt-2 max-w-2xl space-y-2">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className={[
+                        "h-full rounded-full transition-[width,background-color] duration-100 ease-linear",
+                        timerProgress <= 25
+                          ? "bg-red-400"
+                          : timerProgress <= 50
+                            ? "bg-amber-300"
+                            : "bg-cyan-300",
+                      ].join(" ")}
+                      style={{ width: `${timerProgress}%` }}
+                    />
+                  </div>
+                </div>
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2 self-start">
@@ -192,31 +219,54 @@ export default function GamePanel({
           <div className="flex flex-1 flex-col justify-center">
             {currentQuestion ? (
               <div className="grid gap-3 md:grid-cols-2">
-                {currentQuestion.options.map((option, index) => (
-                  <button
-                    className={[
-                      "group flex min-h-28 flex-col justify-between rounded-[24px] border px-5 py-4 text-left transition duration-200",
-                      selectedAnswer === index && answerFeedback === "correct"
-                        ? "border-emerald-400/70 bg-emerald-500/25 shadow-[0_28px_48px_-32px_rgba(16,185,129,0.9)]"
-                        : selectedAnswer === index && answerFeedback === "incorrect"
-                          ? "border-red-400/70 bg-red-500/20 shadow-[0_28px_48px_-32px_rgba(239,68,68,0.85)]"
-                          : selectedAnswer === index
-                            ? "border-primary bg-primary text-[#04111f] shadow-[0_28px_48px_-32px_rgba(6,182,212,0.88)]"
-                          : "border-primary/20 bg-background/85 hover:border-primary/55 hover:bg-white/5",
-                    ].join(" ")}
-                    key={`${currentQuestion.id}-${index}-${option}`}
-                    type="button"
-                    disabled={selectedAnswer !== null}
-                    onClick={() => onSelectAnswer(index)}
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-text/55">
-                      Réponse {index + 1}
-                    </span>
-                    <span className="text-lg font-medium">
-                      {option}
-                    </span>
-                  </button>
-                ))}
+                {currentQuestion.options.map((option, index) => {
+                  const isSelected = selectedAnswer === index;
+                  const isCorrectOption = correctAnswerIndex === index;
+                  const showAnswerState = selectedAnswer !== null && answerFeedback !== null;
+
+                  return (
+                    <button
+                      className={[
+                        "group flex min-h-28 flex-col justify-between rounded-[24px] border px-5 py-4 text-left transition duration-200",
+                        showAnswerState && isCorrectOption
+                          ? "border-emerald-400/75 bg-emerald-500/22 shadow-[0_28px_48px_-32px_rgba(16,185,129,0.88)]"
+                          : showAnswerState && isSelected && answerFeedback === "incorrect"
+                            ? "border-red-400/75 bg-red-500/20 shadow-[0_28px_48px_-32px_rgba(239,68,68,0.86)]"
+                            : isSelected
+                              ? "border-primary bg-primary text-[#04111f] shadow-[0_28px_48px_-32px_rgba(6,182,212,0.88)]"
+                              : "border-primary/20 bg-background/85 hover:border-primary/55 hover:bg-white/5",
+                      ].join(" ")}
+                      key={`${currentQuestion.id}-${index}-${option}`}
+                      type="button"
+                      disabled={selectedAnswer !== null}
+                      onClick={() => onSelectAnswer(index)}
+                    >
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-text/55">
+                        Réponse {index + 1}
+                      </span>
+                      <span className="text-lg font-medium">
+                        {option}
+                      </span>
+                      {showAnswerState && isSelected ? (
+                        <span
+                          className={[
+                            "mt-2 inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold",
+                            answerFeedback === "correct"
+                              ? "bg-emerald-500/25 text-emerald-200"
+                              : "bg-red-500/25 text-red-200",
+                          ].join(" ")}
+                        >
+                          {answerFeedback === "correct" ? "Ton choix est correct" : "Ton choix est incorrect"}
+                        </span>
+                      ) : null}
+                      {showAnswerState && answerFeedback === "incorrect" && isCorrectOption && !isSelected ? (
+                        <span className="mt-2 inline-flex w-fit rounded-full bg-emerald-500/25 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                          Bonne réponse
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="rounded-[28px] border border-dashed border-primary/25 bg-background/70 px-6 py-10 text-center">

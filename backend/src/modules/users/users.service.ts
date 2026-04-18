@@ -7,6 +7,37 @@ import { UpdateProfileDto } from "./dto/update-profile.dto";
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findUserByIdentifier(identifier: string): Promise<User | null> {
+    const normalizedIdentifier = identifier.trim();
+    if (!normalizedIdentifier) {
+      return null;
+    }
+
+    if (/^\d+$/.test(normalizedIdentifier)) {
+      const parsedId = Number(normalizedIdentifier);
+      if (!Number.isSafeInteger(parsedId) || parsedId <= 0) {
+        return null;
+      }
+
+      return this.findUser({ id: parsedId });
+    }
+
+    const users = await this.findUsers({
+      where: {
+        username: {
+          equals: normalizedIdentifier,
+          mode: "insensitive",
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: 1,
+    });
+
+    return users[0] ?? null;
+  }
+
   async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
     const data: Prisma.UserUpdateInput = {};
 

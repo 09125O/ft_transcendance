@@ -19,10 +19,13 @@ import {
   markRead,
   type NotificationItem,
 } from "../services/notifications";
+import { notifyFriendsBadgeRefresh } from "../services/friendsBadge";
+import { getUserByIdentifier } from "../services/users";
 
 export default function FriendsPage() {
   const { user } = useAuth();
   const [friends, setFriends] = useState<FriendListEntry[]>([]);
+  const [brokenFriendAvatarIds, setBrokenFriendAvatarIds] = useState<Set<number>>(new Set());
   const [requests, setRequests] = useState<FriendRequestLists>({ incoming: [], outgoing: [] });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [addUserId, setAddUserId] = useState("");
@@ -31,6 +34,7 @@ export default function FriendsPage() {
   const unreadNotificationsCount = notifications.filter(
     (notification) => !notification.read,
   ).length;
+  const MAX_SIGNED_INT_32 = 2147483647;
 
   const refresh = useCallback(async () => {
     if (!user) return;
@@ -53,14 +57,51 @@ export default function FriendsPage() {
     void refresh();
   }, [refresh]);
 
+  const markFriendAvatarBroken = (userId: number) => {
+    setBrokenFriendAvatarIds((previousIds) => {
+      if (previousIds.has(userId)) {
+        return previousIds;
+      }
+
+      const nextIds = new Set(previousIds);
+      nextIds.add(userId);
+      return nextIds;
+    });
+  };
+
   async function handleSend() {
-    const parsed = Number(addUserId);
-    if (!Number.isInteger(parsed) || parsed <= 0) {
+    const normalizedIdentifier = addUserId.trim();
+    if (!normalizedIdentifier) {
       setError("Identifiant utilisateur invalide");
       return;
     }
+
+    let receiverUserId: number;
+
+    if (/^\d+$/.test(normalizedIdentifier)) {
+      const parsed = Number(normalizedIdentifier);
+      if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > MAX_SIGNED_INT_32) {
+        setError("Identifiant utilisateur invalide");
+        return;
+      }
+      receiverUserId = parsed;
+    } else {
+      if (!/^[a-zA-Z0-9._-]+$/.test(normalizedIdentifier)) {
+        setError("Identifiant alphanumérique invalide");
+        return;
+      }
+
+      const resolvedUser = await getUserByIdentifier(normalizedIdentifier);
+      receiverUserId = resolvedUser.id;
+    }
+
+    if (!Number.isSafeInteger(receiverUserId) || receiverUserId <= 0) {
+      setError("Identifiant utilisateur invalide");
+      return;
+    }
+
     try {
-      await sendFriendRequest(parsed);
+      await sendFriendRequest(receiverUserId);
       setAddUserId("");
       setFeedback("Demande envoyée");
       await refresh();
@@ -72,11 +113,13 @@ export default function FriendsPage() {
   async function handleAccept(id: number) {
     await acceptRequest(id);
     await refresh();
+    notifyFriendsBadgeRefresh();
   }
 
   async function handleDecline(id: number) {
     await declineRequest(id);
     await refresh();
+    notifyFriendsBadgeRefresh();
   }
 
   async function handleRemove(userId: number) {
@@ -87,11 +130,13 @@ export default function FriendsPage() {
   async function handleMarkAll() {
     await markAllRead();
     await refresh();
+    notifyFriendsBadgeRefresh();
   }
 
   async function handleMarkOne(id: number) {
     await markRead(id);
     await refresh();
+    notifyFriendsBadgeRefresh();
   }
 
   if (!user) {
@@ -144,18 +189,22 @@ export default function FriendsPage() {
             <div className="rounded-[24px] border border-white/10 bg-background/78 p-4 sm:p-5">
               <div className="mb-4">
                 <h2 className="m-0 text-lg font-semibold text-text">Ajouter un ami</h2>
-                <p className="mt-2 text-sm text-text/60">
-                  Utilise l’identifiant numérique du joueur pour envoyer une invitation directe.
-                </p>
               </div>
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
                 <label className="flex flex-1 flex-col gap-2 text-sm">
-                  <span className="font-medium text-text/75">Identifiant utilisateur</span>
+                  <span className="font-medium text-text/75">Identifiant ou pseudo</span>
                   <input
                     className="rounded-xl border border-white/10 bg-surface px-4 py-3 text-text outline-none placeholder:text-text/40"
-                    onChange={(event) => setAddUserId(event.target.value)}
-                    placeholder="Ex: 42"
-                    type="number"
+                    inputMode="text"
+                    onChange={(event) => {
+                      const alphanumericIdentifier = event.target.value.replace(
+                        /[^a-zA-Z0-9._-]/g,
+                        "",
+                      );
+                      setAddUserId(alphanumericIdentifier);
+                    }}
+                    placeholder="Ex: 42 ou alice_42"
+                    type="text"
                     value={addUserId}
                   />
                 </label>
@@ -178,9 +227,9 @@ export default function FriendsPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
-                Veille
+                Journal 42
               </p>
-              <h2 className="m-0 text-2xl font-semibold text-text">Notifications</h2>
+              <h2 className="m-0 text-2xl font-semibold text-text">Activité récente</h2>
             </div>
             {unreadNotificationsCount > 0 ? (
               <button
@@ -188,14 +237,14 @@ export default function FriendsPage() {
                 onClick={handleMarkAll}
                 type="button"
               >
-                Tout marquer lu
+                Tout marquer comme lu
               </button>
             ) : null}
           </div>
 
           {notifications.length === 0 ? (
             <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/60">
-              Aucune notification pour l’instant.
+              Aucune activité pour le moment.
             </div>
           ) : (
             <ul className="flex flex-col gap-3 text-sm">
@@ -221,7 +270,7 @@ export default function FriendsPage() {
                         onClick={() => handleMarkOne(notification.id)}
                         type="button"
                       >
-                        Marquer lu
+                        Marquer comme lu
                       </button>
                     ) : null}
                   </div>
@@ -237,20 +286,20 @@ export default function FriendsPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
-                Priorité
+                Action requise
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">
-                Demandes reçues
+                Invitations en attente
               </h2>
             </div>
             <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/65">
-              {requests.incoming.length} en attente
+              {requests.incoming.length} à traiter
             </span>
           </div>
 
           {requests.incoming.length === 0 ? (
             <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/60">
-              Aucune demande à traiter.
+              Aucune invitation en attente.
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
@@ -265,7 +314,7 @@ export default function FriendsPage() {
                         {request.counterpartUsername}
                       </p>
                       <p className="mt-1 text-sm text-text/60">
-                        Invitation reçue. Réponds ici pour garder un salon propre.
+                        Accepte ou refuse pour commencer à jouer ensemble.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -314,17 +363,39 @@ export default function FriendsPage() {
                   className="rounded-[22px] border border-white/10 bg-background/75 p-4"
                   key={friend.friendshipId}
                 >
+                  {(() => {
+                    const canDisplayAvatar =
+                      typeof friend.avatarUrl === "string" &&
+                      friend.avatarUrl.length > 0 &&
+                      !brokenFriendAvatarIds.has(friend.userId);
+
+                    return (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Link
                       className="flex min-w-0 items-center gap-3"
                       to={`/profile/${friend.userId}`}
                     >
-                      <span
-                        aria-label={friend.status}
-                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                          friend.status === "online" ? "bg-emerald-400" : "bg-white/30"
-                        }`}
-                      />
+                      <span className="relative shrink-0">
+                        {canDisplayAvatar ? (
+                          <img
+                            alt={`Avatar de ${friend.username}`}
+                            className="h-9 w-9 rounded-full object-cover"
+                            loading="lazy"
+                            onError={() => markFriendAvatarBroken(friend.userId)}
+                            src={friend.avatarUrl as string}
+                          />
+                        ) : (
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                            {friend.username.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <span
+                          aria-label={friend.status}
+                          className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-background ${
+                            friend.status === "online" ? "bg-emerald-400" : "bg-white/30"
+                          }`}
+                        />
+                      </span>
                       <div className="min-w-0">
                         <p className="m-0 truncate font-medium text-text">
                           {friend.username}
@@ -342,6 +413,8 @@ export default function FriendsPage() {
                       Retirer
                     </button>
                   </div>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>

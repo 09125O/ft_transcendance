@@ -20,6 +20,9 @@ export class RealtimeGameRuntimeService {
   private readonly answerGraceMs = Number(
     process.env.GAME_ANSWER_GRACE_MS || 400,
   );
+  private readonly autoAdvanceDelayMs = Number(
+    process.env.GAME_AUTO_ADVANCE_DELAY_MS || 1200,
+  );
   private readonly timerTickMs = 1000;
 
   constructor(
@@ -93,6 +96,49 @@ export class RealtimeGameRuntimeService {
     server.to(channel).emit("room:closed", this.response.ok(payload));
     await broadcastRoomList(server, this.roomsService, this.response);
     return payload;
+  }
+
+  async tryAdvanceAfterAnswer(roomId: number, server: Server): Promise<void> {
+    const runtime = this.activeTimers.get(roomId);
+    if (!runtime) {
+      return;
+    }
+
+    const room = await this.roomsService.getById(roomId);
+    const activePlayersCount = room.players.length;
+    if (activePlayersCount < 1) {
+      return;
+    }
+
+    const state = await this.gameService.getRoomState(roomId);
+    if (
+      state.currentQuestionId !== runtime.questionId ||
+      state.currentQuestionNumber !== runtime.questionNumber
+    ) {
+      return;
+    }
+
+    if (state.answersForCurrentQuestion < activePlayersCount) {
+      return;
+    }
+
+    this.stopRoomTimer(roomId);
+
+    if (this.autoAdvanceDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, this.autoAdvanceDelayMs));
+    }
+
+    if (runtime.questionNumber >= runtime.totalQuestions) {
+      await this.endGame(roomId, "all_answered", server);
+      return;
+    }
+
+    await this.startQuestionTimer(
+      roomId,
+      runtime.questionNumber + 1,
+      runtime.totalQuestions,
+      server,
+    );
   }
 
   private async startQuestionTimer(

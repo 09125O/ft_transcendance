@@ -82,11 +82,13 @@ Transport: `socket.io`
 - si la room a un `quizId`, `question` provient des `QuizQuestion` du quiz
 - listen `game:timer`
 - listen `game:question:timeout`
+- attention: la question suivante peut aussi partir immediatement si tous les joueurs ont repondu (sans attendre le timeout)
 - listen `game:state` pour l'etat agrege de la partie
 
 3. Reponse:
 - emit `game:answer` `{ roomId, questionId, answerIndex }`
 - listen `game:answer:result`
+  - payload inclut `correctAnswerIndex` pour afficher la bonne reponse meme en cas d'erreur
 - listen `game:state`
 - listen `game:leaderboard`
   - payload: `{ roomId, leaderboard: [{ userId, score }] }`

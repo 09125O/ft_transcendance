@@ -273,6 +273,17 @@ Note:
   - `400 BAD_REQUEST` si `id` non numerique
   - `404 NOT_FOUND` si user absent
 
+`GET /users/lookup/:identifier`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<PublicUser>`
+- Notes:
+  - `identifier` accepte un id numerique (`42`) ou un pseudo alphanumerique (`alice_42`)
+  - recherche pseudo en mode insensible a la casse
+- Erreurs:
+  - `401 UNAUTHORIZED`
+  - `400 BAD_REQUEST` si `identifier` vide
+  - `404 NOT_FOUND` si user absent
+
 `PATCH /users/me`
 - Auth: cookie `access_token` requis
 - Body (au moins un champ):

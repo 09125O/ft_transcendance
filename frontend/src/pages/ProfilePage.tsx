@@ -189,7 +189,11 @@ export default function ProfilePage() {
               />
             </label>
             <div className="flex items-center gap-3">
-              <PrimaryButton disabled={isSaving} onClick={handleSave}>
+              <PrimaryButton
+                className="px-5 py-2 text-sm"
+                disabled={isSaving}
+                onClick={handleSave}
+              >
                 {isSaving ? "Enregistrement…" : "Enregistrer"}
               </PrimaryButton>
               {message && <span className="text-sm text-white/70">{message}</span>}

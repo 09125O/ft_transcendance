@@ -6,6 +6,7 @@ import { AuthPayload } from "@/modules/auth/types/auth-payload.type";
 import { PublicUser } from "@/modules/auth/types/public-user.type";
 import { User } from "@generated/prisma/client";
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -57,6 +58,25 @@ export class UsersController {
 
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
+    }
+
+    return ok(this.sanitizePublicUser(user));
+  }
+
+  @Get("lookup/:identifier")
+  @UseGuards(AuthGuard)
+  async getByIdentifier(
+    @Param("identifier") identifier: string,
+  ): Promise<ApiResponse<PublicUser>> {
+    const normalizedIdentifier = identifier.trim();
+    if (!normalizedIdentifier) {
+      throw new BadRequestException("identifier must not be empty");
+    }
+
+    const user = await this.usersService.findUserByIdentifier(normalizedIdentifier);
+
+    if (!user) {
+      throw new NotFoundException(`User ${normalizedIdentifier} not found`);
     }
 
     return ok(this.sanitizePublicUser(user));

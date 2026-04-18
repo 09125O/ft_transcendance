@@ -332,6 +332,7 @@ Note:
   "userId": 2,
   "questionId": 101,
   "selectedAnswerIndex": 1,
+  "correctAnswerIndex": 1,
   "isCorrect": true,
   "scoreDelta": 2,
   "userTotalScore": 4,
@@ -353,6 +354,11 @@ Note:
     { "userId": 1, "score": 100 }
   ]
 }
+
+Notes:
+- `game:answer:result.correctAnswerIndex` permet au front d'afficher la bonne reponse apres une tentative.
+- la question suivante peut demarrer avant `game:question:timeout` si tous les joueurs actifs ont deja repondu.
+- `game:ended.reason` peut valoir `all_answered` (en plus de `timer_completed`).
 ```
 
 ### Chat

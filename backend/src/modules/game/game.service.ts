@@ -37,6 +37,7 @@ export type SubmitAnswerResult = {
   userId: number;
   questionId: number;
   selectedAnswerIndex: number;
+  correctAnswerIndex: number;
   isCorrect: boolean;
   scoreDelta: number;
   userTotalScore: number;
@@ -300,6 +301,7 @@ export class GameService {
       userId,
       questionId: dto.questionId,
       selectedAnswerIndex: dto.answerIndex,
+      correctAnswerIndex: question.correctAnswerIndex,
       isCorrect,
       scoreDelta,
       userTotalScore,

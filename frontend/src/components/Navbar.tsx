@@ -1,11 +1,62 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { logout } from "../services/auth";
+import { subscribeFriendsBadgeRefresh } from "../services/friendsBadge";
+import { listRequests } from "../services/friends";
+import { listNotifications, type NotificationItem } from "../services/notifications";
 import PrimaryButton from "./PrimaryButton";
+
+function isFriendRequestNotification(notification: NotificationItem): boolean {
+  return notification.type === "FRIEND_REQUEST_RECEIVED";
+}
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const [friendsBadgeCount, setFriendsBadgeCount] = useState(0);
+
+  const refreshFriendsBadge = useCallback(async () => {
+    if (!currentUser) {
+      setFriendsBadgeCount(0);
+      return;
+    }
+
+    try {
+      const [requests, notifications] = await Promise.all([
+        listRequests(),
+        listNotifications(),
+      ]);
+      const unreadNonFriendRequestNotifications = notifications.items.filter(
+        (notification) => !notification.read && !isFriendRequestNotification(notification),
+      ).length;
+      setFriendsBadgeCount(
+        requests.incoming.length + unreadNonFriendRequestNotifications,
+      );
+    } catch {
+      setFriendsBadgeCount(0);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setFriendsBadgeCount(0);
+      return;
+    }
+
+    void refreshFriendsBadge();
+    const unsubscribeBadgeRefresh = subscribeFriendsBadgeRefresh(() => {
+      void refreshFriendsBadge();
+    });
+    const interval = window.setInterval(() => {
+      void refreshFriendsBadge();
+    }, 30000);
+
+    return () => {
+      window.clearInterval(interval);
+      unsubscribeBadgeRefresh();
+    };
+  }, [currentUser, refreshFriendsBadge]);
 
   return (
     <nav className="sticky top-3 z-50 px-4 py-3 sm:px-6">
@@ -22,8 +73,13 @@ export default function Navbar() {
               <Link className="text-sm font-medium text-text" to="/profile">
                 Profil
               </Link>
-              <Link className="text-sm font-medium text-text" to="/friends">
+              <Link className="relative text-sm font-medium text-text" to="/friends">
                 Amis
+                {friendsBadgeCount > 0 ? (
+                  <span className="absolute -right-3 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_8px_18px_-10px_rgba(239,68,68,0.95)]">
+                    {friendsBadgeCount > 99 ? "99+" : friendsBadgeCount}
+                  </span>
+                ) : null}
               </Link>
               <PrimaryButton
                 className="px-4 py-2 text-sm"

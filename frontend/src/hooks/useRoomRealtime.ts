@@ -19,7 +19,17 @@ type AnswerResultPayload = {
   userId: number;
   questionId: number;
   selectedAnswerIndex: number;
+  correctAnswerIndex: number;
   isCorrect: boolean;
+};
+
+type TimerPayload = {
+  roomId: number;
+  questionId: number;
+  questionNumber: number;
+  totalQuestions: number;
+  remainingMs: number;
+  endsAt: string;
 };
 
 type UseRoomRealtimeOptions = {
@@ -31,9 +41,17 @@ type UseRoomRealtimeOptions = {
   onRoomClosed: () => void;
   onRoomJoined: () => void;
   onLeaderboard: (payload: LeaderboardEntry[] | RoomLeaderboardPayload) => void;
-  onQuestionStarted: (question: PublicQuestion) => void;
+  onQuestionStarted: (payload: {
+    question: PublicQuestion;
+    durationMs: number;
+    endsAt: string;
+    questionId: number;
+    questionNumber: number;
+    totalQuestions: number;
+  }) => void;
   onGameEnded: () => void;
   onAnswerResult: (payload: AnswerResultPayload) => void;
+  onTimerTick: (payload: TimerPayload) => void;
 };
 
 export function useRoomRealtime({
@@ -48,6 +66,7 @@ export function useRoomRealtime({
   onQuestionStarted,
   onGameEnded,
   onAnswerResult,
+  onTimerTick,
 }: UseRoomRealtimeOptions): void {
   useEffect(() => {
     const handleRoomState = (response: WsResponse<Room>) => {
@@ -112,7 +131,15 @@ export function useRoomRealtime({
 
   useEffect(() => {
     const handleQuestionStarted = (
-      response: WsResponse<{ roomId: number; question: PublicQuestion }>,
+      response: WsResponse<{
+        roomId: number;
+        questionId: number;
+        question: PublicQuestion;
+        questionNumber: number;
+        totalQuestions: number;
+        durationMs: number;
+        endsAt: string;
+      }>,
     ) => {
       if (!response.success || !response.data || requestedRoomId === null) {
         return;
@@ -122,7 +149,14 @@ export function useRoomRealtime({
         return;
       }
 
-      onQuestionStarted(response.data.question);
+      onQuestionStarted({
+        question: response.data.question,
+        durationMs: response.data.durationMs,
+        endsAt: response.data.endsAt,
+        questionId: response.data.questionId,
+        questionNumber: response.data.questionNumber,
+        totalQuestions: response.data.totalQuestions,
+      });
     };
 
     const handleGameEnded = (response: WsResponse<{ roomId: number }>) => {
@@ -149,16 +183,30 @@ export function useRoomRealtime({
       onAnswerResult(response.data);
     };
 
+    const handleTimerTick = (response: WsResponse<TimerPayload>) => {
+      if (!response.success || !response.data || requestedRoomId === null) {
+        return;
+      }
+
+      if (response.data.roomId !== requestedRoomId) {
+        return;
+      }
+
+      onTimerTick(response.data);
+    };
+
     onWs("game:question:started", handleQuestionStarted);
     onWs("game:ended", handleGameEnded);
     onWs("game:answer:result", handleAnswerResult);
+    onWs("game:timer", handleTimerTick);
 
     return () => {
       offWs("game:question:started", handleQuestionStarted);
       offWs("game:ended", handleGameEnded);
       offWs("game:answer:result", handleAnswerResult);
+      offWs("game:timer", handleTimerTick);
     };
-  }, [onAnswerResult, onGameEnded, onQuestionStarted, requestedRoomId]);
+  }, [onAnswerResult, onGameEnded, onQuestionStarted, onTimerTick, requestedRoomId]);
 
   useEffect(() => {
     if (currentRoomId === null || userId === null) {
