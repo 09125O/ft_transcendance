@@ -12,6 +12,10 @@ function isFriendRequestNotification(notification: NotificationItem): boolean {
   return notification.type === "FRIEND_REQUEST_RECEIVED";
 }
 
+function isFortyTwoOauthUser(email: string): boolean {
+  return /^42-\d+@oauth\.local$/i.test(email);
+}
+
 type FriendsSyncPayload = {
   reason: "request_created" | "request_accepted" | "request_declined" | "friend_removed";
   requestId?: number;
@@ -134,78 +138,93 @@ export default function Navbar() {
           Quiz Arena
         </Link>
         <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:gap-5">
-          <Link className="inline-flex h-9 items-center text-sm font-medium text-text" to="/leaderboard">
-            Leaderboard
-          </Link>
-          <Link className="relative inline-flex h-9 items-center text-sm font-medium text-text" to="/friends">
-            Amis
-            {friendsBadgeCount > 0 ? (
-              <span className="absolute -right-3 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_8px_18px_-10px_rgba(239,68,68,0.95)]">
-                {friendsBadgeCount > 99 ? "99+" : friendsBadgeCount}
-              </span>
-            ) : null}
-          </Link>
           {currentUser ? (
-            <div className="relative" ref={accountMenuRef}>
-              <PrimaryButton
-                aria-expanded={isAccountMenuOpen}
-                aria-haspopup="menu"
-                className="h-9 px-2 text-sm"
-                onClick={() => {
-                  setIsAccountMenuOpen((isOpen) => !isOpen);
-                }}
-                type="button"
-              >
-                <span className="inline-flex h-full max-w-[11rem] items-center gap-2 leading-none">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-[11px] font-semibold uppercase text-text">
-                    {currentUser.avatar_url ? (
-                      <img
-                        alt={`Avatar de ${currentUser.username}`}
-                        className="h-full w-full object-cover"
-                        src={currentUser.avatar_url}
-                      />
-                    ) : (
-                      currentUser.username.slice(0, 1).toUpperCase()
-                    )}
+            <>
+              <Link className="inline-flex h-9 items-center text-sm font-medium text-text" to="/leaderboard">
+                Leaderboard
+              </Link>
+              <Link className="relative inline-flex h-9 items-center text-sm font-medium text-text" to="/friends">
+                Amis
+                {friendsBadgeCount > 0 ? (
+                  <span className="absolute -right-3 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_8px_18px_-10px_rgba(239,68,68,0.95)]">
+                    {friendsBadgeCount > 99 ? "99+" : friendsBadgeCount}
                   </span>
-                  <span className="flex min-w-0 items-center truncate leading-none">{currentUser.username}</span>
-                </span>
-              </PrimaryButton>
-              {isAccountMenuOpen ? (
-                <div
-                  className="absolute right-0 z-50 mt-2 min-w-[12rem] rounded-2xl border border-white/12 bg-surface/95 p-2 shadow-[0_24px_64px_-42px_rgba(0,0,0,0.85)] backdrop-blur"
-                  role="menu"
+                ) : null}
+              </Link>
+              <div className="relative" ref={accountMenuRef}>
+                <PrimaryButton
+                  aria-expanded={isAccountMenuOpen}
+                  aria-haspopup="menu"
+                  className={
+                    isFortyTwoOauthUser(currentUser.email)
+                      ? "h-9 px-2 text-sm"
+                      : "h-9 px-4 text-sm"
+                  }
+                  onClick={() => {
+                    setIsAccountMenuOpen((isOpen) => !isOpen);
+                  }}
+                  type="button"
                 >
-                  <Link
-                    className="block rounded-xl px-3 py-2 text-sm text-text transition hover:bg-white/8"
-                    onClick={() => {
-                      setIsAccountMenuOpen(false);
-                    }}
-                    role="menuitem"
-                    to="/profile"
+                  {isFortyTwoOauthUser(currentUser.email) ? (
+                    <span className="inline-flex h-full max-w-[11rem] items-center gap-2 leading-none">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-[11px] font-semibold uppercase text-text">
+                        {currentUser.avatar_url ? (
+                          <img
+                            alt={`Avatar de ${currentUser.username}`}
+                            className="h-full w-full object-cover"
+                            src={currentUser.avatar_url}
+                          />
+                        ) : (
+                          currentUser.username.slice(0, 1).toUpperCase()
+                        )}
+                      </span>
+                      <span className="flex min-w-0 items-center truncate leading-none">{currentUser.username}</span>
+                    </span>
+                  ) : (
+                    "Login"
+                  )}
+                </PrimaryButton>
+                {isAccountMenuOpen ? (
+                  <div
+                    className="absolute right-0 z-50 mt-2 min-w-[12rem] rounded-2xl border border-white/12 bg-surface/95 p-2 shadow-[0_24px_64px_-42px_rgba(0,0,0,0.85)] backdrop-blur"
+                    role="menu"
                   >
-                    Mon profil
-                  </Link>
-                  <button
-                    className="block w-full rounded-xl px-3 py-2 text-left text-sm text-text transition hover:bg-white/8"
-                    onClick={() => {
-                      setIsAccountMenuOpen(false);
-                      void (async () => {
-                        await logout();
-                      })();
-                    }}
-                    role="menuitem"
-                    type="button"
-                  >
-                    Se déconnecter
-                  </button>
-                </div>
-              ) : null}
-            </div>
+                    <Link
+                      className="block rounded-xl px-3 py-2 text-sm text-text transition hover:bg-white/8"
+                      onClick={() => {
+                        setIsAccountMenuOpen(false);
+                      }}
+                      role="menuitem"
+                      to="/profile"
+                    >
+                      Mon profil
+                    </Link>
+                    <button
+                      className="block w-full rounded-xl px-3 py-2 text-left text-sm text-text transition hover:bg-white/8"
+                      onClick={() => {
+                        setIsAccountMenuOpen(false);
+                        void (async () => {
+                          await logout();
+                        })();
+                      }}
+                      role="menuitem"
+                      type="button"
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </>
           ) : (
-            <Link className="inline-flex h-9 items-center text-sm font-medium text-text" to="/login">
-              Login
-            </Link>
+            <>
+              <Link className="inline-flex h-9 items-center text-sm font-medium text-text" to="/register">
+                S'identifier
+              </Link>
+              <Link className="inline-flex h-9 items-center text-sm font-medium text-text" to="/login">
+                Se connecter
+              </Link>
+            </>
           )}
         </div>
       </div>
