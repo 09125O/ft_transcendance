@@ -12,10 +12,6 @@ function isFriendRequestNotification(notification: NotificationItem): boolean {
   return notification.type === "FRIEND_REQUEST_RECEIVED";
 }
 
-function isFortyTwoOauthUser(email: string): boolean {
-  return /^42-\d+@oauth\.local$/i.test(email);
-}
-
 type FriendsSyncPayload = {
   reason: "request_created" | "request_accepted" | "request_declined" | "friend_removed";
   requestId?: number;
@@ -155,34 +151,26 @@ export default function Navbar() {
                 <PrimaryButton
                   aria-expanded={isAccountMenuOpen}
                   aria-haspopup="menu"
-                  className={
-                    isFortyTwoOauthUser(currentUser.email)
-                      ? "h-9 px-2 text-sm"
-                      : "h-9 px-4 text-sm"
-                  }
+                  className="h-9 px-2 text-sm"
                   onClick={() => {
                     setIsAccountMenuOpen((isOpen) => !isOpen);
                   }}
                   type="button"
                 >
-                  {isFortyTwoOauthUser(currentUser.email) ? (
-                    <span className="inline-flex h-full max-w-[11rem] items-center gap-2 leading-none">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-[11px] font-semibold uppercase text-text">
-                        {currentUser.avatar_url ? (
-                          <img
-                            alt={`Avatar de ${currentUser.username}`}
-                            className="h-full w-full object-cover"
-                            src={currentUser.avatar_url}
-                          />
-                        ) : (
-                          currentUser.username.slice(0, 1).toUpperCase()
-                        )}
-                      </span>
-                      <span className="flex min-w-0 items-center truncate leading-none">{currentUser.username}</span>
+                  <span className="inline-flex h-full max-w-[11rem] items-center gap-2 leading-none">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-[11px] font-semibold uppercase text-text">
+                      {currentUser.avatar_url ? (
+                        <img
+                          alt={`Avatar de ${currentUser.username}`}
+                          className="h-full w-full object-cover"
+                          src={currentUser.avatar_url}
+                        />
+                      ) : (
+                        currentUser.username.slice(0, 1).toUpperCase()
+                      )}
                     </span>
-                  ) : (
-                    "Login"
-                  )}
+                    <span className="flex min-w-0 items-center truncate leading-none">{currentUser.username}</span>
+                  </span>
                 </PrimaryButton>
                 {isAccountMenuOpen ? (
                   <div

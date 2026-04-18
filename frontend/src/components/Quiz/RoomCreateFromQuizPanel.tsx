@@ -87,11 +87,11 @@ export default function RoomCreateFromQuizPanel({
   };
 
   return (
-    <Panel className="min-h-[80vh] w-full px-8 py-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <Panel className="min-h-[80vh] w-full px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="m-0 text-3xl font-semibold text-text">Créer une room</h1>
         <button
-          className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
+          className="w-full rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text sm:w-auto"
           type="button"
           onClick={onBack}
         >
@@ -99,7 +99,7 @@ export default function RoomCreateFromQuizPanel({
         </button>
       </div>
 
-      <div className="grid flex-1 grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] gap-6">
+      <div className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
         <div className="space-y-6">
           <div>
             <label
@@ -231,7 +231,7 @@ export default function RoomCreateFromQuizPanel({
           ) : null}
 
           <PrimaryButton
-            className="px-6 py-3 text-base"
+            className="w-full px-6 py-3 text-base sm:w-auto"
             disabled={isCreatingRoom}
             onClick={() => {
               void handleCreateRoom();

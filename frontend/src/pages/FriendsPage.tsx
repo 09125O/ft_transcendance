@@ -211,9 +211,26 @@ export default function FriendsPage() {
 
   if (!user) {
     return (
-      <main className="flex flex-1 items-center justify-center">
-        <Panel className="p-8 text-center">
-          <p>Connectez-vous pour accéder à vos amis.</p>
+      <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+        <Panel className="w-full max-w-lg p-8 text-center">
+          <h1 className="m-0 text-2xl font-semibold text-text">Ton réseau arrive après connexion</h1>
+          <p className="mt-3 text-sm text-text/70">
+            Connecte-toi pour gérer tes amis, invitations et notifications en temps réel.
+          </p>
+          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover sm:text-base"
+              to="/login"
+            >
+              Se connecter
+            </Link>
+            <Link
+              className="ui-btn-secondary inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base"
+              to="/register"
+            >
+              Créer un compte
+            </Link>
+          </div>
         </Panel>
       </main>
     );
