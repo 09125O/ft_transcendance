@@ -14,6 +14,14 @@ type LeaderboardEntry = {
   score: number;
 };
 
+type AnswerResultPayload = {
+  roomId: number;
+  userId: number;
+  questionId: number;
+  selectedAnswerIndex: number;
+  isCorrect: boolean;
+};
+
 type UseRoomRealtimeOptions = {
   requestedRoomId: number | null;
   currentRoomId: number | null;
@@ -25,6 +33,7 @@ type UseRoomRealtimeOptions = {
   onLeaderboard: (payload: LeaderboardEntry[] | RoomLeaderboardPayload) => void;
   onQuestionStarted: (question: PublicQuestion) => void;
   onGameEnded: () => void;
+  onAnswerResult: (payload: AnswerResultPayload) => void;
 };
 
 export function useRoomRealtime({
@@ -38,6 +47,7 @@ export function useRoomRealtime({
   onLeaderboard,
   onQuestionStarted,
   onGameEnded,
+  onAnswerResult,
 }: UseRoomRealtimeOptions): void {
   useEffect(() => {
     const handleRoomState = (response: WsResponse<Room>) => {
@@ -127,14 +137,28 @@ export function useRoomRealtime({
       onGameEnded();
     };
 
+    const handleAnswerResult = (response: WsResponse<AnswerResultPayload>) => {
+      if (!response.success || !response.data || requestedRoomId === null) {
+        return;
+      }
+
+      if (response.data.roomId !== requestedRoomId) {
+        return;
+      }
+
+      onAnswerResult(response.data);
+    };
+
     onWs("game:question:started", handleQuestionStarted);
     onWs("game:ended", handleGameEnded);
+    onWs("game:answer:result", handleAnswerResult);
 
     return () => {
       offWs("game:question:started", handleQuestionStarted);
       offWs("game:ended", handleGameEnded);
+      offWs("game:answer:result", handleAnswerResult);
     };
-  }, [onGameEnded, onQuestionStarted, requestedRoomId]);
+  }, [onAnswerResult, onGameEnded, onQuestionStarted, requestedRoomId]);
 
   useEffect(() => {
     if (currentRoomId === null || userId === null) {

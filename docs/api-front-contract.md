@@ -181,14 +181,9 @@ type Quiz = {
   id: number;
   title: string;
   createdAt: string;
-  questions: Array<{
-    id: number;
-    questionText: string;
-    answers: string[];
-    position: number;
-    points: number;
-    createdAt: string;
-  }>;
+  playCount: number;
+  activeRoomCount: number;
+  questionCount: number;
 };
 ```
 
@@ -431,10 +426,15 @@ type FriendRequestEntry = {
 ```
 
 - `password` est optionnel pour room publique
+- Pour une room privee:
+  - `password` est obligatoire
+  - l'utilisateur doit etre ami avec le owner de la room (`FriendRequests.status=accepted`), sauf le owner lui-meme
 - Reponse: `201`, `ApiResponse<Room>`
 - Erreurs:
   - `400 BAD_REQUEST`
   - `401 UNAUTHORIZED` si mauvais mot de passe
+  - `401 UNAUTHORIZED` si room privee restreinte aux amis du owner
+  - `409 CONFLICT` si room non joinable (etat different de `waiting`)
   - `404 NOT_FOUND` si room absente
 
 ### Game
@@ -527,9 +527,16 @@ Limite actuelle:
 
 `GET /quizzes`
 - Reponse: `200`, `ApiResponse<Quiz[]>`
+- Notes:
+  - chaque quiz remonte maintenant `playCount` (nombre de parties historisées) et `activeRoomCount` (rooms actuellement ouvertes)
+  - le contenu des questions n'est pas expose par l'API publique quiz avant le demarrage d'une partie (fair-play)
+  - utiliser `questionCount` pour l'affichage du volume de questions
+  - l'UI peut s'appuyer sur ces champs pour afficher `Les plus joués` sans système de note publique
+  - le seed de lancement fournit un premier catalogue orienté `Code & Algo`, `Gaming`, `Startup & Tech` et `Stages & Carrière`
 
 `GET /quizzes/:quizId`
 - Reponse: `200`, `ApiResponse<Quiz>`
+- Note: meme contrat masque que `GET /quizzes` (metadata + `questionCount`, sans contenu de questions)
 - Erreurs:
   - `400 BAD_REQUEST`
   - `404 NOT_FOUND` si quiz absent

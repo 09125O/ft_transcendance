@@ -8,13 +8,13 @@ export default function Navbar() {
   const { user: currentUser } = useAuth();
 
   return (
-    <nav className="bg-surface text-text">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <nav className="sticky top-3 z-50 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[20px] border border-white/12 bg-surface/86 px-4 py-3 text-text shadow-[0_24px_64px_-42px_rgba(0,0,0,0.85)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <Link
           className="text-sm font-medium uppercase tracking-[0.18em]"
           to="/"
         >
-          Transcendance
+          Quiz Arena
         </Link>
         <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:gap-5">
           {currentUser !== null ? (

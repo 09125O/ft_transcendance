@@ -23,6 +23,10 @@ type UseRoomParticipantsResult = {
   applyLeaderboard: (payload: LeaderboardEntry[] | RoomLeaderboardPayload) => void;
 };
 
+function compareScoreEntries(left: ScoreEntry, right: ScoreEntry): number {
+  return right.score - left.score || left.userId - right.userId;
+}
+
 export function useRoomParticipants(
   currentRoom: Room | null,
 ): UseRoomParticipantsResult {
@@ -47,14 +51,16 @@ export function useRoomParticipants(
         }),
       );
 
-      setScoreEntries((previous) =>
-        entries.map((entry) => ({
+      setScoreEntries((previous) => {
+        const mergedEntries = entries.map((entry) => ({
           ...entry,
           score:
             previous.find((previousEntry) => previousEntry.userId === entry.userId)?.score ??
             entry.score,
-        })),
-      );
+        }));
+
+        return mergedEntries.sort(compareScoreEntries);
+      });
     };
 
     void loadRoomUsers();
@@ -82,7 +88,7 @@ export function useRoomParticipants(
           score: entry.score,
         }));
 
-      return [...updatedEntries, ...missingEntries].sort((a, b) => b.score - a.score);
+      return [...updatedEntries, ...missingEntries].sort(compareScoreEntries);
     });
   }, []);
 

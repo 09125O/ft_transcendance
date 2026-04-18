@@ -11,6 +11,8 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const FriendsPage = lazy(() => import("./pages/FriendsPage"));
+const QuizReadyPage = lazy(() => import("./pages/QuizReadyPage"));
+const QuizCreatePage = lazy(() => import("./pages/QuizCreatePage"));
 
 function RouteFallback() {
   return (
@@ -35,6 +37,8 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/quiz-ready" element={<QuizReadyPage />} />
+          <Route path="/quiz-create" element={<QuizCreatePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
         </Routes>

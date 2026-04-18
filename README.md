@@ -161,6 +161,7 @@ Important en dev :
 - utiliser `credentials: "include"` pour que la session cookie fonctionne
 - l'auth OAuth exposee dans l'etat actuel est 42 uniquement
 - `POST /quizzes` est protege par `AuthGuard` et throttle a `10` creations par minute
+- le seed de dev charge maintenant un premier catalogue de quiz ancrés dans l'univers 42
 - la duree par question reste globalement pilotee par `GAME_QUESTION_DURATION_MS`; elle n'est pas encore configurable par room
 
 ## Cartographie documentaire
@@ -173,6 +174,9 @@ Documents de reference a lire en priorite :
 - `docs/quiz-room-game-integration.md`
 - `docs/backend-front-enablement-spec.md`
 - `docs/front-handover-roadmap.md`
+- `docs/design-system/transcendance-web-app/MASTER.md` (source design UI/UX)
+- `docs/design-system/transcendance-web-app/pages/lobby.md` (overrides lobby)
+- `docs/design-system/transcendance-web-app/pages/game-room.md` (overrides game room)
 - `docs/sujet-conformite-matrice.md`
 - `docs/codex-binome-guide.md`
 - `dev.md`

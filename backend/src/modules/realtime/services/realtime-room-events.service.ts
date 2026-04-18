@@ -6,7 +6,7 @@ import { RoomLeaveDto } from "@/modules/realtime/dto/room-leave.dto";
 import { RoomSpectateDto } from "@/modules/realtime/dto/room-spectate.dto";
 import { RoomStartDto } from "@/modules/realtime/dto/room-start.dto";
 import { GameService } from "@/modules/game/game.service";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { RealtimeGameRuntimeService } from "./realtime-game-runtime.service";
 import { RealtimePresenceService } from "./realtime-presence.service";
@@ -15,10 +15,18 @@ import { RealtimeValidationService } from "./realtime-validation.service";
 
 @Injectable()
 export class RealtimeRoomEventsService {
+  private readonly logger = new Logger(RealtimeRoomEventsService.name);
   private readonly disconnectGraceMs = Number(
     process.env.ROOM_RECONNECT_GRACE_MS || 10000,
   );
+  private readonly waitingRoomTtlMs = Number(
+    process.env.ROOM_WAITING_TTL_MS || 1800000,
+  );
+  private readonly finishedRoomTtlMs = Number(
+    process.env.ROOM_FINISHED_TTL_MS || 300000,
+  );
   private readonly pendingDisconnects = new Map<number, NodeJS.Timeout>();
+  private roomCleanupInProgress = false;
 
   constructor(
     private readonly roomsService: RoomsService,
@@ -50,6 +58,46 @@ export class RealtimeRoomEventsService {
       clearTimeout(timeout);
     }
     this.pendingDisconnects.clear();
+  }
+
+  async cleanupExpiredRooms(server: Server): Promise<void> {
+    if (this.roomCleanupInProgress) {
+      return;
+    }
+
+    this.roomCleanupInProgress = true;
+
+    try {
+      const nowMs = Date.now();
+
+      for (const room of await this.roomsService.list()) {
+        let reason: string | null = null;
+
+        if (room.status === "waiting") {
+          if (this.hasExpired(room.createdAt, this.waitingRoomTtlMs, nowMs)) {
+            reason = "room_waiting_ttl_expired";
+          }
+        } else if (room.status === "finished") {
+          const referenceTime = room.finishedAt ?? room.createdAt;
+          if (this.hasExpired(referenceTime, this.finishedRoomTtlMs, nowMs)) {
+            reason = "room_finished_ttl_expired";
+          }
+        }
+
+        if (!reason) {
+          continue;
+        }
+
+        try {
+          await this.gameRuntime.closeRoom(room.id, reason, server);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Unknown cleanup error";
+          this.logger.warn(`Failed to auto-close room ${room.id}: ${message}`);
+        }
+      }
+    } finally {
+      this.roomCleanupInProgress = false;
+    }
   }
 
   async handleRoomList(client: Socket): Promise<void> {
@@ -262,6 +310,19 @@ export class RealtimeRoomEventsService {
     }
     clearTimeout(timeout);
     this.pendingDisconnects.delete(userId);
+  }
+
+  private hasExpired(sinceIso: string, ttlMs: number, nowMs: number): boolean {
+    if (ttlMs <= 0) {
+      return false;
+    }
+
+    const sinceMs = Date.parse(sinceIso);
+    if (Number.isNaN(sinceMs)) {
+      return false;
+    }
+
+    return nowMs - sinceMs >= ttlMs;
   }
 
   private async assertUserInRoom(roomId: number, userId: number) {

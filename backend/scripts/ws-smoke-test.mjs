@@ -15,6 +15,7 @@ const WS_BASE_URL =
   process.env.WS_BASE_URL || `https://${BACKEND_HOST}:${BACKEND_PORT}`;
 const WS_NAMESPACE_URL = `${WS_BASE_URL}/ws`;
 const TEST_QUIZ_ANSWER_INDEX = 1;
+const WS_SMOKE_QUIZ_TITLE = "__WS_SMOKE_DO_NOT_USE__";
 const ROOM_RECONNECT_GRACE_MS = Number(process.env.ROOM_RECONNECT_GRACE_MS || 10000);
 const DISCONNECT_EVENT_TIMEOUT_MS = Math.max(25000, ROOM_RECONNECT_GRACE_MS + 12000);
 
@@ -265,6 +266,28 @@ async function assertPrivateRoomRestJoinThenWsChat(
 
 // Always create a dedicated quiz so the smoke test controls the expected answer.
 async function ensureQuizId(baseUrl, cookieHeader) {
+  const quizzesResponse = await fetch(`${baseUrl}/quizzes`, {
+    headers: {
+      Cookie: cookieHeader,
+    },
+  });
+  if (quizzesResponse.ok) {
+    const quizzesPayload = await quizzesResponse.json();
+    const existingQuiz = Array.isArray(quizzesPayload?.data)
+      ? quizzesPayload.data.find(
+          (quiz) =>
+            quiz?.title === WS_SMOKE_QUIZ_TITLE &&
+            typeof quiz?.id === "number" &&
+            typeof quiz?.questionCount === "number" &&
+            quiz.questionCount >= 1,
+        )
+      : null;
+
+    if (existingQuiz) {
+      return existingQuiz.id;
+    }
+  }
+
   const createResponse = await fetch(`${baseUrl}/quizzes`, {
     method: "POST",
     headers: {
@@ -272,7 +295,7 @@ async function ensureQuizId(baseUrl, cookieHeader) {
       Cookie: cookieHeader,
     },
     body: JSON.stringify({
-      title: `WS Smoke Quiz ${Date.now()}`,
+      title: WS_SMOKE_QUIZ_TITLE,
       questions: [
         {
           questionText: "Question smoke test",

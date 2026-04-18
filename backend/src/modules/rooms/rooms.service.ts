@@ -11,6 +11,7 @@ import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
 
 const MIN_PLAYERS_TO_START = 3;
+const MIN_PLAYERS_TO_START_WITH_QUIZ = 1;
 
 export type RoomPlayer = {
   userId: number;
@@ -129,6 +130,8 @@ export class RoomsService {
     }
 
     if (room.isPrivate) {
+      await this.assertPrivateRoomFriendAccess(room, userId);
+
       if (!room.passwordHash || typeof password !== "string") {
         throw new UnauthorizedException("Invalid room password");
       }
@@ -164,6 +167,40 @@ export class RoomsService {
 
     const updated = await this.findRoomOrThrow(roomId);
     return this.stripPasswordHash(this.toRoom(updated));
+  }
+
+  private async assertPrivateRoomFriendAccess(
+    room: RoomWithPlayers,
+    userId: number,
+  ): Promise<void> {
+    if (!room.isPrivate || room.ownerId === userId) {
+      return;
+    }
+
+    if (typeof room.ownerId !== "number") {
+      throw new UnauthorizedException("Private room is not joinable");
+    }
+
+    const friendship = await this.prisma.client.friendRequests.findFirst({
+      where: {
+        status: "accepted",
+        OR: [
+          {
+            senderId: room.ownerId,
+            receiverId: userId,
+          },
+          {
+            senderId: userId,
+            receiverId: room.ownerId,
+          },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!friendship) {
+      throw new UnauthorizedException("Private room is restricted to host friends");
+    }
   }
 
   async leave(roomId: number, userId: number): Promise<Omit<Room, "passwordHash">> {
@@ -244,9 +281,14 @@ export class RoomsService {
       throw new UnauthorizedException("Only room owner can start the game");
     }
 
-    if (room.players.length < MIN_PLAYERS_TO_START) {
+    const minimumPlayers =
+      typeof room.quizId === "number"
+        ? MIN_PLAYERS_TO_START_WITH_QUIZ
+        : MIN_PLAYERS_TO_START;
+
+    if (room.players.length < minimumPlayers) {
       throw new ConflictException(
-        `Cannot start a room with fewer than ${MIN_PLAYERS_TO_START} players`,
+        `Cannot start a room with fewer than ${minimumPlayers} players`,
       );
     }
 

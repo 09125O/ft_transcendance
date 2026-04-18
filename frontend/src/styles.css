@@ -1,11 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0B1220;
-  --color-surface: #121A2B;
-  --color-primary: #7C3AED;
-  --color-danger: #DC2626;
-  --color-text: #E5EEF8;
+  --color-background: #050914;
+  --color-surface: #111a2d;
+  --color-surface-alt: #17243c;
+  --color-primary: #0070cc;
+  --color-primary-hover: #1eaedb;
+  --color-link-hover: #1883fd;
+  --color-accent: #1883fd;
+  --color-urgency: #d53b00;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --color-text: #e6edf8;
+  --color-text-muted: #9fb0cd;
 }
 
 * {
@@ -14,23 +21,109 @@
 
 body {
   margin: 0;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
   color: var(--color-text);
   background:
-    radial-gradient(circle at top, color-mix(in srgb, var(--color-primary) 25%, transparent), transparent 25%),
-    radial-gradient(circle at bottom, color-mix(in srgb, var(--color-primary) 25%, transparent), transparent 25%),
-    radial-gradient(circle at left, color-mix(in srgb, var(--color-primary) 25%, transparent), transparent 25%),
-    radial-gradient(circle at right, color-mix(in srgb, var(--color-primary) 25%, transparent), transparent 25%),
+    radial-gradient(circle at 15% 12%, color-mix(in srgb, var(--color-primary) 24%, transparent), transparent 33%),
+    radial-gradient(circle at 84% 78%, color-mix(in srgb, var(--color-accent) 17%, transparent), transparent 31%),
+    repeating-linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--color-primary) 8%, transparent) 0,
+      color-mix(in srgb, var(--color-primary) 8%, transparent) 1px,
+      transparent 1px,
+      transparent 24px
+    ),
     linear-gradient(
       135deg,
       var(--color-background) 0%,
-      color-mix(in srgb, var(--color-surface) 75%, var(--color-surface)) 50%,
-      color-mix(in srgb, var(--color-surface) 75%, var(--color-background)) 100%
+      color-mix(in srgb, var(--color-surface) 72%, var(--color-background)) 48%,
+      color-mix(in srgb, var(--color-surface-alt) 78%, var(--color-background)) 100%
     );
   background-attachment: fixed;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--color-primary) 12%, transparent) 45%, transparent 100%);
+  opacity: 0.35;
+  transform: translateX(-30%);
+  animation: sweep-ambient 11s linear infinite;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.ui-kicker {
+  font-family: "Space Mono", "Menlo", monospace;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.ui-muted {
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+
+.ui-btn-secondary {
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  color: var(--color-text);
+  font-weight: 600;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ui-btn-secondary:hover {
+  border-color: #ffffff;
+  background: var(--color-primary-hover);
+  color: #ffffff;
+  box-shadow: 0 0 0 2px var(--color-primary);
+  transform: scale(1.06);
+}
+
+.ui-btn-danger {
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-background));
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ui-btn-danger:hover {
+  border-color: color-mix(in srgb, var(--color-danger) 75%, white);
+  background: color-mix(in srgb, var(--color-danger) 24%, var(--color-background));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 55%, transparent);
+  transform: scale(1.04);
+}
+
+@keyframes sweep-ambient {
+  from {
+    transform: translateX(-35%);
+  }
+  to {
+    transform: translateX(35%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+    transform: none;
+  }
+
+  .ui-btn-secondary:hover,
+  .ui-btn-danger:hover {
+    transform: none;
+  }
 }

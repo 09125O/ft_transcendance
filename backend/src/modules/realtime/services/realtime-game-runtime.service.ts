@@ -17,6 +17,9 @@ export class RealtimeGameRuntimeService {
   private readonly questionDurationMs = Number(
     process.env.GAME_QUESTION_DURATION_MS || 10000,
   );
+  private readonly answerGraceMs = Number(
+    process.env.GAME_ANSWER_GRACE_MS || 400,
+  );
   private readonly timerTickMs = 1000;
 
   constructor(
@@ -30,10 +33,25 @@ export class RealtimeGameRuntimeService {
     for (const roomId of this.activeTimers.keys()) this.stopRoomTimer(roomId);
   }
 
-  ensureActiveQuestion(roomId: number, questionId: number): void {
+  async ensureActiveQuestion(roomId: number, questionId: number): Promise<void> {
     const runtime = this.activeTimers.get(roomId);
-    if (!runtime) throw new ConflictException("No active question timer");
-    if (runtime.questionId !== questionId) {
+    if (runtime) {
+      if (runtime.questionId !== questionId) {
+        throw new ConflictException("Question is not active");
+      }
+      return;
+    }
+
+    const state = await this.gameService.getRoomState(roomId);
+    if (state.currentQuestionId === null || state.currentQuestionId !== questionId) {
+      throw new ConflictException("Question is not active");
+    }
+    if (!state.questionEndsAt) {
+      throw new ConflictException("Question has no active deadline");
+    }
+
+    const graceDeadlineMs = new Date(state.questionEndsAt).getTime() + this.answerGraceMs;
+    if (Date.now() > graceDeadlineMs) {
       throw new ConflictException("Question is not active");
     }
   }
@@ -179,10 +197,16 @@ export class RealtimeGameRuntimeService {
     );
     server.to(roomChannel(roomId)).emit("game:state", this.response.ok(state));
 
+    // Allow in-flight answers emitted at the timer edge to be processed first.
+    if (this.answerGraceMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, this.answerGraceMs));
+    }
+
     if (runtime.questionNumber >= runtime.totalQuestions) {
       await this.endGame(roomId, "timer_completed", server);
       return;
     }
+
     await this.startQuestionTimer(
       roomId,
       runtime.questionNumber + 1,

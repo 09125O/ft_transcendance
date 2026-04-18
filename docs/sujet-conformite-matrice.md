@@ -3,7 +3,7 @@
 Date: 2026-04-18
 Source: `srcs_subject/module.txt`
 
-Derniere verification: apres merge du lot audit/remediation/perf/doc sur `dev`
+Derniere verification: apres merge du lot audit/remediation/perf/doc sur `dev` + harmonisation design-system docs
 
 ## Legende
 
@@ -38,6 +38,9 @@ Derniere verification: apres merge du lot audit/remediation/perf/doc sur `dev`
 1. Mettre a jour ce tableau a chaque merge impactant API/WS/front.
 2. Exiger une preuve par ligne `Fait` (fichier, endpoint, event, test).
 3. Garder les lignes `Partiel` explicites pour prioriser les lots restants.
+4. Maintenir `docs/design-system/transcendance-web-app/MASTER.md` synchronise avec l'implementation front.
+5. Maintenir `docs/design-system/transcendance-web-app/pages/lobby.md` synchronise avec la page lobby reelle.
+6. Maintenir `docs/design-system/transcendance-web-app/pages/game-room.md` synchronise avec le flux room reel.
 
 ## Quick wins documentation
 
@@ -45,6 +48,7 @@ Derniere verification: apres merge du lot audit/remediation/perf/doc sur `dev`
 2. [Fait] Ajouter une colonne `Responsable` pour accelerer le suivi equipe.
 3. [Fait] Ajouter un lien vers la reference de validation quand elle existe.
 4. [Fait] Ajouter une date de derniere verification en haut du document.
+5. [Fait] Deplacer le module design system sous `docs/` et aligner son contenu avec les ecrans reels (`lobby`, `quiz-ready`, `room`).
 
 ## Preuves de demo (parcours cible)
 
