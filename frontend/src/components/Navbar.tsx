@@ -11,6 +11,10 @@ function isFriendRequestNotification(notification: NotificationItem): boolean {
   return notification.type === "FRIEND_REQUEST_RECEIVED";
 }
 
+function isFortyTwoOauthUser(email: string): boolean {
+  return /^42-\d+@oauth\.local$/i.test(email);
+}
+
 export default function Navbar() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
@@ -70,9 +74,32 @@ export default function Navbar() {
         <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:gap-5">
           {currentUser !== null ? (
             <>
-              <Link className="text-sm font-medium text-text" to="/profile">
-                Profil
-              </Link>
+              {isFortyTwoOauthUser(currentUser.email) ? (
+                <Link
+                  aria-label="Voir mon profil"
+                  className="inline-flex max-w-[15rem] items-center gap-2 rounded-full border border-white/12 bg-background/55 px-2 py-1.5 text-text transition hover:border-primary/55 hover:bg-background/75"
+                  to="/profile"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-xs font-semibold uppercase">
+                    {currentUser.avatar_url ? (
+                      <img
+                        alt={`Avatar de ${currentUser.username}`}
+                        className="h-full w-full object-cover"
+                        src={currentUser.avatar_url}
+                      />
+                    ) : (
+                      currentUser.username.slice(0, 1)
+                    )}
+                  </span>
+                  <span className="truncate text-sm font-semibold text-text">
+                    {currentUser.username}
+                  </span>
+                </Link>
+              ) : (
+                <Link className="text-sm font-medium text-text" to="/profile">
+                  Profil
+                </Link>
+              )}
               <Link className="relative text-sm font-medium text-text" to="/friends">
                 Amis
                 {friendsBadgeCount > 0 ? (

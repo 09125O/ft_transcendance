@@ -25,6 +25,18 @@ type FortyTwoMeResponse = {
   id: number;
   login: string;
   email: string | null;
+  image?:
+    | string
+    | {
+        link?: string | null;
+        versions?: {
+          large?: string | null;
+          medium?: string | null;
+          small?: string | null;
+          micro?: string | null;
+        };
+      }
+    | null;
 };
 
 @Injectable()
@@ -77,6 +89,7 @@ export class AuthService {
   private async findOrCreateOauthUser(params: {
     providerEmail: string;
     username: string;
+    avatarUrl: string | null;
   }): Promise<User> {
     let user = await this.usersService.findUserByEmail(params.providerEmail);
 
@@ -84,19 +97,63 @@ export class AuthService {
       return this.usersService.createUser({
         email: params.providerEmail,
         username: params.username,
+        avatar_url: params.avatarUrl,
         password: await bcrypt.hash(randomUUID(), 10),
         createdAt: new Date(),
       });
     }
 
+    const updateData: Prisma.UserUpdateInput = {};
+
     if (user.username !== params.username) {
+      updateData.username = params.username;
+    }
+
+    if (params.avatarUrl && user.avatar_url !== params.avatarUrl) {
+      updateData.avatar_url = params.avatarUrl;
+    }
+
+    if (Object.keys(updateData).length > 0) {
       user = await this.usersService.updateUser({
         where: { id: user.id },
-        data: { username: params.username },
+        data: updateData,
       });
     }
 
     return user;
+  }
+
+  private normalizeOauthAvatarUrl(profile: FortyTwoMeResponse): string | null {
+    const imageField = profile.image;
+
+    let rawAvatarUrl: string | null = null;
+
+    if (typeof imageField === "string") {
+      rawAvatarUrl = imageField;
+    } else if (imageField && typeof imageField === "object") {
+      rawAvatarUrl =
+        imageField.link ||
+        imageField.versions?.large ||
+        imageField.versions?.medium ||
+        imageField.versions?.small ||
+        imageField.versions?.micro ||
+        null;
+    }
+
+    if (!rawAvatarUrl) {
+      return null;
+    }
+
+    try {
+      const url = new URL(rawAvatarUrl);
+      if (url.protocol === "http:") {
+        url.protocol = "https:";
+      }
+
+      return url.toString();
+    } catch {
+      return null;
+    }
   }
 
   private getCookieSameSite(): NonNullable<CookieOptions["sameSite"]> {
@@ -354,9 +411,11 @@ export class AuthService {
       profile.login,
       `FortyTwo-${profile.id}`,
     );
+    const avatarUrl = this.normalizeOauthAvatarUrl(profile);
     const user = await this.findOrCreateOauthUser({
       providerEmail,
       username,
+      avatarUrl,
     });
 
     res.clearCookie(
