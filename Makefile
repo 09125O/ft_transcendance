@@ -37,6 +37,7 @@ help:
 	@echo "  make page                -> Open the frontend in the default browser"
 	@echo "  make ps                  -> Show running containers"
 	@echo "  make test-stack          -> Check frontend, backend and database status quickly"
+	@echo "  make browser-test        -> Run the cross-browser Playwright smoke suite (requires running stack)"
 	@echo "  make smoke-test          -> Run the general smoke test (dev env, db, websocket api, authentication, frontend)"
 	@echo "  make smoke-test-ws       -> Run only the backend WebSocket smoke test"
 	@echo "  make env-init            -> Create .env from .env.example if missing"
@@ -129,6 +130,9 @@ test-stack: env-check compose-check
 	echo "Frontend : https://localhost:$${FRONTEND_PORT}"; \
 	echo "Backend  : https://localhost:$${BACKEND_PORT}/health"; \
 	echo "Database : localhost:$${POSTGRES_PORT}"
+
+browser-test: env-check compose-check
+	cd frontend && npm run test:browsers
 
 smoke-test: env-check compose-check
 	bash scripts/smoke-test.sh

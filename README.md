@@ -26,7 +26,7 @@ Disponible et demonstrable aujourd'hui :
 
 Points encore partiels ou non implementes :
 
-- pas de recette multi-browser formelle documentee
+- pas encore de vraie status page ni de doc ops/backup formalisee
 
 Decisions internes de priorisation pour le projet courant :
 
@@ -62,7 +62,7 @@ Regle de lecture documentaire :
 
 ## Modules claimed
 
-Estimation interne argumentee aujourd'hui : `17 / 14`
+Estimation interne argumentee aujourd'hui : `18 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -74,20 +74,21 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Minor][1]` Remote authentication
 - `[Minor][1]` Game customization options
 - `[Minor][1]` Game statistics and match history
+- `[Minor][1]` Support for additional browsers
 - `[Major][2]` Web-based game
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `17 points`
+Total estime revendicable aujourd'hui : `18 points`
 
 ## Path to 19
 
 Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
 
-- `[Minor][1]` Support for additional browsers
 - `[Minor][1]` Health check & status page
 
-Ces 2 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
+Le module navigateur est maintenant ferme via une preuve Playwright versionnee.
+Le seul module encore vise avant `19 / 14` est `Health check & status page`.
 
 Regle pratique pour la revue Intra :
 
@@ -120,12 +121,18 @@ Commandes utiles :
 - `cd frontend && npm run lint`
 - `cd backend && npm run build`
 - `cd frontend && npm run build`
+- `cd frontend && npm run test:browsers`
 - `bash scripts/lint-shell.sh`
 - `bash scripts/smoke-test.sh`
 - `docker exec quiz_backend npm run test:ws-smoke`
 - `docker exec quiz_backend npm run test:ws-critical`
 - `docker exec quiz_backend npm run test:rate-limit`
 - `docker exec quiz_backend npm run test:integration:social`
+
+Preuve multi-browser versionnee :
+
+- `make browser-test`
+- details et matrice de validation : `docs/browser-compatibility-matrix.md`
 
 La CI GitHub Actions verifie :
 
@@ -260,8 +267,8 @@ Pour la cible produit actuelle :
 
 - score valide aujourd'hui : `14`
 - score vise a terme : `19`
-- score interne estime aujourd'hui : `15`
-- modules actifs pour passer de `15` a `19` : `additional browsers`, `stats/history`, `game customization`, `health/status`
+- score interne estime aujourd'hui : `18`
+- module actif pour passer de `18` a `19` : `health/status`
 
 ## Quand ajouter nginx
 

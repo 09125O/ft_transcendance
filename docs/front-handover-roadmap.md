@@ -22,7 +22,6 @@ Le front couvre aujourd'hui :
 
 Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
-- recette multi-browser formelle
 - surface health / status minimale et dossier de preuve associe
 
 ## 2) Modules non vises dans le plan interne courant
@@ -62,15 +61,13 @@ References:
 ### Gaps front visibles dans le scope courant
 
 - Pas de cloche notifications en navbar ni de pattern toast unifie
-- Pas de recette multi-browser formalisee dans la doc
 - Il n'existe pas de vraie status page cote front
 
 ## 4) Backlog restant recommande
 
 Ordre retenu pour viser `19` avec le moins de risque :
 
-1. `Support for additional browsers`
-2. `Health check & status page`
+1. `Health check & status page`
 
 ### Ticket R1 - Game customization options (ferme)
 
@@ -104,12 +101,13 @@ Reference sujet:
 Statut:
 - ferme et demonstrable
 
-### Ticket R3 - Support for additional browsers
+### Ticket R3 - Support for additional browsers (ferme)
 
-- Valider Chrome + au moins `2` navigateurs additionnels
-- Rejouer tous les flows critiques
-- Corriger les regressions specifiques
-- Versionner une recette avec limitations connues si necessaire
+- suite Playwright ajoutee dans `frontend/tests/browser-compat.spec.ts`
+- config versionnee dans `frontend/playwright.config.ts`
+- commande repo `make browser-test`
+- matrice de preuve `docs/browser-compatibility-matrix.md`
+- parcours verifies sur `chromium`, `firefox` et `webkit`
 
 Reference sujet:
 - "Full compatibility with at least 2 additional browsers (Firefox, Safari, Edge, etc.)"
@@ -121,6 +119,9 @@ Definition of Done:
 - checklist versionnee
 - limitations explicites
 - aucun bug critique bloqueur sur les browsers annonces
+
+Statut:
+- ferme et demonstrable
 
 ### Ticket R4 - Notification system (ferme)
 
@@ -178,7 +179,6 @@ Definition of Done:
 ## 6) Backlog priorise
 
 P0:
-- R3 Support for additional browsers
 - R5 Health check & status page
 
 P2:
@@ -205,7 +205,7 @@ P2:
 - Navigation front enrichie: home, login, register, profil, amis, leaderboard
 - UX realtime stabilisee (erreurs, etats, feedback)
 - Status page minimale et preuves ops
-- Checklist QA navigateurs
+- Checklist QA navigateurs (`docs/browser-compatibility-matrix.md`)
 - Dossier de demo oriente sujet (preuves fonctionnelles)
 
 ## 10) Hygiene documentaire

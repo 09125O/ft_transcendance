@@ -34,7 +34,7 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `17 / 14`
+Estimation interne argumentee aujourd'hui: `18 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -46,18 +46,18 @@ Modules actuellement revendicables sans sur-promesse:
 - `[Minor][1]` Remote auth OAuth2
 - `[Minor][1]` Game customization options
 - `[Minor][1]` Stats + historique
+- `[Minor][1]` Support navigateurs additionnels
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
 
-Total: `17`
+Total: `18`
 
 Chemin interne retenu pour viser `19 / 14`:
 
-- `[Minor][1]` Support navigateurs additionnels
 - `[Minor][1]` Health check + status page
 
-Ces 2 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demonstrables.
+Le seul module encore en statut `Partiel` dans la cible `19 / 14` est `Health check + status page`.
 
 ## Matrice de conformite
 
@@ -68,7 +68,7 @@ Ces 2 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 | Interaction utilisateurs (chat, profil, amis) | Major | Fait | chat room WS (`backend/src/modules/realtime`), `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, APIs `friends/users` | - | Frontend + Backend Social | PR #12 + lot audit/remediation 2026-04-18 |
 | ORM | Minor | Fait | Prisma schema + migrations (`backend/prisma`) | - | Backend Data | Historique |
 | Notifications create/update/delete | Minor | Fait | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `DELETE /notifications/:id`, event `notification:new`, UI dans `frontend/src/pages/FriendsPage.tsx`, test `backend/scripts/social-integration-test.mjs` | - | Frontend | lot notifications 2026-04-18 |
-| Support navigateurs additionnels | Minor | Partiel | verifications locales de flux et roadmap `docs/front-handover-roadmap.md` | recette formelle Chrome/Firefox/Safari a consigner | QA Front | A faire |
+| Support navigateurs additionnels | Minor | Fait | suite Playwright `frontend/tests/browser-compat.spec.ts`, config `frontend/playwright.config.ts`, commande `make browser-test`, matrice `docs/browser-compatibility-matrix.md` | - | QA Front | lot browsers 2026-04-18 |
 | User management (profile/avatar/friends/status) | Major | Partiel | `GET/PATCH /users/me`, `GET /users/:id`, `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, status online/offline alimente par auth | pas d'edition manuelle du status, avatar par URL uniquement, pas d'upload natif | Frontend | PR #12 + lot audit/remediation 2026-04-18 |
 | Stats + historique | Minor | Fait | `GET /scores/leaderboard`, `GET /scores/users/:userId`, `GET /scores/users/:userId/history`, page `frontend/src/pages/LeaderboardPage.tsx`, historique recent dans `frontend/src/pages/ProfilePage.tsx`, progression/level/achievements visibles | - | Frontend | lot stats-history 2026-04-18 |
 | Remote auth OAuth2 | Minor | Fait | OAuth 42 (`/auth/42/start`, `/auth/42/callback`) | - | Backend Auth | Historique |
@@ -83,12 +83,9 @@ Ces 2 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 
 ## Cible 19 points
 
-Les 2 modules actifs a fermer en priorite sont:
+Le module actif a fermer en priorite est:
 
-1. `Support navigateurs additionnels`
-Ce que demande le sujet: compatibilite complete avec au moins `2` navigateurs additionnels, test/fix des features dans chaque navigateur, limitations documentees, UI/UX coherente.
-
-2. `Health check + status page`
+1. `Health check + status page`
 Ce que demande le sujet: health/status page avec sauvegardes automatisees et procedures de reprise/disaster recovery.
 
 ## Plan d'action documentaire

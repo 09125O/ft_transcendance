@@ -34,6 +34,7 @@ Regle: un owner principal par ticket. Le support peut coder directement dans l'a
 Statut courant:
 - Ticket A ferme le 2026-04-18
 - Ticket B ferme le 2026-04-18
+- Ticket C ferme le 2026-04-18
 - Ticket D ferme le 2026-04-18
 
 ## 3) Modules non vises dans le plan interne courant

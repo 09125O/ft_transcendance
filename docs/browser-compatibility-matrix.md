@@ -1,0 +1,84 @@
+# Browser Compatibility Matrix
+
+Date: 2026-04-18
+Scope: preuve versionnee pour le module `Support for additional browsers`, alignee sur `srcs_subject/en.subject.pdf` et `srcs_subject/Intra Projects ft_transcendence Edit.pdf`.
+
+Important:
+
+- ce document decrit la preuve de compatibilite actuellement executee sur `dev`
+- il ne remplace pas le sujet officiel
+- la source de verite implementation reste le code et la suite Playwright dans `frontend/tests/browser-compat.spec.ts`
+
+## Navigateurs couverts
+
+Evidence automatisee executee avec `Playwright 1.59.1` :
+
+| Famille | Version validee | Mode de preuve |
+|---|---|---|
+| Chromium / Chrome-family | `147.0.7727.15` | Playwright project `chromium` |
+| Firefox | `148.0.2` | Playwright project `firefox` |
+| WebKit / Safari-family | `26.4` | Playwright project `webkit` |
+
+Contexte machine de dev :
+
+- Google Chrome installe: `147.0.7727.56`
+- Safari installe: `26.3.1`
+
+## Commandes de preuve
+
+Pre-requis:
+
+1. `make up`
+2. `make test-stack`
+3. `cd frontend && npm run test:browsers:install` sur une machine qui n'a pas encore les moteurs Playwright
+
+Commande principale:
+
+```bash
+make browser-test
+```
+
+Equivalent direct:
+
+```bash
+cd frontend
+npm run test:browsers
+```
+
+## Parcours verifies
+
+Suite automatisee `frontend/tests/browser-compat.spec.ts` :
+
+1. chargement des routes publiques `/`, `/leaderboard`, `/login`
+2. verification des headings et de la navigation de base
+3. connexion invite depuis `/login`
+4. navigation authentifiee vers `/friends` et `/profile`
+5. ouverture de `/quiz-ready`
+6. ouverture du configurateur de room depuis la selection officielle
+7. changement de `Temps par question`
+8. creation d'une room
+9. verification du pre-match (`Pré-match`, `Démarrer la partie`, `10s`)
+10. sortie de room et retour lobby
+
+## Resultat courant
+
+Statut: `OK`
+
+- `chromium`: passe
+- `firefox`: passe
+- `webkit`: passe
+
+Aucun ecart critique de layout ou de navigation n'a ete observe sur les ecrans testes.
+
+## Limitations connues
+
+- au chargement anonyme, `/auth/session` retourne `401` tant qu'aucune session n'existe ; ce comportement est attendu et n'est pas specifique a un navigateur
+- la preuve automatisee cible le parcours principal desktop et non un audit mobile complet
+- la preuve WebKit couvre la famille Safari via le moteur WebKit Playwright ; toute revendication finale doit rester formulee comme `Chrome-family + Firefox + Safari/WebKit-family`
+
+## Fichiers de reference
+
+- `frontend/playwright.config.ts`
+- `frontend/tests/browser-compat.spec.ts`
+- `docs/sujet-conformite-matrice.md`
+- `docs/front-handover-roadmap.md`
