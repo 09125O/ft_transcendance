@@ -26,7 +26,6 @@ Disponible et demonstrable aujourd'hui :
 
 Points encore partiels ou non implementes :
 
-- pas de page leaderboard globale ni d'historique de parties dedie
 - pas de recette multi-browser formelle documentee
 
 Decisions internes de priorisation pour le projet courant :
@@ -63,7 +62,7 @@ Regle de lecture documentaire :
 
 ## Modules claimed
 
-Estimation interne argumentee aujourd'hui : `16 / 14`
+Estimation interne argumentee aujourd'hui : `17 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -74,21 +73,21 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Minor][1]` Notification system
 - `[Minor][1]` Remote authentication
 - `[Minor][1]` Game customization options
+- `[Minor][1]` Game statistics and match history
 - `[Major][2]` Web-based game
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `16 points`
+Total estime revendicable aujourd'hui : `17 points`
 
 ## Path to 19
 
 Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
 
 - `[Minor][1]` Support for additional browsers
-- `[Minor][1]` Game statistics and match history
 - `[Minor][1]` Health check & status page
 
-Ces 3 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
+Ces 2 modules sont **vises**, mais pas encore revendiques comme valides tant qu'ils ne sont pas fermes et demonstrables.
 
 Regle pratique pour la revue Intra :
 
@@ -218,6 +217,7 @@ Exemples de routes clefs :
 - `GET /game/:roomId/state`
 - `GET /scores/leaderboard?limit=10`
 - `GET /scores/users/:userId`
+- `GET /scores/users/:userId/history?limit=10`
 - `GET /quizzes`
 - `GET /quizzes/:quizId`
 - `POST /quizzes` avec cookie `access_token`

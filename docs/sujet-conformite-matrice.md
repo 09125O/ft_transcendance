@@ -34,7 +34,7 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `16 / 14`
+Estimation interne argumentee aujourd'hui: `17 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -45,19 +45,19 @@ Modules actuellement revendicables sans sur-promesse:
 - `[Minor][1]` Notification system
 - `[Minor][1]` Remote auth OAuth2
 - `[Minor][1]` Game customization options
+- `[Minor][1]` Stats + historique
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
 
-Total: `16`
+Total: `17`
 
 Chemin interne retenu pour viser `19 / 14`:
 
 - `[Minor][1]` Support navigateurs additionnels
-- `[Minor][1]` Stats + historique
 - `[Minor][1]` Health check + status page
 
-Ces 3 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demonstrables.
+Ces 2 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demonstrables.
 
 ## Matrice de conformite
 
@@ -70,7 +70,7 @@ Ces 3 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 | Notifications create/update/delete | Minor | Fait | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `DELETE /notifications/:id`, event `notification:new`, UI dans `frontend/src/pages/FriendsPage.tsx`, test `backend/scripts/social-integration-test.mjs` | - | Frontend | lot notifications 2026-04-18 |
 | Support navigateurs additionnels | Minor | Partiel | verifications locales de flux et roadmap `docs/front-handover-roadmap.md` | recette formelle Chrome/Firefox/Safari a consigner | QA Front | A faire |
 | User management (profile/avatar/friends/status) | Major | Partiel | `GET/PATCH /users/me`, `GET /users/:id`, `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, status online/offline alimente par auth | pas d'edition manuelle du status, avatar par URL uniquement, pas d'upload natif | Frontend | PR #12 + lot audit/remediation 2026-04-18 |
-| Stats + historique | Minor | Partiel | `GET /scores/leaderboard`, `GET /scores/users/:userId`, bloc stats profil `frontend/src/pages/ProfilePage.tsx` | pas de page leaderboard globale ni d'historique de parties dedie | Frontend | lot audit/remediation 2026-04-18 |
+| Stats + historique | Minor | Fait | `GET /scores/leaderboard`, `GET /scores/users/:userId`, `GET /scores/users/:userId/history`, page `frontend/src/pages/LeaderboardPage.tsx`, historique recent dans `frontend/src/pages/ProfilePage.tsx`, progression/level/achievements visibles | - | Frontend | lot stats-history 2026-04-18 |
 | Remote auth OAuth2 | Minor | Fait | OAuth 42 (`/auth/42/start`, `/auth/42/callback`) | - | Backend Auth | Historique |
 | 2FA | Minor | Non vise | - | retire du plan interne courant | Backend Auth | Decision produit 2026-04-18 |
 | Web-based game realtime multiplayer | Major | Fait | `rooms/game/ws` backend + `frontend/src/components/Quiz/GamePanel.tsx` + flux quiz -> room -> game | - | Fullstack Game | PR #4 + PR #12 + lot audit/remediation 2026-04-18 |
@@ -83,15 +83,12 @@ Ces 3 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 
 ## Cible 19 points
 
-Les 3 modules actifs a fermer en priorite sont:
+Les 2 modules actifs a fermer en priorite sont:
 
 1. `Support navigateurs additionnels`
 Ce que demande le sujet: compatibilite complete avec au moins `2` navigateurs additionnels, test/fix des features dans chaque navigateur, limitations documentees, UI/UX coherente.
 
-2. `Stats + historique`
-Ce que demande le sujet: statistiques de jeu, historique de matchs, progression/achievements et integration leaderboard. Ce module exige deja un jeu fonctionnel.
-
-3. `Health check + status page`
+2. `Health check + status page`
 Ce que demande le sujet: health/status page avec sauvegardes automatisees et procedures de reprise/disaster recovery.
 
 ## Plan d'action documentaire
@@ -110,7 +107,7 @@ Ce que demande le sujet: health/status page avec sauvegardes automatisees et pro
 2. Creation ou jointure de room, avec verification visible de `questionDurationMs` et des etats `waiting` / `playing`.
 3. Demarrage de partie et reception question/timer en temps reel avec la duree configuree.
 4. Soumission de reponse et mise a jour du leaderboard room.
-5. Consultation des stats utilisateur dans le profil.
+5. Consultation du leaderboard global puis des stats et de l'historique utilisateur.
 6. Envoi d'une demande d'ami puis acceptation.
 7. Reception d'une notification puis marquage lu.
 8. Verification que le refresh d'une room conserve la place pendant le delai de grace.

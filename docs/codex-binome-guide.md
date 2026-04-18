@@ -33,6 +33,7 @@ Regle: un owner principal par ticket. Le support peut coder directement dans l'a
 
 Statut courant:
 - Ticket A ferme le 2026-04-18
+- Ticket B ferme le 2026-04-18
 - Ticket D ferme le 2026-04-18
 
 ## 3) Modules non vises dans le plan interne courant
@@ -142,9 +143,6 @@ Travaille avec ces contraintes:
 ## 9) Ordre de priorite commun
 
 P0:
-- Ticket B (stats / historique demonstrables)
-
-P1:
 - Ticket C (support navigateurs additionnels + dossier de demo)
 - Ticket E (health check + status page)
 

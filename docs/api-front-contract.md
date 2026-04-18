@@ -172,6 +172,28 @@ type UserScore = {
   username: string;
   score: number;
   wins: number;
+  losses: number;
+  gamesPlayed: number;
+  rank: number | null;
+  level: number;
+};
+```
+
+`MatchHistoryEntry`:
+
+```ts
+type MatchHistoryEntry = {
+  gameId: number;
+  roomId: number;
+  roomName: string;
+  quizId: number;
+  quizTitle: string;
+  playedAt: string;
+  finalScore: number;
+  rank: number | null;
+  isWinner: boolean;
+  totalPlayers: number;
+  opponents: Array<{ userId: number; username: string }>;
 };
 ```
 
@@ -495,11 +517,18 @@ type FriendRequestEntry = {
 - Reponse: `200`, `ApiResponse<UserScore>`
 - Erreurs:
   - `400 BAD_REQUEST`
-  - `404 NOT_FOUND` si score absent
+  - `404 NOT_FOUND` si user absent
+
+`GET /scores/users/:userId/history?limit=10`
+- `limit` par defaut: `10`
+- Reponse: `200`, `ApiResponse<MatchHistoryEntry[]>`
+- Erreurs:
+  - `400 BAD_REQUEST`
+  - `404 NOT_FOUND` si user absent
 
 Note front actuelle:
-- Le profil consomme deja `GET /scores/users/:userId`.
-- Il n'existe pas encore de page leaderboard globale dediee dans l'UI.
+- Le profil consomme `GET /scores/users/:userId` et `GET /scores/users/:userId/history`.
+- La page `frontend/src/pages/LeaderboardPage.tsx` consomme `GET /scores/leaderboard` et expose le classement global.
 
 ### Notifications
 

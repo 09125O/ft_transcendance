@@ -9,7 +9,11 @@ import {
   Query,
   UseFilters,
 } from "@nestjs/common";
-import { ScoresService, UserScore } from "./scores.service";
+import {
+  MatchHistoryEntry,
+  ScoresService,
+  UserScore,
+} from "./scores.service";
 
 @Controller("scores")
 @UseFilters(ApiExceptionFilter)
@@ -28,5 +32,13 @@ export class ScoresController {
     @Param("userId", ParseIntPipe) userId: number,
   ): Promise<ApiResponse<UserScore>> {
     return ok(await this.scoresService.getUserScore(userId));
+  }
+
+  @Get("users/:userId/history")
+  async getUserMatchHistory(
+    @Param("userId", ParseIntPipe) userId: number,
+    @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<ApiResponse<MatchHistoryEntry[]>> {
+    return ok(await this.scoresService.getUserMatchHistory(userId, limit));
   }
 }

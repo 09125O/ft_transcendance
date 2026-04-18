@@ -154,6 +154,8 @@ export class GameService {
     questionDurationMs: number,
   ): Promise<GameState> {
     const room = await this.roomsService.getById(roomId);
+    const quizId =
+      typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
     const runtime: RoomRuntime = {
       answeredByQuestion: new Map(),
       scoresByUser: new Map(),
@@ -164,42 +166,54 @@ export class GameService {
       runtime,
     );
     const now = new Date();
+    const startedAt = room.startedAt ? new Date(room.startedAt) : now;
 
-    const state = await this.prisma.client.roomGameState.upsert({
-      where: { roomId },
-      update: {
-        status: "playing",
-        currentQuestionId: null,
-        currentQuestionNumber: 0,
-        totalQuestions: Math.max(1, totalQuestions),
-        questionDurationMs,
-        questionStartedAt: null,
-        questionEndsAt: null,
-        answersForCurrentQuestion: 0,
-        totalAnswers: 0,
-        winnerUserId: null,
-        startedAt: room.startedAt ? new Date(room.startedAt) : now,
-        endedAt: null,
-        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
-        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
-      },
-      create: {
-        roomId,
-        status: "playing",
-        currentQuestionId: null,
-        currentQuestionNumber: 0,
-        totalQuestions: Math.max(1, totalQuestions),
-        questionDurationMs,
-        questionStartedAt: null,
-        questionEndsAt: null,
-        answersForCurrentQuestion: 0,
-        totalAnswers: 0,
-        winnerUserId: null,
-        startedAt: room.startedAt ? new Date(room.startedAt) : now,
-        endedAt: null,
-        answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
-        scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
-      },
+    const state = await this.prisma.client.$transaction(async (tx) => {
+      await tx.game.create({
+        data: {
+          roomId,
+          quizId,
+          status: "in_progress",
+          startedAt,
+        },
+      });
+
+      return tx.roomGameState.upsert({
+        where: { roomId },
+        update: {
+          status: "playing",
+          currentQuestionId: null,
+          currentQuestionNumber: 0,
+          totalQuestions: Math.max(1, totalQuestions),
+          questionDurationMs,
+          questionStartedAt: null,
+          questionEndsAt: null,
+          answersForCurrentQuestion: 0,
+          totalAnswers: 0,
+          winnerUserId: null,
+          startedAt,
+          endedAt: null,
+          answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+          scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+        },
+        create: {
+          roomId,
+          status: "playing",
+          currentQuestionId: null,
+          currentQuestionNumber: 0,
+          totalQuestions: Math.max(1, totalQuestions),
+          questionDurationMs,
+          questionStartedAt: null,
+          questionEndsAt: null,
+          answersForCurrentQuestion: 0,
+          totalAnswers: 0,
+          winnerUserId: null,
+          startedAt,
+          endedAt: null,
+          answeredByQuestion: this.serializeAnsweredByQuestion(runtime.answeredByQuestion),
+          scoresByUser: this.serializeScoresByUser(runtime.scoresByUser),
+        },
+      });
     });
 
     return this.toGameState(state, this.buildLeaderboard(runtime));
@@ -317,13 +331,75 @@ export class GameService {
     const runtime = this.deserializeRuntime(state);
     const leaderboard = this.buildLeaderboard(runtime);
     const endedAt = room.finishedAt ? new Date(room.finishedAt) : new Date();
-    const finished = await this.prisma.client.roomGameState.update({
-      where: { roomId },
-      data: {
-        status: "finished",
-        winnerUserId: leaderboard[0]?.userId ?? null,
-        endedAt,
-      },
+    const winnerUserId = leaderboard[0]?.userId ?? null;
+    const persistedRows = leaderboard.map((entry, index) => ({
+      userId: entry.userId,
+      finalScore: entry.score,
+      rank: index + 1,
+      isWinner: entry.userId === winnerUserId,
+    }));
+    const quizId =
+      typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
+
+    const finished = await this.prisma.client.$transaction(async (tx) => {
+      const activeGame = await tx.game.findFirst({
+        where: {
+          roomId,
+          status: {
+            in: ["waiting", "in_progress"],
+          },
+        },
+        orderBy: [{ createdAt: "desc" }],
+        select: { id: true },
+      });
+
+      const game =
+        activeGame
+          ? await tx.game.update({
+              where: { id: activeGame.id },
+              data: {
+                status: "finished",
+                winnerUserId,
+                finishedAt: endedAt,
+              },
+              select: { id: true },
+            })
+          : await tx.game.create({
+              data: {
+                roomId,
+                quizId,
+                status: "finished",
+                winnerUserId,
+                startedAt: room.startedAt ? new Date(room.startedAt) : endedAt,
+                finishedAt: endedAt,
+              },
+              select: { id: true },
+            });
+
+      await tx.leaderboard.deleteMany({
+        where: { gameId: game.id },
+      });
+
+      if (persistedRows.length > 0) {
+        await tx.leaderboard.createMany({
+          data: persistedRows.map((entry) => ({
+            gameId: game.id,
+            userId: entry.userId,
+            finalScore: entry.finalScore,
+            rank: entry.rank,
+            isWinner: entry.isWinner,
+          })),
+        });
+      }
+
+      return tx.roomGameState.update({
+        where: { roomId },
+        data: {
+          status: "finished",
+          winnerUserId,
+          endedAt,
+        },
+      });
     });
 
     return this.toGameState(finished, leaderboard);

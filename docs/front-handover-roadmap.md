@@ -22,7 +22,6 @@ Le front couvre aujourd'hui :
 
 Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
-- page leaderboard globale / historique
 - recette multi-browser formelle
 - surface health / status minimale et dossier de preuve associe
 
@@ -52,6 +51,7 @@ Note:
 - Profil utilisateur
 - Page amis + demandes + notifications
 - Stats utilisateur dans le profil
+- Page leaderboard globale + historique recent
 
 References:
 - docs/api-front-contract.md
@@ -61,7 +61,6 @@ References:
 
 ### Gaps front visibles dans le scope courant
 
-- Pas de page leaderboard globale ni d'historique de parties
 - Pas de cloche notifications en navbar ni de pattern toast unifie
 - Pas de recette multi-browser formalisee dans la doc
 - Il n'existe pas de vraie status page cote front
@@ -70,10 +69,8 @@ References:
 
 Ordre retenu pour viser `19` avec le moins de risque :
 
-1. `Game customization options`
-2. `Game statistics and match history`
-3. `Support for additional browsers`
-4. `Health check & status page`
+1. `Support for additional browsers`
+2. `Health check & status page`
 
 ### Ticket R1 - Game customization options (ferme)
 
@@ -90,12 +87,13 @@ Reference sujet:
 Statut:
 - ferme et demonstrable
 
-### Ticket R2 - Game statistics and match history
+### Ticket R2 - Game statistics and match history (ferme)
 
-- Ajouter une page dediee aux scores
-- Reutiliser `GET /scores/leaderboard`
-- Ajouter un historique de matchs avec date, resultat et adversaire(s)
-- Completer le profil ou la page scores avec les informations necessaires pour rendre le module revendicable
+- page `LeaderboardPage` ajoutee au routing et a la navigation
+- `GET /scores/leaderboard` expose maintenant score, wins, losses, games played, rank et level
+- `GET /scores/users/:userId/history` expose l'historique de matchs avec date, resultat, rang et opposants
+- le profil affiche maintenant stats enrichies + historique recent
+- progression et achievements visibles sur la page leaderboard
 
 Reference sujet:
 - "Track user game statistics (wins, losses, ranking, level, etc.)"
@@ -103,11 +101,8 @@ Reference sujet:
 - "Show achievements and progression"
 - "Leaderboard integration"
 
-Definition of Done:
-- navigation visible depuis le front
-- etats `loading`, `empty`, `error`, `ready`
-- historique demonstrable, pas seulement des stats agregees
-- preuve de module compatible revue Intra
+Statut:
+- ferme et demonstrable
 
 ### Ticket R3 - Support for additional browsers
 
@@ -183,9 +178,6 @@ Definition of Done:
 ## 6) Backlog priorise
 
 P0:
-- R2 Game statistics and match history
-
-P1:
 - R3 Support for additional browsers
 - R5 Health check & status page
 

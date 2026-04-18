@@ -47,6 +47,11 @@ export class RoomsService {
 
   async list(): Promise<Array<Omit<Room, "passwordHash">>> {
     const rooms = await this.prisma.client.room.findMany({
+      where: {
+        players: {
+          some: {},
+        },
+      },
       orderBy: { createdAt: "desc" },
       include: {
         players: {
@@ -347,8 +352,35 @@ export class RoomsService {
       throw new ConflictException("Cannot close a room while game is playing");
     }
 
-    await this.prisma.client.room.delete({
-      where: { id: roomId },
+    const persistedGamesCount = await this.prisma.client.game.count({
+      where: { roomId },
+    });
+
+    await this.prisma.client.$transaction(async (tx) => {
+      await tx.messages.deleteMany({
+        where: { roomId },
+      });
+      await tx.roomPlayer.deleteMany({
+        where: { roomId },
+      });
+
+      if (persistedGamesCount === 0) {
+        await tx.room.delete({
+          where: { id: roomId },
+        });
+        return;
+      }
+
+      await tx.room.update({
+        where: { id: roomId },
+        data: {
+          ownerId: null,
+          status: "finished",
+          isPrivate: false,
+          passwordHash: null,
+          finishedAt: room.finishedAt ? new Date(room.finishedAt) : new Date(),
+        },
+      });
     });
 
     return { roomId };

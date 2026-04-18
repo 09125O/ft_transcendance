@@ -109,6 +109,9 @@ export default function Navbar() {
           Quiz Arena
         </Link>
         <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:gap-5">
+          <Link className="text-sm font-medium text-text" to="/leaderboard">
+            Leaderboard
+          </Link>
           {currentUser !== null ? (
             <>
               {isFortyTwoOauthUser(currentUser.email) ? (
