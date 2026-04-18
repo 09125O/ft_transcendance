@@ -31,13 +31,17 @@ Ce guide definit un cadre simple:
 
 Regle: un owner principal par ticket. Le support peut coder directement dans l'autre scope si cela debloque.
 
-## 3) Hors scope courant
+## 3) Modules non vises dans le plan interne courant
 
 Ne pas rouvrir ces sujets sans decision explicite:
 
 - mode spectateur cote UI
 - `2FA`
 - `SSR`
+
+Important:
+- ces modules existent bien dans les PDFs officiels
+- cette liste ne change pas le sujet, elle borne seulement le plan interne courant
 
 ## 3bis) Rappel evaluation
 

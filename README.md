@@ -31,11 +31,15 @@ Points encore partiels ou non implementes :
 - pas de recette multi-browser formelle documentee
 - les notifications restent principalement consommees via HTTP dans la page amis; le front n'ecoute pas encore `notification:new`
 
-Hors scope du projet courant :
+Decisions internes de priorisation pour le projet courant :
 
 - mode spectateur UI
 - `2FA`
 - `SSR`
+
+Important :
+- ces modules existent bien dans `srcs_subject/en.subject.pdf`
+- cette liste n'est pas une reinterpretation du sujet, seulement une priorisation interne
 
 ## References evaluation
 
@@ -53,9 +57,15 @@ Rappels issus de ces PDFs :
 - un module incomplet ou non demonstrable vaut `0 point`
 - le bonus au-dela de `14` est plafonne a `+5`
 
+Regle de lecture documentaire :
+
+- verite officielle `sujet + evaluation` = `srcs_subject/en.subject.pdf` et `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
+- verite `implementation` = le code dans `frontend/`, `backend/` et les contrats techniques dans `docs/api-front-contract.md`, `docs/ws-event-contract.md`, `docs/front2-realtime-integration.md`
+- les sections ci-dessous sont une lecture de pilotage interne, pas un remplacement des PDFs
+
 ## Modules claimed
 
-Score valide aujourd'hui par l'implementation courante : `14 / 14`
+Estimation interne argumentee aujourd'hui : `14 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -68,11 +78,11 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total revendicable aujourd'hui : `14 points`
+Total estime revendicable aujourd'hui : `14 points`
 
 ## Path to 19
 
-Chemin retenu pour atteindre `19 / 14` avec le moins de risque :
+Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
 
 - `[Minor][1]` Notification system
 - `[Minor][1]` Support for additional browsers
@@ -85,7 +95,7 @@ Ces 5 modules sont **vises**, mais pas encore revendiques comme valides tant qu'
 Regle pratique pour la revue Intra :
 
 - preferer `5` modules `Minor` fermes proprement plutot qu'un `Major` partiel
-- ne pas rouvrir `mode spectateur UI`, `2FA` ou `SSR` pour la cible `19`
+- ne pas rouvrir `mode spectateur UI`, `2FA` ou `SSR` dans ce plan interne vers `19`
 - garder le README honnete : only claim what can actually be demonstrated
 
 ## Demarrage local
@@ -244,8 +254,8 @@ Documents de reference a lire en priorite :
 
 ## Conformite sujet
 
-La source de verite est `docs/sujet-conformite-matrice.md`.
-Les statuts courants utilises par cette matrice sont `Fait`, `Partiel` et `Hors scope`.
+La source de verite pour le barème reste les 2 PDFs du dossier `srcs_subject/`.
+`docs/sujet-conformite-matrice.md` est une matrice de travail derivee de ces PDFs et de l'etat du code.
 
 Pour la cible produit actuelle :
 

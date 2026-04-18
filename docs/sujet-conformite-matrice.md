@@ -6,13 +6,22 @@ Sources:
 - `srcs_subject/en.subject.pdf`
 - `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
 
-Derniere verification: alignement doc sur l'implementation de `dev` + cadrage explicite du chemin `14 -> 19`
+Derniere verification: lecture interne du projet a partir des PDFs officiels et de l'etat courant de `dev`
+
+Important:
+
+- la verite officielle pour la liste des modules, leur nature `Major/Minor` et le cadre d'evaluation reste strictement dans :
+  - `srcs_subject/en.subject.pdf`
+  - `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
+- ce document est une matrice de travail
+- les statuts ci-dessous decrivent l'etat estime du projet et les decisions internes de priorisation
+- ils ne remplacent ni le texte du sujet, ni la decision finale des evaluateurs
 
 ## Legende
 
 - `Fait`: implemente et demonstrable
 - `Partiel`: implemente en partie ou couverture produit incomplete
-- `Hors scope`: non retenu dans le projet courant
+- `Non vise`: module bien present dans le sujet officiel, mais non retenu dans le plan interne courant
 
 ## Regles de score
 
@@ -25,7 +34,7 @@ Derniere verification: alignement doc sur l'implementation de `dev` + cadrage ex
 
 ## Score courant et cible
 
-Score valide aujourd'hui sur l'implementation actuelle: `14 / 14`
+Estimation interne argumentee aujourd'hui: `14 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -40,7 +49,7 @@ Modules actuellement revendicables sans sur-promesse:
 
 Total: `14`
 
-Chemin retenu pour atteindre `19 / 14`:
+Chemin interne retenu pour viser `19 / 14`:
 
 - `[Minor][1]` Notifications create/update/delete
 - `[Minor][1]` Support navigateurs additionnels
@@ -63,13 +72,13 @@ Ces 5 modules restent en statut `Partiel` tant qu'ils ne sont pas fermes et demo
 | User management (profile/avatar/friends/status) | Major | Partiel | `GET/PATCH /users/me`, `GET /users/:id`, `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, status online/offline alimente par auth | pas d'edition manuelle du status, avatar par URL uniquement, pas d'upload natif | Frontend | PR #12 + lot audit/remediation 2026-04-18 |
 | Stats + historique | Minor | Partiel | `GET /scores/leaderboard`, `GET /scores/users/:userId`, bloc stats profil `frontend/src/pages/ProfilePage.tsx` | pas de page leaderboard globale ni d'historique de parties dedie | Frontend | lot audit/remediation 2026-04-18 |
 | Remote auth OAuth2 | Minor | Fait | OAuth 42 (`/auth/42/start`, `/auth/42/callback`) | - | Backend Auth | Historique |
-| 2FA | Minor | Hors scope | - | retire du projet courant | Backend Auth | Decision produit 2026-04-18 |
+| 2FA | Minor | Non vise | - | retire du plan interne courant | Backend Auth | Decision produit 2026-04-18 |
 | Web-based game realtime multiplayer | Major | Fait | `rooms/game/ws` backend + `frontend/src/components/Quiz/GamePanel.tsx` + flux quiz -> room -> game | - | Fullstack Game | PR #4 + PR #12 + lot audit/remediation 2026-04-18 |
 | Remote players (machines separees) | Major | Fait | architecture client/server + WS + smoke tests WebSocket | - | Fullstack Realtime | Historique + lot audit/remediation 2026-04-18 |
 | Multiplayer >2 | Major | Fait | rooms multi-joueurs, protections metier, `scores/leaderboard` | - | Backend Game | Historique |
 | Game customization options | Minor | Partiel | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, creation de quiz cote front | le selecteur UI "temps par question" n'est pas encore branche au backend | Product + Frontend | PR #12 + lot audit/remediation 2026-04-18 |
-| Spectator mode | Minor | Hors scope | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le projet courant | Frontend Realtime | Decision produit 2026-04-18 |
-| SSR | Minor | Hors scope | - | retire du projet courant | Frontend | Decision produit 2026-04-18 |
+| Spectator mode | Minor | Non vise | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le plan interne courant | Frontend Realtime | Decision produit 2026-04-18 |
+| SSR | Minor | Non vise | - | retire du plan interne courant | Frontend | Decision produit 2026-04-18 |
 | Health check + status page | Minor | Partiel | `/health`, `scripts/smoke-test.sh`, `make test-stack` | pas de vraie status page ni de doc ops/backup formalisee | DevOps | lot audit/remediation 2026-04-18 |
 
 ## Cible 19 points
@@ -96,7 +105,7 @@ Ce que demande le sujet: health/status page avec sauvegardes automatisees et pro
 1. Mettre a jour ce tableau a chaque merge impactant API/WS/front.
 2. Exiger une preuve par ligne `Fait` (fichier, endpoint, event, test).
 3. Garder les lignes `Partiel` explicites pour prioriser les lots restants.
-4. Garder les lignes `Hors scope` explicites pour eviter de reintroduire des objectifs abandonnes.
+4. Garder les lignes `Non vise` explicites pour eviter de confondre sujet officiel et priorisation interne.
 5. Maintenir `docs/design-system/transcendance-web-app/MASTER.md` synchronise avec l'implementation front.
 6. Maintenir `docs/design-system/transcendance-web-app/pages/lobby.md` synchronise avec la page lobby reelle.
 7. Maintenir `docs/design-system/transcendance-web-app/pages/game-room.md` synchronise avec le flux room reel.

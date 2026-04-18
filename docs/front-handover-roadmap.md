@@ -1,7 +1,13 @@
 # Front Handover Roadmap
 
 Date: 2026-04-18
-Contexte: le frontend et le backend sont alignes sur les flux critiques. Ce document suit les ecarts encore actifs dans le scope courant et le chemin retenu pour passer de `14` a `19` points selon `en.subject.pdf` et `Intra Projects ft_transcendence Edit.pdf`.
+Contexte: le frontend et le backend sont alignes sur les flux critiques. Ce document suit les ecarts encore actifs et le chemin interne retenu pour viser `19` points a partir des exigences officielles de `en.subject.pdf` et `Intra Projects ft_transcendence Edit.pdf`.
+
+Important:
+
+- les modules officiels et leur score viennent uniquement des 2 PDFs
+- cette roadmap ne redefinit pas le sujet
+- elle decrit seulement l'ordre interne de priorisation retenu par le projet
 
 ## 1) Resume executif
 
@@ -22,9 +28,9 @@ Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 - alignement end-to-end de la duree par question
 - surface health / status minimale et dossier de preuve associe
 
-## 2) Hors scope courant
+## 2) Modules non vises dans le plan interne courant
 
-Les points suivants ne font plus partie du plan actif du projet :
+Les points suivants existent bien dans le sujet officiel, mais ne font plus partie du plan actif retenu :
 
 - mode spectateur cote UI
 - `2FA`
@@ -228,6 +234,6 @@ P2:
 
 ## 11) Quick wins doc
 
-1. Maintenir `docs/sujet-conformite-matrice.md` comme source de verite sujet.
+1. Maintenir les 2 PDFs comme source de verite sujet et `docs/sujet-conformite-matrice.md` comme lecture de travail derivee.
 2. Garder une mini checklist de demo executable sans connaissance interne du code.
 3. Verifier que cette roadmap reste descriptive du reel et non du plan passe.
