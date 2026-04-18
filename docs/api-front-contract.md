@@ -1,6 +1,6 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-04-17)
+Version: v1 (etat actuel de `dev` au 2026-04-18)
 Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, notifications
 
 ## Etat de persistance (important)
@@ -37,6 +37,7 @@ Consequence:
 
 Important:
 - Toujours envoyer `credentials: "include"` cote front pour la session cookie.
+- Les navigations HTML vers `/friends` et `/notifications` restent traitees par React Router; seules les requetes non HTML sont proxyfiees.
 
 ## Format de reponse (commun)
 
@@ -299,6 +300,10 @@ Note:
   - `401 UNAUTHORIZED`
   - `409 CONFLICT` si username deja pris
 
+Note front actuelle:
+- L'ecran profil edite actuellement `username` et `avatar_url`.
+- Le champ `status` existe dans le contrat backend, mais le front affiche surtout le statut derive de la session (`online` / `offline`).
+
 ### Friends
 
 `GET /friends`
@@ -413,6 +418,7 @@ type FriendRequestEntry = {
   - Le nombre de manches effectif est limite au nombre de questions disponibles dans le quiz.
   - Si `quizId` est omis, le backend utilise le quiz par defaut `"Culture générale"` (seed Prisma) au demarrage.
   - Si ce quiz par defaut est absent, le demarrage de partie echoue avec `409 CONFLICT`.
+  - La duree par question n'est pas configurable par room dans le contrat actuel; elle reste globale via `GAME_QUESTION_DURATION_MS`.
 
 `POST /rooms/:roomId/join`
 - Auth: cookie `access_token` requis
@@ -476,6 +482,10 @@ type FriendRequestEntry = {
   - `400 BAD_REQUEST`
   - `404 NOT_FOUND` si score absent
 
+Note front actuelle:
+- Le profil consomme deja `GET /scores/users/:userId`.
+- Il n'existe pas encore de page leaderboard globale dediee dans l'UI.
+
 ### Notifications
 
 `GET /notifications?limit=20&cursor=...`
@@ -509,6 +519,9 @@ type NotificationList = {
 `PATCH /notifications/read-all`
 - Auth: cookie `access_token` requis
 - Reponse: `200`, `ApiResponse<{ readAll: true }>`
+
+Limite actuelle:
+- aucun endpoint de suppression n'est expose dans l'etat actuel
 
 ### Quizzes
 
@@ -550,6 +563,11 @@ type NotificationList = {
 - Erreurs:
   - `401 UNAUTHORIZED`
   - `429 TOO_MANY_REQUESTS` apres abus de creation
+
+Notes:
+- route protegee par `AuthGuard`
+- throttle dedie: `10` creations par minute
+- le front actuel expose un ecran de creation de quiz dans le lobby
 
 ## Notes de stabilite
 

@@ -1,6 +1,6 @@
 # Codex Binome Guide (Backend + Frontend)
 
-Date: 2026-04-17
+Date: 2026-04-18
 Scope: mode de travail pour 2 personnes avec Codex, sans blocage inter-scope.
 
 ## 1) Objectif
@@ -13,13 +13,13 @@ Ce guide definit un cadre simple:
 
 ## 2) Repartition des tickets (owner principal)
 
-- Ticket A - Contrat + duree par question:
+- Ticket A - Duree par question vraiment branchee end-to-end:
   - Owner principal: Backend
   - Support: Frontend
-- Ticket B - Stabilisation UX realtime game:
+- Ticket B - Fermeture spectator + stats/historique:
   - Owner principal: Frontend
   - Support: Backend
-- Ticket C - Fermeture modules sujet visibles (profil/amis/notifications/spectateur/QA navigateurs):
+- Ticket C - QA multi-browser + dossier de demo + hygiene doc:
   - Owner principal: Frontend
   - Support: Backend
 
@@ -82,6 +82,11 @@ Une tache est terminee si:
 4. Docs impactees mises a jour dans la meme PR.
 5. Matrice sujet mise a jour avec preuve.
 
+## 6bis) Regle commit binome
+
+- Avant chaque commit `feature` ou `fix`, proposer le nom du commit et le valider.
+- Garder des messages courts, explicites, en francais.
+
 ## 7) Prompt de depart Codex (recommande)
 
 Utiliser ce prompt de base avant chaque ticket:
@@ -99,10 +104,10 @@ Travaille avec ces contraintes:
 
 P0:
 - Ticket A (duree par question vraiment branchee end-to-end)
-- Ticket B (UX realtime robuste)
+- Ticket B (spectateur + stats/historique demonstrables)
 
 P1:
-- Ticket C (profil/amis/notifications/spectateur + QA multi-browser)
+- Ticket C (QA navigateurs + dossier de demo + hygiene doc)
 
 P2:
 - SSR

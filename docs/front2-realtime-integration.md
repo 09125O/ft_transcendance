@@ -1,6 +1,6 @@
 # Front2 Realtime Integration (Back3)
 
-Version: etat actuel Back3
+Version: etat actuel Back3 au 2026-04-18
 Namespace WS: `/ws`
 Transport: `socket.io`
 
@@ -53,6 +53,7 @@ Transport: `socket.io`
 - listen `room:spectated`
 - listen `room:spectators:update`
 - un spectateur ne peut pas lancer `room:start` ni `game:answer`
+- le backend est pret, mais l'UI spectateur dediee n'est pas encore exposee dans le front actuel
 
 ## Flux Game
 

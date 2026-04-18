@@ -1,6 +1,6 @@
 # WebSocket Event Contract (Back 3)
 
-Version: `v1` (etat actuel de `dev` au 2026-04-17)  
+Version: `v1` (etat actuel de `dev` au 2026-04-18)
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -234,6 +234,9 @@ Notes:
   "reason": "room_empty"
 }
 ```
+
+Notes:
+- `reason` vaut aujourd'hui `room_empty` ou `socket_disconnect` selon le cas.
 
 - `room:spectated`:
 

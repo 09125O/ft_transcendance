@@ -1,6 +1,6 @@
 # Quiz Room Game Integration
 
-Date: 2026-04-17
+Date: 2026-04-18
 
 ## Resume
 
@@ -10,8 +10,9 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 ## Flux fonctionnel
 
 1. Le front charge les quiz via `/quizzes`.
-2. L'utilisateur choisit un quiz et cree une room.
-3. Le front appelle `/rooms` avec:
+2. L'utilisateur authentifie peut creer un quiz via `POST /quizzes`.
+3. L'utilisateur choisit un quiz et cree une room.
+4. Le front appelle `/rooms` avec:
 
 ```json
 {
@@ -22,12 +23,12 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 }
 ```
 
-4. Le backend verifie que le quiz existe et contient au moins une question.
-5. Le backend stocke `quizId` sur la room.
-6. Au lancement de la room, le runtime lit les questions du quiz dans l'ordre `QuizQuestion.position`.
-7. Les events `game:question:started` exposent seulement `{ id, text, options }`.
-8. Les reponses sont validees contre `QuizQuestion.correctAnswer`.
-9. Les points viennent de `QuizQuestion.points`.
+5. Le backend verifie que le quiz existe et contient au moins une question.
+6. Le backend stocke `quizId` sur la room.
+7. Au lancement de la room, le runtime lit les questions du quiz dans l'ordre `QuizQuestion.position`.
+8. Les events `game:question:started` exposent seulement `{ id, text, options }`.
+9. Les reponses sont validees contre `QuizQuestion.correctAnswer`.
+10. Les points viennent de `QuizQuestion.points`.
 
 ## Contrats impactes
 
@@ -45,6 +46,8 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 - Si le quiz ne contient aucune question, la creation de room echoue.
 - `rounds` est limite au nombre de questions disponibles dans le quiz.
 - Si `quizId` est absent et que le quiz par defaut est introuvable, `room:start` echoue (`409 CONFLICT`).
+- `POST /quizzes` est protege par auth et throttle a `10/min`.
+- Le selecteur front "temps par question" n'est pas encore transporte dans `POST /rooms`; le timer reste global via `GAME_QUESTION_DURATION_MS`.
 
 ## Migration
 

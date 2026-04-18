@@ -32,9 +32,11 @@ Il explique :
 
 Role actuel :
 
-- afficher une page de verification de la stack
-- interroger regulierement `/health`
+- gerer les routes `home`, `room`, `login`, `register`, `profile`, `friends`, `privacy`, `terms`
+- afficher le lobby, la room realtime, le chat et les ecrans social
+- permettre la creation de quiz et la creation de room depuis un quiz
 - proxifier les appels `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends` et `/notifications` vers le backend via Webpack Dev Server
+- proxifier aussi `/socket.io` vers le backend
 - laisser les navigations HTML de routes ecran comme `/friends` retomber sur React Router, meme si les `fetch` correspondants passent par le proxy
 
 ### Backend
@@ -49,7 +51,10 @@ Role actuel :
 
 - exposer un endpoint `/health`
 - exposer un endpoint `/api`
+- exposer les modules `auth`, `users`, `friends`, `notifications`, `rooms`, `game`, `scores`, `quizzes`
 - verifier la disponibilite de PostgreSQL via Prisma
+- orchestrer le temps reel Socket.IO sur `/ws`
+- appliquer un rate limiting HTTP global et des throttles cibles sur certaines routes sensibles
 
 ### Base de donnees
 
@@ -62,7 +67,7 @@ Role actuel :
 Le fonctionnement actuel est le suivant :
 
 1. Le navigateur appelle le frontend sur `https://localhost:3000`
-2. Le frontend React TypeScript appelle le backend via des routes proxifiees comme `/health`, `/api`, `/auth/*`, `/users/*`, `/friends/*`, `/notifications/*` et `/quizzes/*`
+2. Le frontend React TypeScript appelle le backend via des routes proxifiees comme `/health`, `/api`, `/auth/*`, `/users/*`, `/friends/*`, `/notifications/*`, `/quizzes/*` et `/socket.io`
 3. Webpack Dev Server proxifie ces routes vers le backend `https://backend:4000`
 4. Le backend interroge PostgreSQL via `DATABASE_URL`
 
@@ -76,7 +81,7 @@ Le fonctionnement actuel est le suivant :
                   frontend
      React + TypeScript + Webpack Dev Server
                          |
-proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes, /friends, /notifications
+proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes, /friends, /notifications, /socket.io
                          |
                          v
          https://backend:4000
@@ -132,6 +137,13 @@ Les variables principales sont :
 - `FRONTEND_ORIGIN`
 - `GAME_QUESTION_DURATION_MS`
 - `ROOM_RECONNECT_GRACE_MS`
+- `AUTH_COOKIE_SAMESITE`
+- `AUTH_COOKIE_SECURE`
+- `FT_CLIENT_ID`
+- `FT_CLIENT_SECRET`
+- `FT_REDIRECT_URI`
+- `FT_SCOPE`
+- `OAUTH_HTTP_TIMEOUT_MS`
 
 Regle d'equipe :
 
@@ -221,6 +233,21 @@ make logs
 make logs-back
 make logs-front
 make logs-db
+```
+
+### Qualite et verifications
+
+```bash
+cd backend && npm run lint
+cd frontend && npm run lint
+cd backend && npm run build
+cd frontend && npm run build
+bash scripts/lint-shell.sh
+make smoke-test
+make smoke-test-ws
+docker exec quiz_backend npm run test:ws-critical
+docker exec quiz_backend npm run test:rate-limit
+docker exec quiz_backend npm run test:integration:social
 ```
 
 ### Base de donnees
@@ -734,13 +761,14 @@ Regles recommandees :
 
 - faire des commits petits et lisibles
 - un commit = une intention claire
-- message court, explicite, en anglais ou francais, mais coherent dans toute l'equipe
+- message court, explicite, en francais, et coherent dans toute l'equipe
+- dans le binome actuel, valider le nom du commit avant chaque commit `feature` ou `fix`
 
 Exemples :
 
-- `feat: add backend health endpoint`
-- `fix: repair frontend proxy`
-- `chore: update docker workflow`
+- `feat: ajouter la page profil`
+- `fix: corriger le proxy frontend`
+- `chore: mettre a jour le workflow docker`
 
 ### 4. Docker et dev local
 

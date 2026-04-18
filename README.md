@@ -1,6 +1,6 @@
 # ft_transcendance quickstart
 
-Base minimale pour avoir rapidement des containers fonctionnels et un point de test simple.
+Base de travail actuelle pour lancer la stack locale, verifier les flux critiques et retrouver rapidement les documents de reference.
 
 ## Services
 
@@ -8,34 +8,85 @@ Base minimale pour avoir rapidement des containers fonctionnels et un point de t
 - `backend`: NestJS + TypeScript + Prisma, accessible sur `https://localhost:4000`
 - `db`: PostgreSQL, accessible sur `localhost:5432`
 
-Le frontend proxifie `/api` et `/health` vers le backend via Webpack Dev Server. Pour un demarrage local rapide, `nginx` n'est pas necessaire.
+Le frontend proxifie les appels API et WebSocket vers le backend. En developpement, `nginx` n'est pas necessaire.
 
-Le backend synchronise ses dependances, genere le client Prisma et applique les migrations presentes dans `backend/prisma/migrations` au demarrage du container.
+Le backend synchronise ses dependances, regenere le client Prisma et applique les migrations presentes dans `backend/prisma/migrations` au demarrage du conteneur.
 
-## Demarrage
+## Etat actuel du produit
+
+Disponible et demonstrable aujourd'hui :
+
+- auth locale, guest et OAuth 42
+- lobby quiz/rooms avec join, create et start
+- partie realtime avec timer serveur, reponses, leaderboard et chat
+- creation de quiz et creation de room depuis un quiz
+- pages `profile` et `friends`
+- centre de notifications minimal dans la page amis
+- reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
+
+Points encore partiels ou non implementes :
+
+- pas de route UI spectateur dediee, meme si le backend supporte `room:spectate`
+- pas de page leaderboard globale ni d'historique de parties dedie
+- le selecteur "temps par question" de creation de room n'est pas encore branche au backend
+- pas de recette multi-browser formelle documentee
+- `2FA` et `SSR` non implementes
+
+## Demarrage local
 
 ```bash
 make env-init
-# .env.example contient des valeurs de dev directement utilisables
-# installe une fois la CA locale mkcert dans le systeme
 make tls-trust
-# puis le certificat TLS local partage front/back sera regenere automatiquement
-# si tu modifies les credentials Postgres apres la premiere initialisation,
-# pense a reinitialiser le volume local avec make fclean
-# puis verifie la config
 make env-check
 make up
 make test-stack
 make logs
 ```
 
+Notes :
+
+- `.env.example` contient des valeurs de dev directement utilisables
+- si tu modifies les credentials Postgres apres la premiere initialisation, pense a reinitialiser le volume local avec `make fclean`
+- la confiance TLS locale repose sur `mkcert`; `make tls-trust` est a lancer une fois par machine
+
+## Qualite et verification
+
+Commandes utiles :
+
+- `cd backend && npm run lint`
+- `cd frontend && npm run lint`
+- `cd backend && npm run build`
+- `cd frontend && npm run build`
+- `bash scripts/lint-shell.sh`
+- `bash scripts/smoke-test.sh`
+- `docker exec quiz_backend npm run test:ws-smoke`
+- `docker exec quiz_backend npm run test:ws-critical`
+- `docker exec quiz_backend npm run test:rate-limit`
+- `docker exec quiz_backend npm run test:integration:social`
+
+La CI GitHub Actions verifie :
+
+- lint backend/frontend
+- shellcheck
+- build backend/frontend
+- demarrage Docker complet
+- smoke test global
+- smoke tests WebSocket
+- test de rate limiting HTTP
+- test d'integration social
+
+Le workflow peut fonctionner :
+
+- sans secret GitHub, avec des valeurs CI de secours
+- avec des secrets de repo nommes `CI_POSTGRES_USER`, `CI_POSTGRES_PASSWORD`, `CI_POSTGRES_DB`, `CI_POSTGRES_PORT`, `CI_DATABASE_URL`, `CI_BACKEND_PORT`, `CI_FRONTEND_PORT`, `CI_JWT_SECRET`
+
 ## Secrets et variables
 
-- Le projet charge ses variables depuis `.env`.
-- Le fichier versionne est `.env.example`.
-- Ne commit jamais une vraie valeur secrete dans `.env`.
+- Le projet charge ses variables depuis `.env`
+- Le fichier versionne est `.env.example`
+- Ne jamais commiter une vraie valeur secrete dans `.env`
 
-Variables attendues :
+Variables principales :
 
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
@@ -49,136 +100,98 @@ Variables attendues :
 - `FRONTEND_ORIGIN`
 - `GAME_QUESTION_DURATION_MS`
 - `ROOM_RECONNECT_GRACE_MS`
-
-## CI
-
-Le repo peut etre verifie via GitHub Actions avec :
-
-- le build du `backend`
-- le build du `frontend`
-- une validation lockfile (`package-lock.json`) par app
-- un demarrage complet de la stack Docker
-- le smoke test `scripts/smoke-test.sh`
-- un smoke test WebSocket Back 3 via `cd backend && npm run test:ws-smoke`
-- un test de scenarios critiques WebSocket (QA-05) via `cd backend && npm run test:ws-critical`
-- un test de rate limiting HTTP (SEC-02) via `cd backend && npm run test:rate-limit`
-
-Le workflow peut fonctionner de deux facons :
-
-- sans secret GitHub, avec des valeurs CI de secours
-- avec des secrets de repo nommes `CI_POSTGRES_USER`, `CI_POSTGRES_PASSWORD`, `CI_POSTGRES_DB`, `CI_POSTGRES_PORT`, `CI_DATABASE_URL`, `CI_BACKEND_PORT`, `CI_FRONTEND_PORT`, `CI_JWT_SECRET`
-
-Commandes qualite utiles :
-
-- `cd backend && npm run lint`
-- `cd frontend && npm run lint`
-- `bash scripts/lint-shell.sh` (`shellcheck` natif ou fallback Docker)
+- `AUTH_COOKIE_SAMESITE`
+- `AUTH_COOKIE_SECURE`
+- `FT_CLIENT_ID`
+- `FT_CLIENT_SECRET`
+- `FT_REDIRECT_URI`
+- `FT_SCOPE`
+- `OAUTH_HTTP_TIMEOUT_MS`
 
 ## URLs utiles
 
-- Ports par defaut : frontend `3000`, backend `4000`, db `5432`
-- `https://localhost:3000`
-- `https://localhost:3000/api`
-- `https://localhost:3000/health`
-- `https://localhost:4000/health`
+- frontend : `https://localhost:3000`
+- backend health : `https://localhost:4000/health`
+- frontend health via proxy : `https://localhost:3000/health`
+- page profil : `https://localhost:3000/profile`
+- page amis : `https://localhost:3000/friends`
 
-## API v1 (Dev 3)
+## API et temps reel
 
-Le backend expose maintenant une base d'API pour brancher le front:
+Le backend expose actuellement les blocs suivants :
 
-Contrat detaille front-back:
-- `docs/api-front-contract.md`
-- `docs/ws-event-contract.md` (temps reel WebSocket)
-- `docs/front2-realtime-integration.md` (checklist de branchement Front2)
-- `docs/front-handover-roadmap.md` (plan d'execution front)
-- `docs/sujet-conformite-matrice.md` (suivi exigence sujet -> preuves)
+- `auth`
+- `users`
+- `friends`
+- `notifications`
+- `rooms`
+- `game`
+- `scores`
+- `quizzes`
+- `ws` via Socket.IO sur `/ws`
 
-Etat actuel:
-- `auth` + `users` branches sur Prisma/PostgreSQL
-- `quizzes` branche sur Prisma/PostgreSQL
-- `rooms` + `game` + `scores` branches sur Prisma/PostgreSQL
-
-Note architecture (resume):
-- Prisma/PostgreSQL est la source de verite metier (room/game/questions/reponses/scores).
-- Le runtime WebSocket sert uniquement a l'orchestration live (timers, diffusion, coordination).
+Exemples de routes clefs :
 
 - `POST /auth/register`
 - `POST /auth/login`
+- `POST /auth/guest`
 - `GET /auth/42/start`
 - `GET /auth/42/callback`
 - `POST /auth/logout`
 - `GET /auth/session`
 - `GET /users/me`
 - `PATCH /users/me`
-- `GET /users/:id`
 - `GET /friends`
 - `GET /friends/requests`
-- `POST /friends/requests`
-- `POST /friends/requests/:requestId/accept`
-- `POST /friends/requests/:requestId/decline`
-- `DELETE /friends/:userId`
 - `GET /notifications`
-- `PATCH /notifications/:id/read`
-- `PATCH /notifications/read-all`
 - `GET /rooms`
 - `POST /rooms`
-- `GET /rooms/:roomId`
-- `POST /rooms/:roomId/join`
 - `GET /game/:roomId/state`
-- `POST /game/answer`
 - `GET /scores/leaderboard?limit=10`
 - `GET /scores/users/:userId`
 - `GET /quizzes`
 - `GET /quizzes/:quizId`
 - `POST /quizzes` avec cookie `access_token`
 
-Temps reel:
-- namespace Socket.IO: `/ws`
-- events room/game/chat documentes dans `docs/ws-event-contract.md`
+Important en dev :
 
-Reponse de succes standard:
-
-```json
-{
-  "success": true,
-  "data": {},
-  "error": null
-}
-```
-
-Reponse d'erreur standard:
-
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authentication required"
-  }
-}
-```
-
-Important pour le front en dev:
-
-- le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game` et `/scores`
-- il couvre aussi `/quizzes`, `/friends` et `/notifications` pour les appels API
-- la navigation navigateur vers `/friends` reste servie par React Router; seules les requetes non HTML partent au backend
-- le front peut donc appeler ces routes directement sur `https://localhost:3000`
-- le WebSocket Socket.IO passe lui aussi par le meme origin frontend, sans mixed content
-- une reconnexion room apres refresh/perte reseau courte conserve la place pendant `ROOM_RECONNECT_GRACE_MS` (10000 ms par defaut)
-- la confiance navigateur/Node repose sur `mkcert`; lancer `make tls-trust` une fois par machine
+- le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications` et `/socket.io`
+- les navigations HTML vers `/friends` et `/notifications` restent servies par React Router; seules les requetes non HTML sont proxyfiees vers le backend
+- le front peut appeler ces routes directement sur `https://localhost:3000`
 - utiliser `credentials: "include"` pour que la session cookie fonctionne
-- l'auth OAuth du projet est desormais limitee a 42 (`/auth/42/start`)
-- apres une migration Prisma, relancer `cd backend && npm run prisma:generate` puis redemarrer le backend (`docker compose restart backend`)
-- sinon tu peux voir des erreurs du type `Unknown argument quizId` ou `currentGameId does not exist`
+- l'auth OAuth exposee dans l'etat actuel est 42 uniquement
+- `POST /quizzes` est protege par `AuthGuard` et throttle a `10` creations par minute
+- la duree par question reste globalement pilotee par `GAME_QUESTION_DURATION_MS`; elle n'est pas encore configurable par room
+
+## Cartographie documentaire
+
+Documents de reference a lire en priorite :
+
+- `docs/api-front-contract.md`
+- `docs/ws-event-contract.md`
+- `docs/front2-realtime-integration.md`
+- `docs/quiz-room-game-integration.md`
+- `docs/backend-front-enablement-spec.md`
+- `docs/front-handover-roadmap.md`
+- `docs/sujet-conformite-matrice.md`
+- `docs/codex-binome-guide.md`
+- `dev.md`
+
+## Conformite sujet
+
+Etat documentaire courant :
+
+- `8` lignes `Fait`
+- `7` lignes `Partiel`
+- `2` lignes `A faire`
+
+La source de verite est `docs/sujet-conformite-matrice.md`.
 
 ## Quand ajouter nginx
 
-Ajoute un service `nginx` plus tard si tu veux :
+Ajouter un service `nginx` plus tard si tu veux :
 
 - un seul point d'entree public
 - servir un build frontend statique
 - faire du reverse proxy `/api`
-- preparer HTTPS / TLS
-- te rapprocher d'une architecture de production
+- preparer une architecture de production

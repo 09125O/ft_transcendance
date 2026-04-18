@@ -1,6 +1,6 @@
 # Backend Front Enablement Spec
 
-Date: 2026-04-17  
+Date: 2026-04-18
 Statut: document de reference (mise a jour implementation)
 
 ## Objectif
@@ -21,6 +21,7 @@ Endpoints:
 Notes:
 - Auth cookie obligatoire sur `users/me`.
 - `PATCH /users/me` impose au moins un champ (`username`, `avatar_url`, `status`).
+- Le front actuel edite surtout `username` et `avatar_url`; le `status` est surtout pilote par la session.
 
 ### Bloc B - API Amis
 
@@ -37,6 +38,7 @@ Endpoints:
 Notes:
 - Bloc protege par auth.
 - Regles metier en place: pas d'auto-demande, pas de doublon pending, controle receiver sur accept/decline.
+- Le front actuel consomme deja ces endpoints dans `frontend/src/pages/FriendsPage.tsx`.
 
 ### Bloc C - Notifications minimales
 
@@ -48,14 +50,31 @@ Endpoints:
 - `PATCH /notifications/read-all`
 
 Realtime:
-- event WS `notification:new` emis a la creation d'une demande d'ami.
+- event WS `notification:new` emis a la creation d'une demande d'ami
 
 Notes:
 - Les notifications sont derivees des demandes d'ami (`friendRequests`) en base.
+- Le front actuel les affiche et les marque comme lues.
+- Il n'existe pas encore de suppression de notification ni de cloche navbar dediee.
 
-### Bloc D - Spectateur
+### Bloc D - Quiz / room lies
 
 Statut: implemente
+
+Endpoints:
+- `GET /quizzes`
+- `GET /quizzes/:quizId`
+- `POST /quizzes`
+- `POST /rooms` avec `quizId`
+
+Notes:
+- `POST /quizzes` est protege par auth et throttle a `10/min`.
+- Le front actuel peut creer un quiz puis creer une room depuis ce quiz.
+- Le backend ne supporte pas encore une duree par question configurable par room; le timer reste global via `GAME_QUESTION_DURATION_MS`.
+
+### Bloc E - Spectateur
+
+Statut: implemente cote backend
 
 Events WS:
 - inbound `room:spectate`
@@ -63,7 +82,8 @@ Events WS:
 - outbound `room:spectators:update`
 
 Regles:
-- un spectateur ne peut pas faire `room:start` ni `game:answer` (`UNAUTHORIZED`).
+- un spectateur ne peut pas faire `room:start` ni `game:answer` (`UNAUTHORIZED`)
+- la route UI spectateur dediee n'est pas encore exposee cote front
 
 ## Contrats a utiliser
 
@@ -74,9 +94,11 @@ Regles:
 
 ## Points hors scope ou partiels
 
-- OAuth Google: non expose dans les routes backend actuelles.
-- 2FA: non implemente.
-- SSR: non implemente.
+- OAuth Google: non expose dans les routes backend actuelles
+- 2FA: non implemente
+- SSR: non implemente
+- Mode spectateur UI: pas encore implemente cote front, meme si le backend est pret
+- Notifications delete/archive: non implemente
 
 ## Checklist front de branchement rapide
 
