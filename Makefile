@@ -40,6 +40,9 @@ help:
 	@echo "  make browser-test        -> Run the cross-browser Playwright smoke suite (requires running stack)"
 	@echo "  make smoke-test          -> Run the general smoke test (dev env, db, websocket api, authentication, frontend)"
 	@echo "  make smoke-test-ws       -> Run only the backend WebSocket smoke test"
+	@echo "  make backup-db           -> Create a local PostgreSQL backup in backups/"
+	@echo "  make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql"
+	@echo "                           -> Restore a PostgreSQL backup into the local db container"
 	@echo "  make env-init            -> Create .env from .env.example if missing"
 	@echo "  make env-check           -> Check required variables in .env"
 	@echo "  make tls-cert            -> Generate the shared local TLS certificate"
@@ -139,6 +142,16 @@ smoke-test: env-check compose-check
 
 smoke-test-ws: compose-check
 	bash scripts/ws-smoke-test.sh
+
+backup-db: compose-check
+	bash scripts/backup-db.sh
+
+restore-db: compose-check
+	@if [ -z "$(file)" ]; then \
+		echo "Usage: make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql"; \
+		exit 1; \
+	fi
+	bash scripts/restore-db.sh "$(file)"
 
 env-init:
 	@if [ -f .env ]; then \
@@ -415,7 +428,7 @@ push-file-dev:
 .PHONY: help \
 	all \
 	compose-check \
-	up down clean fclean re restart logs logs-back logs-front logs-db page ps test-stack smoke-test smoke-test-ws \
+	up down clean fclean re restart logs logs-back logs-front logs-db page ps test-stack smoke-test smoke-test-ws backup-db restore-db \
 	env-init env-check tls-cert tls-trust \
 	shell-back shell-front shell-db \
 	push push-dev branch branch-create branch-create-push duplicate_branch status pull-dev pull-branch merge-dev rebase-dev push-file-dev

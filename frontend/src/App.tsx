@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
+const StatusPage = lazy(() => import("./pages/StatusPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const FriendsPage = lazy(() => import("./pages/FriendsPage"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/quiz-ready" element={<QuizReadyPage />} />
           <Route path="/quiz-create" element={<QuizCreatePage />} />
+          <Route path="/status" element={<StatusPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
         </Routes>

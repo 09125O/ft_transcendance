@@ -36,6 +36,7 @@ Statut courant:
 - Ticket B ferme le 2026-04-18
 - Ticket C ferme le 2026-04-18
 - Ticket D ferme le 2026-04-18
+- Ticket E ferme le 2026-04-19
 
 ## 3) Modules non vises dans le plan interne courant
 

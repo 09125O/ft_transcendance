@@ -19,10 +19,11 @@ Le front couvre aujourd'hui :
 - profil utilisateur
 - amis + demandes + notifications create/update/delete
 - stats utilisateur dans le profil
+- page `status` publique lisant `/health`
 
 Les deltas encore actifs a fermer pour viser `19 / 14` sont :
 
-- surface health / status minimale et dossier de preuve associe
+- aucun delta front critique dans le plan courant vers `19 / 14`
 
 ## 2) Modules non vises dans le plan interne courant
 
@@ -61,13 +62,13 @@ References:
 ### Gaps front visibles dans le scope courant
 
 - Pas de cloche notifications en navbar ni de pattern toast unifie
-- Il n'existe pas de vraie status page cote front
+- pas de monitoring externe ni d'historique d'incident
 
 ## 4) Backlog restant recommande
 
 Ordre retenu pour viser `19` avec le moins de risque :
 
-1. `Health check & status page`
+1. scope `19 / 14` ferme
 
 ### Ticket R1 - Game customization options (ferme)
 
@@ -139,12 +140,13 @@ Definition of Done:
 - pas de claim ambigu entre HTTP seul et WS
 - surface UI suffisante pour une demo evaluateur
 
-### Ticket R5 - Health check & status page
+### Ticket R5 - Health check & status page (ferme)
 
-- Conserver `/health`
-- Ajouter une vraie page ou vue de status minimale
-- Documenter les sauvegardes et la reprise
-- Preparer une demonstration concise pour la revue
+- route `/status` ajoutee cote front
+- lecture de `/health` via `frontend/src/services/health.ts`
+- etats visuels `Interface`, `API NestJS`, `PostgreSQL`
+- commandes `make backup-db` et `make restore-db`
+- runbook `docs/ops-status-backup-recovery.md`
 
 Reference sujet:
 - "Health check and status page system with automated backups and disaster recovery procedures"
@@ -153,6 +155,9 @@ Definition of Done:
 - status page accessible
 - preuves de sauvegarde / recovery documentees
 - module revendicable sans extrapolation
+
+Statut:
+- ferme et demonstrable
 
 ## 5) Contrats techniques pour le dev front
 
@@ -179,7 +184,7 @@ Definition of Done:
 ## 6) Backlog priorise
 
 P0:
-- R5 Health check & status page
+- aucun ticket bloquant restant pour la cible `19 / 14`
 
 P2:
 - accessibilite / a11y de finition
@@ -205,6 +210,7 @@ P2:
 - Navigation front enrichie: home, login, register, profil, amis, leaderboard
 - UX realtime stabilisee (erreurs, etats, feedback)
 - Status page minimale et preuves ops
+- runbook status / backup / restore
 - Checklist QA navigateurs (`docs/browser-compatibility-matrix.md`)
 - Dossier de demo oriente sujet (preuves fonctionnelles)
 

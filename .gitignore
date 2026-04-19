@@ -10,5 +10,6 @@ backend/.runtime/
 .gstack/
 test-results/
 visual-pass/
+backups/
 
 .DS_Store

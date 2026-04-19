@@ -34,7 +34,7 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `18 / 14`
+Estimation interne argumentee aujourd'hui: `19 / 14`
 
 Modules actuellement revendicables sans sur-promesse:
 
@@ -47,17 +47,16 @@ Modules actuellement revendicables sans sur-promesse:
 - `[Minor][1]` Game customization options
 - `[Minor][1]` Stats + historique
 - `[Minor][1]` Support navigateurs additionnels
+- `[Minor][1]` Health check + status page
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
 
-Total: `18`
+Total: `19`
 
 Chemin interne retenu pour viser `19 / 14`:
 
-- `[Minor][1]` Health check + status page
-
-Le seul module encore en statut `Partiel` dans la cible `19 / 14` est `Health check + status page`.
+- cible interne atteinte sur `dev`
 
 ## Matrice de conformite
 
@@ -79,14 +78,11 @@ Le seul module encore en statut `Partiel` dans la cible `19 / 14` est `Health ch
 | Game customization options | Minor | Fait | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, `questionDurationMs` transporte dans `POST /rooms`, creation de room parametree depuis `frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx`, affichage du temps en lobby et pre-match | - | Product + Frontend | lot game-customization 2026-04-18 |
 | Spectator mode | Minor | Non vise | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le plan interne courant | Frontend Realtime | Decision produit 2026-04-18 |
 | SSR | Minor | Non vise | - | retire du plan interne courant | Frontend | Decision produit 2026-04-18 |
-| Health check + status page | Minor | Partiel | `/health`, `scripts/smoke-test.sh`, `make test-stack` | pas de vraie status page ni de doc ops/backup formalisee | DevOps | lot audit/remediation 2026-04-18 |
+| Health check + status page | Minor | Fait | `/health`, page `frontend/src/pages/StatusPage.tsx`, service `frontend/src/services/health.ts`, scripts `scripts/backup-db.sh` et `scripts/restore-db.sh`, runbook `docs/ops-status-backup-recovery.md`, `make test-stack`, `make smoke-test` | - | DevOps | lot health-status 2026-04-19 |
 
 ## Cible 19 points
 
-Le module actif a fermer en priorite est:
-
-1. `Health check + status page`
-Ce que demande le sujet: health/status page avec sauvegardes automatisees et procedures de reprise/disaster recovery.
+Le scope interne cible vers `19 / 14` est ferme.
 
 ## Plan d'action documentaire
 

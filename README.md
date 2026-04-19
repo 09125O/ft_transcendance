@@ -23,10 +23,12 @@ Disponible et demonstrable aujourd'hui :
 - pages `profile` et `friends`
 - centre de notifications dans la page amis avec lecture, suppression et temps reel
 - reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
+- page `status` publique avec lecture de `/health`
+- scripts locaux de sauvegarde / restauration PostgreSQL
 
 Points encore partiels ou non implementes :
 
-- pas encore de vraie status page ni de doc ops/backup formalisee
+- pas de monitoring externe ni d'automatisation de sauvegarde hors procedure locale
 
 Decisions internes de priorisation pour le projet courant :
 
@@ -62,7 +64,7 @@ Regle de lecture documentaire :
 
 ## Modules claimed
 
-Estimation interne argumentee aujourd'hui : `18 / 14`
+Estimation interne argumentee aujourd'hui : `19 / 14`
 
 Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 
@@ -75,20 +77,16 @@ Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
 - `[Minor][1]` Game customization options
 - `[Minor][1]` Game statistics and match history
 - `[Minor][1]` Support for additional browsers
+- `[Minor][1]` Health check & status page
 - `[Major][2]` Web-based game
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `18 points`
+Total estime revendicable aujourd'hui : `19 points`
 
 ## Path to 19
 
-Chemin interne retenu pour viser `19 / 14` avec le moins de risque :
-
-- `[Minor][1]` Health check & status page
-
-Le module navigateur est maintenant ferme via une preuve Playwright versionnee.
-Le seul module encore vise avant `19 / 14` est `Health check & status page`.
+La cible interne `19 / 14` est maintenant fermee sur `dev`.
 
 Regle pratique pour la revue Intra :
 
@@ -124,6 +122,7 @@ Commandes utiles :
 - `cd frontend && npm run test:browsers`
 - `bash scripts/lint-shell.sh`
 - `bash scripts/smoke-test.sh`
+- `make backup-db`
 - `docker exec quiz_backend npm run test:ws-smoke`
 - `docker exec quiz_backend npm run test:ws-critical`
 - `docker exec quiz_backend npm run test:rate-limit`
@@ -133,6 +132,7 @@ Preuve multi-browser versionnee :
 
 - `make browser-test`
 - details et matrice de validation : `docs/browser-compatibility-matrix.md`
+- runbook status / backup / recovery : `docs/ops-status-backup-recovery.md`
 
 La CI GitHub Actions verifie :
 
@@ -185,6 +185,7 @@ Variables principales :
 ## URLs utiles
 
 - frontend : `https://localhost:3000`
+- frontend status : `https://localhost:3000/status`
 - backend health : `https://localhost:4000/health`
 - frontend health via proxy : `https://localhost:3000/health`
 - page profil : `https://localhost:3000/profile`
@@ -267,8 +268,8 @@ Pour la cible produit actuelle :
 
 - score valide aujourd'hui : `14`
 - score vise a terme : `19`
-- score interne estime aujourd'hui : `18`
-- module actif pour passer de `18` a `19` : `health/status`
+- score interne estime aujourd'hui : `19`
+- plus aucun module actif restant dans le plan interne courant vers `19`
 
 ## Quand ajouter nginx
 
