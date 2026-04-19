@@ -21,6 +21,7 @@ const proxyPrefixes = [
   "/quizzes",
   "/friends",
   "/notifications",
+  "/uploads",
   "/socket.io",
 ];
 const spaRoutePrefixes = ["/friends", "/notifications"];

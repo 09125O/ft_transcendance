@@ -5,6 +5,7 @@ import PrimaryButton from "../PrimaryButton";
 type ScoreEntry = {
   userId: number;
   username: string;
+  avatarUrl: string | null;
   score: number;
 };
 
@@ -178,6 +179,17 @@ export default function ResultsPanel({
                   >
                     {index + 1}
                   </span>
+                  {entry.avatarUrl ? (
+                    <img
+                      alt={`Avatar de ${entry.username}`}
+                      className="h-8 w-8 shrink-0 rounded-full object-cover"
+                      src={entry.avatarUrl}
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
+                      {entry.username.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                   <p className="m-0 truncate font-medium text-text">{entry.username}</p>
                 </div>
                 <span className="text-lg font-semibold text-text">{entry.score}</span>

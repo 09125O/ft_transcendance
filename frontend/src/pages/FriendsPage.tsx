@@ -77,6 +77,7 @@ export default function FriendsPage() {
         listNotifications(),
       ]);
       setFriends(list);
+      setBrokenFriendAvatarIds(new Set());
       setRequests(reqs);
       setNotifications(notifs.items);
       setError(null);
@@ -412,13 +413,26 @@ export default function FriendsPage() {
                   key={request.id}
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="m-0 font-medium text-text">
-                        {request.counterpartUsername}
-                      </p>
-                      <p className="mt-1 text-sm text-text/60">
-                        Accepte ou refuse pour commencer à jouer ensemble.
-                      </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      {request.counterpartAvatarUrl ? (
+                        <img
+                          alt={`Avatar de ${request.counterpartUsername}`}
+                          className="h-10 w-10 shrink-0 rounded-full object-cover"
+                          src={request.counterpartAvatarUrl}
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                          {request.counterpartUsername.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="m-0 truncate font-medium text-text">
+                          {request.counterpartUsername}
+                        </p>
+                        <p className="mt-1 text-sm text-text/60">
+                          Accepte ou refuse pour commencer à jouer ensemble.
+                        </p>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <PrimaryButton
@@ -546,12 +560,27 @@ export default function FriendsPage() {
                 className="rounded-[22px] border border-white/10 bg-background/75 p-4"
                 key={request.id}
               >
-                <p className="m-0 font-medium text-text">
-                  {request.counterpartUsername}
-                </p>
-                <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text/55">
-                  {request.status === "pending" ? "En attente" : request.status}
-                </p>
+                <div className="flex items-center gap-3">
+                  {request.counterpartAvatarUrl ? (
+                    <img
+                      alt={`Avatar de ${request.counterpartUsername}`}
+                      className="h-10 w-10 shrink-0 rounded-full object-cover"
+                      src={request.counterpartAvatarUrl}
+                    />
+                  ) : (
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                      {request.counterpartUsername.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="m-0 truncate font-medium text-text">
+                      {request.counterpartUsername}
+                    </p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text/55">
+                      {request.status === "pending" ? "En attente" : request.status}
+                    </p>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

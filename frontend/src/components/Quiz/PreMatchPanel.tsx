@@ -4,6 +4,7 @@ import PrimaryButton from "../PrimaryButton";
 type ScoreEntry = {
   userId: number;
   username: string;
+  avatarUrl: string | null;
   score: number;
 };
 
@@ -119,9 +120,17 @@ export default function PreMatchPanel({
                 key={entry.userId}
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
-                    {entry.username.charAt(0).toUpperCase()}
-                  </span>
+                  {entry.avatarUrl ? (
+                    <img
+                      alt={`Avatar de ${entry.username}`}
+                      className="h-8 w-8 rounded-full object-cover"
+                      src={entry.avatarUrl}
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
+                      {entry.username.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                   <p className="m-0 truncate font-medium text-text">{entry.username}</p>
                 </div>
                 <span className="text-xs text-text/60">Prêt</span>

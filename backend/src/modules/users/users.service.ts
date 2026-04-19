@@ -1,7 +1,30 @@
 import { PrismaService } from "@/prisma/prisma.service";
 import { Prisma, User } from "@generated/prisma/client";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { randomUUID } from "crypto";
+import { mkdir, rm, writeFile } from "fs/promises";
+import { extname } from "path";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
+import {
+  ALLOWED_AVATAR_MIME_TYPES,
+  AVATAR_PUBLIC_PREFIX,
+  AVATAR_UPLOADS_DIR,
+  MAX_AVATAR_FILE_SIZE_BYTES,
+  isManagedAvatarUrl,
+  resolveManagedAvatarPath,
+} from "./avatar-storage";
+
+type AvatarUploadInput = {
+  buffer: Buffer;
+  mimetype: string;
+  originalname: string;
+  size: number;
+};
 
 @Injectable()
 export class UsersService {
@@ -39,6 +62,11 @@ export class UsersService {
   }
 
   async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
+    const currentUser = await this.findUser({ id: userId });
+    if (!currentUser) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
     const data: Prisma.UserUpdateInput = {};
 
     if (typeof dto.username !== "undefined") {
@@ -56,11 +84,16 @@ export class UsersService {
     }
 
     try {
-      return await this.updateUser({
+      const updatedUser = await this.updateUser({
         where: { id: userId },
         data,
       });
-    } catch (error) {
+      await this.deleteManagedAvatarIfReplaced(
+        currentUser.avatar_url,
+        updatedUser.avatar_url,
+      );
+      return updatedUser;
+    } catch (error: unknown) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
@@ -68,6 +101,41 @@ export class UsersService {
         throw new ConflictException("Username already exists");
       }
 
+      throw error;
+    }
+  }
+
+  async uploadAvatar(userId: number, file: AvatarUploadInput): Promise<User> {
+    const currentUser = await this.findUser({ id: userId });
+    if (!currentUser) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    this.validateAvatarFile(file);
+
+    await mkdir(AVATAR_UPLOADS_DIR, { recursive: true });
+
+    const fileExtension = this.resolveAvatarExtension(file);
+    const fileName = `user-${userId}-${randomUUID()}${fileExtension}`;
+    const filePath = `${AVATAR_UPLOADS_DIR}/${fileName}`;
+    const avatarUrl = `${AVATAR_PUBLIC_PREFIX}/${fileName}`;
+
+    await writeFile(filePath, file.buffer);
+
+    try {
+      const updatedUser = await this.updateUser({
+        where: { id: userId },
+        data: {
+          avatar_url: avatarUrl,
+        },
+      });
+      await this.deleteManagedAvatarIfReplaced(
+        currentUser.avatar_url,
+        updatedUser.avatar_url,
+      );
+      return updatedUser;
+    } catch (error) {
+      await rm(filePath, { force: true });
       throw error;
     }
   }
@@ -124,5 +192,60 @@ export class UsersService {
     return this.prisma.client.user.delete({
       where,
     });
+  }
+
+  private validateAvatarFile(file: AvatarUploadInput): void {
+    if (!file || !Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
+      throw new BadRequestException("Avatar file is required");
+    }
+
+    if (!ALLOWED_AVATAR_MIME_TYPES.has(file.mimetype)) {
+      throw new BadRequestException("Avatar format must be JPEG, PNG, WebP or GIF");
+    }
+
+    if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
+      throw new BadRequestException("Avatar file must be 2 MB or smaller");
+    }
+  }
+
+  private resolveAvatarExtension(file: AvatarUploadInput): string {
+    const explicitExtension = extname(file.originalname).toLowerCase();
+    if (explicitExtension === ".jpg" || explicitExtension === ".jpeg") {
+      return ".jpg";
+    }
+    if (
+      explicitExtension === ".png" ||
+      explicitExtension === ".webp" ||
+      explicitExtension === ".gif"
+    ) {
+      return explicitExtension;
+    }
+
+    switch (file.mimetype) {
+      case "image/jpeg":
+        return ".jpg";
+      case "image/png":
+        return ".png";
+      case "image/webp":
+        return ".webp";
+      case "image/gif":
+        return ".gif";
+      default:
+        return ".img";
+    }
+  }
+
+  private async deleteManagedAvatarIfReplaced(
+    previousAvatarUrl: string | null,
+    nextAvatarUrl: string | null,
+  ): Promise<void> {
+    if (
+      !isManagedAvatarUrl(previousAvatarUrl) ||
+      previousAvatarUrl === nextAvatarUrl
+    ) {
+      return;
+    }
+
+    await rm(resolveManagedAvatarPath(previousAvatarUrl), { force: true });
   }
 }

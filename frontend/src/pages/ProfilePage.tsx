@@ -11,12 +11,17 @@ import {
   type MatchHistoryEntry,
   type UserScore,
 } from "../services/scores";
-import { getUserById } from "../services/users";
+import { getUserById, uploadAvatar } from "../services/users";
 
 type UpdatePayload = {
   username?: string;
   avatar_url?: string | null;
 };
+
+type AvatarMode = "url" | "upload";
+
+const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
+const MANAGED_AVATAR_PREFIX = "/uploads/avatars/";
 
 function updateProfile(payload: UpdatePayload): Promise<SafeUser> {
   return apiRequest<SafeUser>("/users/me", {
@@ -33,6 +38,10 @@ function formatOpponents(entry: MatchHistoryEntry): string {
   return entry.opponents.map((opponent) => opponent.username).join(", ");
 }
 
+function isManagedAvatarUrl(value: string | null | undefined): value is string {
+  return typeof value === "string" && value.startsWith(MANAGED_AVATAR_PREFIX);
+}
+
 export default function ProfilePage() {
   const { userId: userIdParam } = useParams();
   const { user: currentUser, refreshSession } = useAuth();
@@ -44,6 +53,11 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [usernameInput, setUsernameInput] = useState("");
   const [avatarInput, setAvatarInput] = useState("");
+  const [avatarMode, setAvatarMode] = useState<AvatarMode>("url");
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const [shouldClearAvatar, setShouldClearAvatar] = useState(false);
+  const [avatarImageBroken, setAvatarImageBroken] = useState(false);
 
   const targetUserId = useMemo(() => {
     if (userIdParam) {
@@ -55,27 +69,52 @@ export default function ProfilePage() {
 
   const isSelf = targetUserId !== null && targetUserId === currentUser?.id;
 
+  useEffect(() => {
+    if (!selectedAvatarFile) {
+      setAvatarPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedAvatarFile);
+    setAvatarPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [selectedAvatarFile]);
+
+  useEffect(() => {
+    setAvatarImageBroken(false);
+  }, [avatarPreviewUrl, profile?.avatar_url]);
+
   const loadProfile = useCallback(async () => {
     if (targetUserId === null) {
       setProfile(null);
       return;
     }
+
     try {
       if (isSelf) {
         const self = await apiRequest<SafeUser>("/users/me");
         setProfile(self);
         setUsernameInput(self.username);
-        setAvatarInput(self.avatar_url ?? "");
+        setAvatarInput(isManagedAvatarUrl(self.avatar_url) ? "" : (self.avatar_url ?? ""));
+        setAvatarMode("url");
+        setSelectedAvatarFile(null);
+        setShouldClearAvatar(false);
       } else {
         const other = await getUserById(targetUserId);
         setProfile(other);
       }
+
       const [score, matchHistory] = await Promise.all([
         getUserScore(targetUserId),
         getUserMatchHistory(targetUserId, 6),
       ]);
       setStats(score);
       setHistory(matchHistory);
+      setAvatarImageBroken(false);
+      setError(null);
     } catch (exception) {
       setError(exception instanceof Error ? exception.message : "Erreur");
     }
@@ -86,25 +125,52 @@ export default function ProfilePage() {
   }, [loadProfile]);
 
   async function handleSave() {
-    if (!isSelf) return;
+    if (!isSelf || !profile) {
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     setMessage(null);
+
     try {
+      let nextProfile = profile;
+
+      if (avatarMode === "upload" && selectedAvatarFile) {
+        nextProfile = await uploadAvatar(selectedAvatarFile);
+        setProfile(nextProfile);
+        setSelectedAvatarFile(null);
+        setAvatarMode("url");
+        setAvatarInput("");
+      }
+
       const payload: UpdatePayload = {};
-      if (usernameInput && usernameInput !== profile?.username) {
+
+      if (usernameInput && usernameInput !== nextProfile.username) {
         payload.username = usernameInput;
       }
-      const normalizedAvatar = avatarInput.trim() === "" ? null : avatarInput.trim();
-      if (normalizedAvatar !== (profile?.avatar_url ?? null)) {
-        payload.avatar_url = normalizedAvatar;
+
+      if (shouldClearAvatar && nextProfile.avatar_url !== null) {
+        payload.avatar_url = null;
+      } else if (avatarMode === "url") {
+        const editableAvatarValue = isManagedAvatarUrl(nextProfile.avatar_url)
+          ? ""
+          : (nextProfile.avatar_url ?? "");
+        const normalizedAvatarInput = avatarInput.trim();
+        if (normalizedAvatarInput !== editableAvatarValue) {
+          payload.avatar_url = normalizedAvatarInput === "" ? null : normalizedAvatarInput;
+        }
       }
-      if (Object.keys(payload).length === 0) {
-        setMessage("Rien à enregistrer");
-        return;
+
+      if (Object.keys(payload).length > 0) {
+        nextProfile = await updateProfile(payload);
+        setProfile(nextProfile);
       }
-      const updated = await updateProfile(payload);
-      setProfile(updated);
+
+      setAvatarInput(
+        isManagedAvatarUrl(nextProfile.avatar_url) ? "" : (nextProfile.avatar_url ?? ""),
+      );
+      setShouldClearAvatar(false);
       setMessage("Profil mis à jour");
       await refreshSession();
     } catch (exception) {
@@ -113,6 +179,45 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   }
+
+  function handleAvatarFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextFile = event.target.files?.[0] ?? null;
+    if (!nextFile) {
+      return;
+    }
+
+    if (nextFile.size > MAX_AVATAR_SIZE_BYTES) {
+      setError("L'avatar doit faire 2 Mo maximum.");
+      event.target.value = "";
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setSelectedAvatarFile(nextFile);
+    setAvatarMode("upload");
+    setShouldClearAvatar(false);
+  }
+
+  function handleAvatarUrlChange(value: string) {
+    setAvatarInput(value);
+    setAvatarMode("url");
+    setSelectedAvatarFile(null);
+    setShouldClearAvatar(false);
+    setMessage(null);
+  }
+
+  function handleResetAvatar() {
+    setAvatarMode("url");
+    setSelectedAvatarFile(null);
+    setAvatarInput("");
+    setShouldClearAvatar(true);
+    setMessage(null);
+    setError(null);
+  }
+
+  const displayedAvatarUrl =
+    !avatarImageBroken && (avatarPreviewUrl ?? profile?.avatar_url) ? avatarPreviewUrl ?? profile?.avatar_url : null;
 
   if (!currentUser) {
     return (
@@ -146,7 +251,7 @@ export default function ProfilePage() {
       <main className="flex flex-1 items-center justify-center px-[10%] py-10">
         <Panel className="p-8 text-center">
           <p>Chargement…</p>
-          {error && <p className="text-danger mt-3">{error}</p>}
+          {error && <p className="mt-3 text-danger">{error}</p>}
         </Panel>
       </main>
     );
@@ -157,11 +262,12 @@ export default function ProfilePage() {
       <Panel className="w-full max-w-2xl gap-6 p-8">
         <header className="flex items-center gap-4">
           <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-white/5">
-            {profile.avatar_url ? (
+            {displayedAvatarUrl ? (
               <img
                 alt={profile.username}
                 className="h-full w-full object-cover"
-                src={profile.avatar_url}
+                onError={() => setAvatarImageBroken(true)}
+                src={displayedAvatarUrl}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-xl font-semibold">
@@ -195,11 +301,11 @@ export default function ProfilePage() {
             <p className="text-2xl font-semibold">{stats?.wins ?? 0}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60">Parties jouees</p>
+            <p className="text-white/60">Parties jouées</p>
             <p className="text-2xl font-semibold">{stats?.gamesPlayed ?? 0}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60">Defaites</p>
+            <p className="text-white/60">Défaites</p>
             <p className="text-2xl font-semibold">{stats?.losses ?? 0}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -210,15 +316,15 @@ export default function ProfilePage() {
 
         <section className="flex flex-col gap-4">
           <div>
-            <h2 className="text-lg font-semibold">Historique recent</h2>
+            <h2 className="text-lg font-semibold">Historique récent</h2>
             <p className="mt-1 text-sm text-white/60">
-              Dernieres parties terminees sur ce profil.
+              Dernières parties terminées sur ce profil.
             </p>
           </div>
 
           {history.length === 0 ? (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-4 text-sm text-white/60">
-              Aucune partie terminee pour le moment.
+              Aucune partie terminée pour le moment.
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -242,7 +348,7 @@ export default function ProfilePage() {
                           : "border border-amber-300/25 bg-amber-300/10 text-amber-200",
                       ].join(" ")}
                     >
-                      {entry.isWinner ? "Victoire" : "Defaite"}
+                      {entry.isWinner ? "Victoire" : "Défaite"}
                     </span>
                   </div>
                   <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
@@ -269,9 +375,48 @@ export default function ProfilePage() {
           )}
         </section>
 
-        {isSelf && (
+        {isSelf ? (
           <section className="flex flex-col gap-4">
             <h2 className="text-lg font-semibold">Modifier mon profil</h2>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="m-0 text-sm font-medium text-text">Avatar</p>
+              <p className="mt-1 text-sm text-white/60">
+                Importe une image ou garde l&apos;avatar par défaut si tu n&apos;en fournis pas.
+              </p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-text transition hover:border-white/30 hover:bg-white/10">
+                  Choisir un fichier
+                  <input
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="sr-only"
+                    onChange={handleAvatarFileChange}
+                    type="file"
+                  />
+                </label>
+                <button
+                  className="w-fit rounded-full border border-white/12 px-4 py-2 text-sm text-text/75 transition hover:border-white/30 hover:text-text"
+                  onClick={handleResetAvatar}
+                  type="button"
+                >
+                  Revenir à l&apos;avatar par défaut
+                </button>
+              </div>
+              <p className="mt-3 text-xs text-white/55">
+                Formats acceptés : JPG, PNG, WebP, GIF. Taille max : 2 Mo.
+              </p>
+              {selectedAvatarFile ? (
+                <p className="mt-2 text-sm text-primary">
+                  Fichier prêt à envoyer : {selectedAvatarFile.name}
+                </p>
+              ) : null}
+              {shouldClearAvatar ? (
+                <p className="mt-2 text-sm text-white/70">
+                  L&apos;avatar actuel sera supprimé à l&apos;enregistrement.
+                </p>
+              ) : null}
+            </div>
+
             <label className="flex flex-col gap-1 text-sm">
               <span>Nom d&apos;utilisateur</span>
               <input
@@ -282,16 +427,21 @@ export default function ProfilePage() {
                 value={usernameInput}
               />
             </label>
+
             <label className="flex flex-col gap-1 text-sm">
               <span>URL de l&apos;avatar (optionnel)</span>
               <input
                 className="rounded-md border border-white/10 bg-background px-3 py-2"
-                onChange={(event) => setAvatarInput(event.target.value)}
+                onChange={(event) => handleAvatarUrlChange(event.target.value)}
                 placeholder="https://..."
                 type="url"
                 value={avatarInput}
               />
+              <span className="text-xs text-white/55">
+                Si tu renseignes une URL, elle remplace le fichier local sélectionné.
+              </span>
             </label>
+
             <div className="flex items-center gap-3">
               <PrimaryButton
                 className="px-5 py-2 text-sm"
@@ -300,11 +450,11 @@ export default function ProfilePage() {
               >
                 {isSaving ? "Enregistrement…" : "Enregistrer"}
               </PrimaryButton>
-              {message && <span className="text-sm text-white/70">{message}</span>}
-              {error && <span className="text-sm text-danger">{error}</span>}
+              {message ? <span className="text-sm text-white/70">{message}</span> : null}
+              {error ? <span className="text-sm text-danger">{error}</span> : null}
             </div>
           </section>
-        )}
+        ) : null}
       </Panel>
     </main>
   );

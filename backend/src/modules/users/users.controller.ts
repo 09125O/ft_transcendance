@@ -14,9 +14,13 @@ import {
   Param,
   Patch,
   ParseIntPipe,
+  Post,
+  UploadedFile,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { SafeUser } from "../auth/types/safe-user.type";
 import { UpdateProfileDto } from "./dto/update-profile.dto";
 import { UsersService } from "./users.service";
@@ -47,6 +51,28 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ): Promise<ApiResponse<SafeUser>> {
     return ok(this.sanitizeUser(await this.usersService.updateProfile(auth.sub, dto)));
+  }
+
+  @Post("me/avatar")
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor("avatar"))
+  async uploadAvatar(
+    @CurrentUser() auth: AuthPayload,
+    @UploadedFile()
+    file?:
+      | {
+          buffer: Buffer;
+          mimetype: string;
+          originalname: string;
+          size: number;
+        }
+      | undefined,
+  ): Promise<ApiResponse<SafeUser>> {
+    if (!file) {
+      throw new BadRequestException("Avatar file is required");
+    }
+
+    return ok(this.sanitizeUser(await this.usersService.uploadAvatar(auth.sub, file)));
   }
 
   @Get(":id")

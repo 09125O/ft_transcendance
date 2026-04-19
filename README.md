@@ -21,6 +21,7 @@ Disponible et demonstrable aujourd'hui :
 - partie realtime avec timer serveur, reponses, leaderboard et chat
 - creation de quiz et creation de room depuis un quiz
 - pages `profile` et `friends`
+- profil editable avec upload natif d'avatar, URL optionnelle et fallback visuel par defaut
 - centre de notifications dans la page amis avec lecture, suppression et temps reel
 - reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
 - page `status` publique avec lecture de `/health`
@@ -232,7 +233,7 @@ Exemples de routes clefs :
 
 Important en dev :
 
-- le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications` et `/socket.io`
+- le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/uploads` et `/socket.io`
 - les navigations HTML vers `/friends` et `/notifications` restent servies par React Router; seules les requetes non HTML sont proxyfiees vers le backend
 - le front peut appeler ces routes directement sur `https://localhost:3000`
 - utiliser `credentials: "include"` pour que la session cookie fonctionne

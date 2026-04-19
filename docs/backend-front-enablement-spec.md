@@ -16,12 +16,14 @@ Statut: implemente
 Endpoints:
 - `GET /users/me`
 - `PATCH /users/me`
+- `POST /users/me/avatar`
 - `GET /users/:id`
 
 Notes:
 - Auth cookie obligatoire sur `users/me`.
 - `PATCH /users/me` impose au moins un champ (`username`, `avatar_url`, `status`).
-- Le front actuel edite surtout `username` et `avatar_url`; le `status` est surtout pilote par la session.
+- `POST /users/me/avatar` accepte un `multipart/form-data` avec image <= `2 Mo`, expose ensuite le fichier via `/uploads/avatars/...`.
+- Le front actuel edite `username`, propose un upload natif d'avatar, garde une URL optionnelle et laisse le `status` surtout pilote par la session.
 
 ### Bloc B - API Amis
 

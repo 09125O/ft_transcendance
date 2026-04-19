@@ -329,8 +329,23 @@ Note:
   - `401 UNAUTHORIZED`
   - `409 CONFLICT` si username deja pris
 
+`POST /users/me/avatar`
+- Auth: cookie `access_token` requis
+- Body: `multipart/form-data` avec champ `avatar`
+- Validation:
+  - formats acceptes: `image/jpeg`, `image/png`, `image/webp`, `image/gif`
+  - taille max: `2 Mo`
+- Reponse: `200`, `ApiResponse<SafeUser>`
+- Effet:
+  - stocke le fichier dans l'espace runtime backend
+  - expose l'image via `avatar_url` sous forme `/uploads/avatars/...`
+  - remplace et nettoie l'ancien avatar local gere par l'application
+- Erreurs:
+  - `400 BAD_REQUEST` si fichier absent ou invalide
+  - `401 UNAUTHORIZED`
+
 Note front actuelle:
-- L'ecran profil edite actuellement `username` et `avatar_url`.
+- L'ecran profil edite `username`, accepte un upload natif d'avatar et conserve une URL d'avatar optionnelle.
 - Le champ `status` existe dans le contrat backend, mais le front affiche surtout le statut derive de la session (`online` / `offline`).
 
 ### Friends

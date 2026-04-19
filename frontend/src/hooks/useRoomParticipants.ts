@@ -5,6 +5,7 @@ import { getUserById } from "../services/users";
 type ScoreEntry = {
   userId: number;
   username: string;
+  avatarUrl: string | null;
   score: number;
 };
 
@@ -44,9 +45,19 @@ export function useRoomParticipants(
           const userId = player.userId;
           try {
             const user = await getUserById(userId);
-            return { userId, username: user.username, score: 0 };
+            return {
+              userId,
+              username: user.username,
+              avatarUrl: user.avatar_url ?? null,
+              score: 0,
+            };
           } catch {
-            return { userId, username: `Joueur #${userId}`, score: 0 };
+            return {
+              userId,
+              username: `Joueur #${userId}`,
+              avatarUrl: null,
+              score: 0,
+            };
           }
         }),
       );
@@ -85,6 +96,7 @@ export function useRoomParticipants(
         .map((entry) => ({
           userId: entry.userId,
           username: `Joueur #${entry.userId}`,
+          avatarUrl: null,
           score: entry.score,
         }));
 
