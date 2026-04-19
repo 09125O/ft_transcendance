@@ -78,7 +78,7 @@ Chemin interne retenu pour viser `19 / 14`:
 | Game customization options | Minor | Fait | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, `questionDurationMs` transporte dans `POST /rooms`, creation de room parametree depuis `frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx`, affichage du temps en lobby et pre-match | - | Product + Frontend | lot game-customization 2026-04-18 |
 | Spectator mode | Minor | Non vise | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le plan interne courant | Frontend Realtime | Decision produit 2026-04-18 |
 | SSR | Minor | Non vise | - | retire du plan interne courant | Frontend | Decision produit 2026-04-18 |
-| Health check + status page | Minor | Fait | `/health`, page `frontend/src/pages/StatusPage.tsx`, service `frontend/src/services/health.ts`, scripts `scripts/backup-db.sh` et `scripts/restore-db.sh`, runbook `docs/ops-status-backup-recovery.md`, `make test-stack`, `make smoke-test` | - | DevOps | lot health-status 2026-04-19 |
+| Health check + status page | Minor | Fait | `/health` enrichi avec etat backup, page `frontend/src/pages/StatusPage.tsx`, service `frontend/src/services/health.ts`, sidecar `backup` dans `docker-compose.yml`, script `scripts/auto-backup.sh`, scripts `scripts/backup-db.sh` et `scripts/restore-db.sh`, runbook `docs/ops-status-backup-recovery.md`, `make test-stack`, `make smoke-test` | - | DevOps | lot health-status 2026-04-19 |
 
 ## Cible 19 points
 

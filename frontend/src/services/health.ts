@@ -8,6 +8,21 @@ export type HealthStatus = {
     ok: boolean;
     error?: string;
   };
+  backup: {
+    configured: boolean;
+    automated: boolean;
+    ok: boolean;
+    statusFile: string;
+    directory?: string;
+    intervalSeconds?: number;
+    retentionCount?: number;
+    checkedAt?: string;
+    latestFile?: string;
+    lastSuccessAt?: string;
+    lastFailureAt?: string;
+    message?: string;
+    error?: string;
+  };
 };
 
 export async function getHealthStatus(): Promise<HealthStatus> {

@@ -3,6 +3,15 @@
 Date: 2026-04-19
 Scope: runbook minimal pour la stack locale `ft_transcendance`.
 
+## 0. Principe
+
+La stack locale embarque maintenant 2 niveaux de sauvegarde:
+
+- un sidecar `backup` qui cree automatiquement des dumps PostgreSQL dans `backups/`
+- des commandes manuelles `make backup-db` et `make restore-db` pour provoquer une sauvegarde ou restaurer un dump choisi
+
+Le backend lit l'etat de l'automatisation depuis `backend/.runtime/backup-status.json` et l'expose dans `/health`. La page `https://localhost:3000/status` affiche ce meme etat.
+
 ## 1. Vérifier l'état de la stack
 
 Commandes de base:
@@ -23,10 +32,24 @@ Lecture attendue de `/status`:
 - `Interface` active si la page s'affiche
 - `API NestJS` OK si `/health` répond avec `ok: true`
 - `PostgreSQL` OK si `database.configured = true` et `database.ok = true`
+- `Sauvegarde automatisee` OK si le sidecar backup publie un dernier succes recent dans `/health`
+
+Variables de pilotage:
+
+- `BACKUP_INTERVAL_SECONDS`: frequence des dumps automatiques
+- `BACKUP_RETENTION_COUNT`: nombre de dumps gardes dans `backups/`
 
 ## 2. Sauvegarder la base locale
 
-Créer un dump SQL dans `backups/`:
+Automatique:
+
+- un premier dump est tente au demarrage de la stack
+- puis un dump est retente toutes les `BACKUP_INTERVAL_SECONDS`
+- seuls les `BACKUP_RETENTION_COUNT` dumps les plus recents sont conserves
+
+Manuel:
+
+Creer un dump SQL dans `backups/`:
 
 ```bash
 make backup-db
@@ -35,6 +58,8 @@ make backup-db
 Résultat attendu:
 
 - un fichier du type `backups/quiz_db-YYYYMMDD-HHMMSS.sql`
+- le sidecar `backup` met a jour `backend/.runtime/backup-status.json`
+- la page `/status` affiche `Dernier succes` et `Dernier dump`
 
 Le dump contient des `DROP` / `CREATE` pour permettre une restauration complète de la base locale.
 
@@ -79,6 +104,15 @@ make fclean
 make up
 ```
 
+5. si seul le backup est en attention:
+
+```bash
+make logs-backup
+make backup-db
+```
+
+Verifier ensuite que `/status` remonte un `Dernier succes` coherent.
+
 ## 5. Démonstration évaluateur
 
 Parcours court:
@@ -87,7 +121,8 @@ Parcours court:
 2. montrer `Interface`, `API NestJS`, `PostgreSQL`
 3. lancer `make test-stack`
 4. lancer `make smoke-test`
-5. lancer `make backup-db`
-6. montrer le fichier créé dans `backups/`
+5. montrer l'etat `Sauvegarde automatisee` dans `/status`
+6. lancer `make backup-db`
+7. montrer le fichier créé dans `backups/`
 
-Ce runbook documente une procédure locale simple et exécutable, sans infrastructure externe.
+Ce runbook documente une procedure locale simple et executable, avec sauvegarde automatisee locale et reprise manuelle.

@@ -144,8 +144,9 @@ Definition of Done:
 
 - route `/status` ajoutee cote front
 - lecture de `/health` via `frontend/src/services/health.ts`
-- etats visuels `Interface`, `API NestJS`, `PostgreSQL`
-- commandes `make backup-db` et `make restore-db`
+- etats visuels `Interface`, `API NestJS`, `PostgreSQL`, `Sauvegarde automatisee`
+- sidecar `backup` versionne dans `docker-compose.yml`
+- commandes `make backup-db`, `make restore-db` et `make logs-backup`
 - runbook `docs/ops-status-backup-recovery.md`
 
 Reference sujet:
@@ -153,6 +154,7 @@ Reference sujet:
 
 Definition of Done:
 - status page accessible
+- sauvegarde automatisee visible dans `/status` et `/health`
 - preuves de sauvegarde / recovery documentees
 - module revendicable sans extrapolation
 

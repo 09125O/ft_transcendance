@@ -34,6 +34,7 @@ help:
 	@echo "  make logs-back           -> Follow backend logs"
 	@echo "  make logs-front          -> Follow frontend logs"
 	@echo "  make logs-db             -> Follow database logs"
+	@echo "  make logs-backup         -> Follow automated backup logs"
 	@echo "  make page                -> Open the frontend in the default browser"
 	@echo "  make ps                  -> Show running containers"
 	@echo "  make test-stack          -> Check frontend, backend and database status quickly"
@@ -111,6 +112,9 @@ logs-front: compose-check
 
 logs-db: compose-check
 	$(COMPOSE) logs -f db
+
+logs-backup: compose-check
+	$(COMPOSE) logs -f backup
 
 page: env-check
 	@set -a; . ./.env; set +a; \
@@ -428,7 +432,7 @@ push-file-dev:
 .PHONY: help \
 	all \
 	compose-check \
-	up down clean fclean re restart logs logs-back logs-front logs-db page ps test-stack smoke-test smoke-test-ws backup-db restore-db \
+	up down clean fclean re restart logs logs-back logs-front logs-db logs-backup page ps test-stack smoke-test smoke-test-ws backup-db restore-db \
 	env-init env-check tls-cert tls-trust \
 	shell-back shell-front shell-db \
 	push push-dev branch branch-create branch-create-push duplicate_branch status pull-dev pull-branch merge-dev rebase-dev push-file-dev

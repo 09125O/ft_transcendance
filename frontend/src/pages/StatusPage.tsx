@@ -38,6 +38,14 @@ function StatusBadge({
   );
 }
 
+function formatDateValue(value?: string) {
+  if (!value) {
+    return "n/a";
+  }
+
+  return new Date(value).toLocaleString("fr-FR");
+}
+
 export default function StatusPage() {
   const [viewState, setViewState] = useState<HealthViewState>({
     status: "loading",
@@ -90,6 +98,9 @@ export default function StatusPage() {
   const backendOk = health?.ok ?? false;
   const databaseConfigured = health?.database.configured ?? false;
   const databaseOk = health?.database.ok ?? false;
+  const backup = health?.backup;
+  const backupConfigured = backup?.configured ?? false;
+  const backupOk = backup?.ok ?? false;
 
   return (
     <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
@@ -189,30 +200,66 @@ export default function StatusPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <Panel className="px-6 py-6 sm:px-8">
-            <div>
-              <p className="ui-kicker m-0 text-xs text-text/55">Runbook</p>
-              <h2 className="m-0 mt-2 text-2xl font-semibold text-text">Commandes utiles</h2>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
-                <p className="m-0 text-sm font-semibold text-text">Vérifier la stack</p>
-                <code className="mt-3 block text-sm text-text/70">make test-stack</code>
+          <div className="flex flex-col gap-6">
+            <Panel className="px-6 py-6 sm:px-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="ui-kicker m-0 text-xs text-text/55">Backup</p>
+                  <h2 className="m-0 mt-2 text-2xl font-semibold text-text">Sauvegarde automatisée</h2>
+                </div>
+                <StatusBadge
+                  label={
+                    viewState.status === "loading"
+                      ? "Vérification"
+                      : backupConfigured && backupOk
+                        ? "OK"
+                        : backupConfigured
+                          ? "Attention"
+                          : "Non configuré"
+                  }
+                  ok={viewState.status === "loading" ? true : backupConfigured && backupOk}
+                />
               </div>
-              <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
-                <p className="m-0 text-sm font-semibold text-text">Smoke global</p>
-                <code className="mt-3 block text-sm text-text/70">make smoke-test</code>
+              <div className="mt-5 rounded-[20px] border border-white/10 bg-background/70 px-4 py-4 text-sm text-text/70">
+                <p className="m-0">Automatisée : {backupConfigured ? "oui" : "non"}</p>
+                <p className="m-0 mt-2">Intervalle : {backup?.intervalSeconds ? `${backup.intervalSeconds}s` : "n/a"}</p>
+                <p className="m-0 mt-2">Rétention : {backup?.retentionCount ? `${backup.retentionCount} dumps` : "n/a"}</p>
+                <p className="m-0 mt-2">Dernier succès : {formatDateValue(backup?.lastSuccessAt)}</p>
+                <p className="m-0 mt-2">Dernier dump : {backup?.latestFile ?? "n/a"}</p>
+                {backup?.error ? (
+                  <p className="m-0 mt-2 text-amber-200">Erreur : {backup.error}</p>
+                ) : null}
+                {backup?.message ? (
+                  <p className="m-0 mt-2 text-text/60">{backup.message}</p>
+                ) : null}
               </div>
-              <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
-                <p className="m-0 text-sm font-semibold text-text">Sauvegarder la DB</p>
-                <code className="mt-3 block text-sm text-text/70">make backup-db</code>
+            </Panel>
+
+            <Panel className="px-6 py-6 sm:px-8">
+              <div>
+                <p className="ui-kicker m-0 text-xs text-text/55">Runbook</p>
+                <h2 className="m-0 mt-2 text-2xl font-semibold text-text">Commandes utiles</h2>
               </div>
-              <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
-                <p className="m-0 text-sm font-semibold text-text">Restaurer la DB</p>
-                <code className="mt-3 block text-sm text-text/70">make restore-db file=backups/...</code>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
+                  <p className="m-0 text-sm font-semibold text-text">Vérifier la stack</p>
+                  <code className="mt-3 block text-sm text-text/70">make test-stack</code>
+                </div>
+                <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
+                  <p className="m-0 text-sm font-semibold text-text">Smoke global</p>
+                  <code className="mt-3 block text-sm text-text/70">make smoke-test</code>
+                </div>
+                <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
+                  <p className="m-0 text-sm font-semibold text-text">Backup manuel</p>
+                  <code className="mt-3 block text-sm text-text/70">make backup-db</code>
+                </div>
+                <div className="rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
+                  <p className="m-0 text-sm font-semibold text-text">Restaurer la DB</p>
+                  <code className="mt-3 block text-sm text-text/70">make restore-db file=backups/...</code>
+                </div>
               </div>
-            </div>
-          </Panel>
+            </Panel>
+          </div>
 
           <Panel className="px-6 py-6 sm:px-8">
             <div>
@@ -225,6 +272,9 @@ export default function StatusPage() {
               </p>
               <p className="m-0 rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
                 Si le backend répond mais que la base n'est pas joignable, la plupart des flux applicatifs seront dégradés ou bloqués.
+              </p>
+              <p className="m-0 rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
+                Si la sauvegarde automatique est en attention, l'application reste utilisable mais le module backup/recovery n'est plus dans un état défendable.
               </p>
               <p className="m-0 rounded-[20px] border border-white/10 bg-background/75 px-4 py-4">
                 La procédure détaillée de sauvegarde et de reprise est documentée dans <code>docs/ops-status-backup-recovery.md</code>.

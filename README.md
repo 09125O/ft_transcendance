@@ -7,6 +7,7 @@ Base de travail actuelle pour lancer la stack locale, verifier les flux critique
 - `frontend`: React + TypeScript + Webpack Dev Server, accessible sur `https://localhost:3000`
 - `backend`: NestJS + TypeScript + Prisma, accessible sur `https://localhost:4000`
 - `db`: PostgreSQL, accessible sur `localhost:5432`
+- `backup`: sidecar de sauvegarde PostgreSQL automatisee, sans port expose
 
 Le frontend proxifie les appels API et WebSocket vers le backend. En developpement, `nginx` n'est pas necessaire.
 
@@ -25,11 +26,11 @@ Disponible et demonstrable aujourd'hui :
 - centre de notifications dans la page amis avec lecture, suppression et temps reel
 - reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
 - page `status` publique avec lecture de `/health`
-- scripts locaux de sauvegarde / restauration PostgreSQL
+- sauvegarde PostgreSQL automatisee locale + scripts manuels de sauvegarde / restauration
 
 Points encore partiels ou non implementes :
 
-- pas de monitoring externe ni d'automatisation de sauvegarde hors procedure locale
+- pas de monitoring externe ni d'historique d'incident persistant
 
 Decisions internes de priorisation pour le projet courant :
 
@@ -124,6 +125,7 @@ Commandes utiles :
 - `bash scripts/lint-shell.sh`
 - `bash scripts/smoke-test.sh`
 - `make backup-db`
+- `make logs-backup`
 - `docker exec quiz_backend npm run test:ws-smoke`
 - `docker exec quiz_backend npm run test:ws-critical`
 - `docker exec quiz_backend npm run test:rate-limit`
@@ -175,6 +177,8 @@ Variables principales :
 - `ROOM_CLEANUP_INTERVAL_MS`
 - `ROOM_WAITING_TTL_MS`
 - `ROOM_FINISHED_TTL_MS`
+- `BACKUP_INTERVAL_SECONDS`
+- `BACKUP_RETENTION_COUNT`
 - `AUTH_COOKIE_SAMESITE`
 - `AUTH_COOKIE_SECURE`
 - `FT_CLIENT_ID`

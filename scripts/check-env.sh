@@ -18,6 +18,8 @@ FRONTEND_PORT
 JWT_SECRET
 FRONTEND_ORIGIN
 GAME_QUESTION_DURATION_MS
+BACKUP_INTERVAL_SECONDS
+BACKUP_RETENTION_COUNT
 "
 
 get_env_value() {
@@ -53,6 +55,8 @@ DATABASE_URL_VALUE="$(get_env_value DATABASE_URL)"
 FRONTEND_PORT_VALUE="$(get_env_value FRONTEND_PORT)"
 FRONTEND_ORIGIN_VALUE="$(get_env_value FRONTEND_ORIGIN)"
 GAME_QUESTION_DURATION_MS_VALUE="$(get_env_value GAME_QUESTION_DURATION_MS)"
+BACKUP_INTERVAL_SECONDS_VALUE="$(get_env_value BACKUP_INTERVAL_SECONDS)"
+BACKUP_RETENTION_COUNT_VALUE="$(get_env_value BACKUP_RETENTION_COUNT)"
 JWT_SECRET_VALUE="$(get_env_value JWT_SECRET)"
 
 check_not_placeholder() {
@@ -120,6 +124,28 @@ case "$GAME_QUESTION_DURATION_MS_VALUE" in
     ;;
   0)
     printf '[KO] GAME_QUESTION_DURATION_MS doit etre strictement positif\n' >&2
+    invalid=1
+    ;;
+esac
+
+case "$BACKUP_INTERVAL_SECONDS_VALUE" in
+  ''|*[!0-9]*)
+    printf '[KO] BACKUP_INTERVAL_SECONDS doit etre un entier positif en secondes\n' >&2
+    invalid=1
+    ;;
+  0)
+    printf '[KO] BACKUP_INTERVAL_SECONDS doit etre strictement positif\n' >&2
+    invalid=1
+    ;;
+esac
+
+case "$BACKUP_RETENTION_COUNT_VALUE" in
+  ''|*[!0-9]*)
+    printf '[KO] BACKUP_RETENTION_COUNT doit etre un entier positif\n' >&2
+    invalid=1
+    ;;
+  0)
+    printf '[KO] BACKUP_RETENTION_COUNT doit etre strictement positif\n' >&2
     invalid=1
     ;;
 esac
