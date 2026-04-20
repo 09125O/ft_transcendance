@@ -3,6 +3,12 @@
 Date: 2026-04-19
 Scope: runbook minimal pour la stack locale `ft_transcendance`.
 
+Important:
+
+- ce runbook documente une sauvegarde automatisee locale embarquee dans la stack Docker
+- il ne decrit pas un monitoring externe ni une strategie d'infrastructure distante
+- il doit etre presente comme une preuve locale executable, pas comme une plateforme ops enterprise
+
 ## 0. Principe
 
 La stack locale embarque maintenant 2 niveaux de sauvegarde:

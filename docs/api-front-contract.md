@@ -22,7 +22,7 @@ Consequence:
 - Backend direct: `https://localhost:4000`
 - Front dev server: `https://localhost:3000`
 - Proxy Webpack actuellement configure sur:
-  - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/socket.io`
+  - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/uploads`, `/socket.io`
 - En dev, le front peut appeler directement:
   - `/auth`
   - `/users`
@@ -278,6 +278,49 @@ Note:
   - `401 UNAUTHORIZED` si pas de cookie
   - `401 UNAUTHORIZED` si token invalide/expire
   - `404 NOT_FOUND` si user du token introuvable
+
+### Health
+
+`GET /health`
+- Reponse: `200` si backend et DB sont OK
+- Reponse: `503` si le backend ne peut plus joindre correctement la DB
+
+Shape actuelle:
+
+```ts
+type HealthStatus = {
+  service: "backend";
+  framework: "nestjs";
+  ok: boolean;
+  timestamp: string;
+  database: {
+    configured: boolean;
+    ok: boolean;
+    error?: string;
+  };
+  backup: {
+    configured: boolean;
+    automated: boolean;
+    ok: boolean;
+    statusFile: string;
+    directory?: string;
+    intervalSeconds?: number;
+    retentionCount?: number;
+    checkedAt?: string;
+    latestFile?: string;
+    lastSuccessAt?: string;
+    lastFailureAt?: string;
+    message?: string;
+    error?: string;
+  };
+};
+```
+
+Notes:
+
+- `ok` au niveau racine reste pilote par la sante backend + DB
+- l'etat de sauvegarde automatisee est expose dans `backup`
+- le frontend consomme cette route pour afficher `/status`
 
 ### Users
 

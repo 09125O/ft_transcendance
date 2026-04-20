@@ -34,29 +34,29 @@ Important:
 
 ## Score courant et cible
 
-Estimation interne argumentee aujourd'hui: `19 / 14`
+Lecture interne la plus defendable aujourd'hui: `19 / 14`
 
-Modules actuellement revendicables sans sur-promesse:
+Chemin principal retenu pour ce `19`:
 
 - `[Major][2]` Framework frontend + backend
 - `[Major][2]` Features temps reel
 - `[Major][2]` Interaction utilisateurs
-- `[Minor][1]` ORM
-- `[Minor][1]` Notification system
-- `[Minor][1]` Remote auth OAuth2
-- `[Minor][1]` Game customization options
-- `[Minor][1]` Stats + historique
-- `[Minor][1]` Support navigateurs additionnels
-- `[Minor][1]` Health check + status page
+- `[Major][2]` Standard user management and authentication
 - `[Major][2]` Web-based game realtime multiplayer
 - `[Major][2]` Remote players
 - `[Major][2]` Multiplayer >2
+- `[Minor][1]` ORM
+- `[Minor][1]` Remote auth OAuth2
+- `[Minor][1]` Game customization options
+- `[Minor][1]` Stats + historique
+- `[Minor][1]` Health check + status page
 
-Total: `19`
+Total interne defendu par ce chemin: `19`
 
-Chemin interne retenu pour viser `19 / 14`:
+Modules implementes en reserve, non necessaires a ce `19`:
 
-- cible interne atteinte sur `dev`
+- `[Minor][1]` Notification system
+- `[Minor][1]` Support navigateurs additionnels
 
 ## Matrice de conformite
 
@@ -82,7 +82,7 @@ Chemin interne retenu pour viser `19 / 14`:
 
 ## Cible 19 points
 
-Le scope interne cible vers `19 / 14` est ferme.
+Le scope interne cible vers `19 / 14` est ferme sur `dev`.
 
 ## Plan d'action documentaire
 

@@ -1,7 +1,7 @@
 # Front Handover Roadmap
 
 Date: 2026-04-18
-Contexte: le frontend et le backend sont alignes sur les flux critiques. Ce document suit les ecarts encore actifs et le chemin interne retenu pour viser `19` points a partir des exigences officielles de `en.subject.pdf` et `Intra Projects ft_transcendence Edit.pdf`.
+Contexte: le frontend et le backend sont alignes sur les flux critiques. Ce document suit les surfaces frontend effectivement utiles pour la soutenance et le chemin interne retenu pour viser `19` points a partir des exigences officielles de `en.subject.pdf` et `Intra Projects ft_transcendence Edit.pdf`.
 
 Important:
 
@@ -21,9 +21,10 @@ Le front couvre aujourd'hui :
 - stats utilisateur dans le profil
 - page `status` publique lisant `/health`
 
-Les deltas encore actifs a fermer pour viser `19 / 14` sont :
+Lecture actuelle :
 
-- aucun delta front critique dans le plan courant vers `19 / 14`
+- aucun delta front critique ne bloque la cible interne `19 / 14`
+- le front doit maintenant surtout rester lisible pour la demo evaluateur
 
 ## 2) Modules non vises dans le plan interne courant
 
@@ -64,11 +65,7 @@ References:
 - Pas de cloche notifications en navbar ni de pattern toast unifie
 - pas de monitoring externe ni d'historique d'incident
 
-## 4) Backlog restant recommande
-
-Ordre retenu pour viser `19` avec le moins de risque :
-
-1. scope `19 / 14` ferme
+## 4) Lots fermes a valoriser en demo
 
 ### Ticket R1 - Game customization options (ferme)
 
@@ -183,10 +180,7 @@ Statut:
 - `error`
 - `ready`
 
-## 6) Backlog priorise
-
-P0:
-- aucun ticket bloquant restant pour la cible `19 / 14`
+## 6) Priorites restantes hors score cible
 
 P2:
 - accessibilite / a11y de finition
@@ -194,9 +188,9 @@ P2:
 
 ## 7) Risques et dependances
 
-- Risque principal: revendiquer un module trop tot alors que la revue Intra ne comptera que les modules pleinement fonctionnels
+- Risque principal: sur-promettre dans la soutenance plus que dans la demo
 - Dependance: rester strictement aligne avec les contrats API/WS deja exposes cote backend
-- Mitigation: fermer les 3 modules `Minor` restants de facon simple et demonstrable au lieu d'etendre le scope sur des `Major`
+- Mitigation: centrer le discours sur les parcours montrables et sur le chemin principal interne vers `19`
 - Spec backend de rattrapage: docs/backend-front-enablement-spec.md
 
 ## 8) Commandes utiles front
@@ -215,13 +209,14 @@ P2:
 - runbook status / backup / restore
 - Checklist QA navigateurs (`docs/browser-compatibility-matrix.md`)
 - Dossier de demo oriente sujet (preuves fonctionnelles)
+- Checklist de soutenance [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
 
 ## 10) Hygiene documentaire
 
 - A chaque PR: verifier que les sections API/WS impactees sont a jour
 - Verifier que README pointe vers les bons documents
 - Refuser merge si l'ecart doc/impl existe sur un flux critique
-- Mettre a jour la matrice apres chaque lot ferme parmi les 3 modules encore cibles vers `19`
+- Mettre a jour la matrice apres chaque lot ferme ou changement de claim
 
 ## 11) Quick wins doc
 

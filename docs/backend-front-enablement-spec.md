@@ -93,6 +93,28 @@ Regles:
 - un spectateur ne peut pas faire `room:start` ni `game:answer` (`UNAUTHORIZED`)
 - aucun parcours UI dedie n'est prevu dans le projet courant
 
+### Bloc F - Health / status / backup
+
+Statut: implemente
+
+Endpoints:
+- `GET /health`
+
+Surface front:
+- page `GET /status` cote frontend
+
+Ops:
+- sidecar `backup` dans `docker-compose.yml`
+- backup automatise via `scripts/auto-backup.sh`
+- backup manuel via `make backup-db`
+- restauration manuelle via `make restore-db file=...`
+
+Notes:
+- `/health` expose maintenant l'etat de la base et de la sauvegarde automatisee
+- la page `status` lit cette reponse et l'affiche sous une forme lisible
+- la sauvegarde est locale a la stack Docker du projet
+- il n'y a pas de monitoring externe ni de console d'incident dediee
+
 ## Contrats a utiliser
 
 - REST: `docs/api-front-contract.md`

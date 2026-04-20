@@ -1,102 +1,214 @@
-# ft_transcendance quickstart
+# ft_transcendance
 
-Base de travail actuelle pour lancer la stack locale, verifier les flux critiques et retrouver rapidement les documents de reference.
+README de soutenance et d'exploitation locale pour l'etat courant de `dev`.
 
-## Services
+## 1. Sources officielles
 
-- `frontend`: React + TypeScript + Webpack Dev Server, accessible sur `https://localhost:3000`
-- `backend`: NestJS + TypeScript + Prisma, accessible sur `https://localhost:4000`
-- `db`: PostgreSQL, accessible sur `localhost:5432`
-- `backup`: sidecar de sauvegarde PostgreSQL automatisee, sans port expose
-
-Le frontend proxifie les appels API et WebSocket vers le backend. En developpement, `nginx` n'est pas necessaire.
-
-Le backend synchronise ses dependances, regenere le client Prisma et applique les migrations presentes dans `backend/prisma/migrations` au demarrage du conteneur.
-
-## Etat actuel du produit
-
-Disponible et demonstrable aujourd'hui :
-
-- auth locale, guest et OAuth 42
-- lobby quiz/rooms avec join, create et start
-- partie realtime avec timer serveur, reponses, leaderboard et chat
-- creation de quiz et creation de room depuis un quiz
-- pages `profile` et `friends`
-- profil editable avec upload natif d'avatar, URL optionnelle et fallback visuel par defaut
-- centre de notifications dans la page amis avec lecture, suppression et temps reel
-- reconnexion room apres refresh/perte reseau courte grace a `ROOM_RECONNECT_GRACE_MS`
-- page `status` publique avec lecture de `/health`
-- sauvegarde PostgreSQL automatisee locale + scripts manuels de sauvegarde / restauration
-
-Points encore partiels ou non implementes :
-
-- pas de monitoring externe ni d'historique d'incident persistant
-
-Decisions internes de priorisation pour le projet courant :
-
-- mode spectateur UI
-- `2FA`
-- `SSR`
-
-Important :
-- ces modules existent bien dans `srcs_subject/en.subject.pdf`
-- cette liste n'est pas une reinterpretation du sujet, seulement une priorisation interne
-
-## References evaluation
-
-Sources officielles pour le barème et la revue :
+Les seules sources officielles pour la liste des modules, leur nature `Major` ou `Minor`, et le cadre d'evaluation sont :
 
 - `srcs_subject/en.subject.pdf`
 - `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
 
-Rappels issus de ces PDFs :
+Ce README ne remplace pas ces PDFs. Il sert a :
+
+- decrire l'implementation effectivement presente dans le repo
+- expliciter la lecture interne retenue pour la soutenance
+- fournir des parcours de demo reproductibles
+
+## 2. Etat actuel du projet
+
+Le projet est aujourd'hui :
+
+- lancable en stack Docker locale
+- jouable en multijoueur distant
+- demonstrable sur les flux auth, social, room, game, stats et status
+
+Services de la stack locale :
+
+- `frontend`: React + TypeScript + Webpack Dev Server, `https://localhost:3000`
+- `backend`: NestJS + TypeScript + Prisma, `https://localhost:4000`
+- `db`: PostgreSQL, `localhost:5432`
+- `backup`: sidecar de sauvegarde PostgreSQL automatisee, sans port expose
+
+Fonctionnalites produit demonstrables :
+
+- auth locale, guest et OAuth 42
+- pages `profile`, `friends`, `leaderboard`, `status`
+- upload natif d'avatar avec fallback par defaut
+- demandes d'amis, acceptation, refus, suppression d'ami
+- notifications sociales en temps reel avec lecture et suppression
+- lobby quiz/rooms avec creation, jointure et demarrage
+- partie realtime avec timer serveur, reponses, leaderboard et chat
+- creation de quiz et creation de room depuis un quiz
+- historique de parties et stats joueur
+- status page lisant `/health`
+- sauvegarde PostgreSQL automatisee locale + restauration manuelle
+
+Modules non implementes ou non retenus dans le plan courant :
+
+- `2FA`
+- `SSR`
+- mode spectateur cote UI
+
+## 3. Lecture interne du score
+
+Rappels issus des PDFs officiels :
 
 - `Major = 2 points`
 - `Minor = 1 point`
-- minimum requis pour valider : `14 points`
-- seuls les modules pleinement fonctionnels comptent
-- un module incomplet ou non demonstrable vaut `0 point`
+- minimum requis : `14 points`
+- seul un module pleinement fonctionnel et correctement implemente compte
 - le bonus au-dela de `14` est plafonne a `+5`
 
-Regle de lecture documentaire :
+Lecture interne retenue aujourd'hui :
 
-- verite officielle `sujet + evaluation` = `srcs_subject/en.subject.pdf` et `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
-- verite `implementation` = le code dans `frontend/`, `backend/` et les contrats techniques dans `docs/api-front-contract.md`, `docs/ws-event-contract.md`, `docs/front2-realtime-integration.md`
-- les sections ci-dessous sont une lecture de pilotage interne, pas un remplacement des PDFs
+- estimation interne defendable : `19 / 14`
+- cette estimation n'est pas une verite officielle
+- la decision finale appartient aux evaluateurs
 
-## Modules claimed
+### 3.1 Chemin principal defendu vers `19`
 
-Estimation interne argumentee aujourd'hui : `19 / 14`
-
-Modules que le projet peut revendiquer aujourd'hui sans sur-promesse :
+Chemin que la documentation et la demo doivent privilegier :
 
 - `[Major][2]` Use a framework for both frontend and backend
 - `[Major][2]` Implement real-time features
 - `[Major][2]` Allow users to interact with other users
+- `[Major][2]` Standard user management and authentication
+- `[Major][2]` Web-based game
+- `[Major][2]` Remote players
+- `[Major][2]` Multiplayer `> 2`
 - `[Minor][1]` Use an ORM
-- `[Minor][1]` Notification system
 - `[Minor][1]` Remote authentication
 - `[Minor][1]` Game customization options
 - `[Minor][1]` Game statistics and match history
+- `[Minor][1]` Health check and status page
+
+Total interne defendu par ce chemin : `19`
+
+### 3.2 Modules implementes mais non necessaires a ce `19`
+
+Ces modules existent dans le repo, mais ne sont pas indispensables a l'argumentaire principal :
+
+- `[Minor][1]` Notification system
 - `[Minor][1]` Support for additional browsers
-- `[Minor][1]` Health check & status page
-- `[Major][2]` Web-based game
-- `[Major][2]` Remote players
-- `[Major][2]` Multiplayer (>2 players)
 
-Total estime revendicable aujourd'hui : `19 points`
+### 3.3 Modules explicitement non revendiques
 
-## Path to 19
+- `[Minor][1]` Two-factor authentication
+- `[Minor][1]` SSR
+- `[Minor][1]` Spectator mode cote UI
 
-La cible interne `19 / 14` est maintenant fermee sur `dev`.
+## 4. Modules revendicables et preuves
 
-Regle pratique pour la revue Intra :
+### 4.1 Standard user management and authentication
 
-- preferer `5` modules `Minor` fermes proprement plutot qu'un `Major` partiel
-- ne pas rouvrir `mode spectateur UI`, `2FA` ou `SSR` dans ce plan interne vers `19`
-- garder le README honnete : only claim what can actually be demonstrated
+Preuves techniques :
 
-## Demarrage local
+- `GET /users/me`
+- `PATCH /users/me`
+- `POST /users/me/avatar`
+- service statique `/uploads`
+- [backend/src/modules/users/users.controller.ts](/Users/d9125/Downloads/transcendance-dev/backend/src/modules/users/users.controller.ts)
+- [frontend/src/pages/ProfilePage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/ProfilePage.tsx)
+- [frontend/src/pages/FriendsPage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/FriendsPage.tsx)
+
+Ce qui est effectivement demonstrable :
+
+- inscription
+- login
+- session
+- logout
+- guest login
+- edition de profil
+- upload avatar natif
+- retour a l'avatar par defaut
+- affichage des amis et du statut en ligne / hors ligne
+
+### 4.2 Health check and status page
+
+Preuves techniques :
+
+- `GET /health`
+- page publique `/status`
+- sidecar `backup` dans [docker-compose.yml](/Users/d9125/Downloads/transcendance-dev/docker-compose.yml)
+- script [scripts/auto-backup.sh](/Users/d9125/Downloads/transcendance-dev/scripts/auto-backup.sh)
+- scripts [scripts/backup-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/backup-db.sh) et [scripts/restore-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/restore-db.sh)
+- runbook [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
+
+Ce qui est effectivement demonstrable :
+
+- frontend actif
+- backend actif
+- base joignable
+- etat de sauvegarde automatisee visible
+- backup manuel
+- restauration manuelle documentee
+
+### 4.3 Realtime multiplayer web game
+
+Preuves techniques :
+
+- namespace Socket.IO `/ws`
+- creation / join / leave / start de room
+- timer de question serveur
+- answers realtime
+- leaderboard room
+- smoke tests WebSocket et smoke global
+
+Points d'entree utiles :
+
+- [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
+- [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
+- [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)
+
+### 4.4 Stats and match history
+
+Preuves techniques :
+
+- `GET /scores/leaderboard`
+- `GET /scores/users/:userId`
+- `GET /scores/users/:userId/history`
+- [frontend/src/pages/LeaderboardPage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/LeaderboardPage.tsx)
+- [frontend/src/pages/ProfilePage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/ProfilePage.tsx)
+
+### 4.5 Game customization options
+
+Preuves techniques :
+
+- `POST /rooms` accepte `questionDurationMs`
+- room privee / publique
+- room liee a un quiz via `quizId`
+- affichage de la duree configuree dans le flux room / pre-match / game
+
+Points d'entree utiles :
+
+- [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
+- [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
+
+## 5. Parcours de demo recommandes
+
+Checklist de demo detaillee :
+
+- [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
+
+Parcours courts a preparer :
+
+1. `Auth`
+   connexion locale, guest ou OAuth 42, puis verification de session.
+2. `User management`
+   profil, upload avatar, avatar visible sur profil et amis.
+3. `Social`
+   demande d'ami, acceptation, notification, suppression.
+4. `Game`
+   quiz -> room -> join -> start -> reponse -> leaderboard.
+5. `Stats`
+   leaderboard globale + historique utilisateur.
+6. `Status`
+   page `/status`, `make test-stack`, `make smoke-test`, backup auto visible, `make backup-db`.
+
+## 6. Demarrage local et verification
+
+Demarrage minimal :
 
 ```bash
 make env-init
@@ -104,183 +216,66 @@ make tls-trust
 make env-check
 make up
 make test-stack
-make logs
 ```
 
-Notes :
-
-- `.env.example` contient des valeurs de dev directement utilisables
-- si tu modifies les credentials Postgres apres la premiere initialisation, pense a reinitialiser le volume local avec `make fclean`
-- la confiance TLS locale repose sur `mkcert`; `make tls-trust` est a lancer une fois par machine
-
-## Qualite et verification
-
 Commandes utiles :
+
+- `make logs`
+- `make logs-back`
+- `make logs-front`
+- `make logs-db`
+- `make logs-backup`
+- `make smoke-test`
+- `make smoke-test-ws`
+- `make backup-db`
+- `make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql`
+- `make browser-test`
+
+Verification code :
 
 - `cd backend && npm run lint`
 - `cd frontend && npm run lint`
 - `cd backend && npm run build`
 - `cd frontend && npm run build`
-- `cd frontend && npm run test:browsers`
-- `bash scripts/lint-shell.sh`
-- `bash scripts/smoke-test.sh`
-- `make backup-db`
-- `make logs-backup`
-- `docker exec quiz_backend npm run test:ws-smoke`
-- `docker exec quiz_backend npm run test:ws-critical`
-- `docker exec quiz_backend npm run test:rate-limit`
-- `docker exec quiz_backend npm run test:integration:social`
 
-Preuve multi-browser versionnee :
-
-- `make browser-test`
-- details et matrice de validation : `docs/browser-compatibility-matrix.md`
-- runbook status / backup / recovery : `docs/ops-status-backup-recovery.md`
-
-La CI GitHub Actions verifie :
-
-- lint backend/frontend
-- shellcheck
-- build backend/frontend
-- demarrage Docker complet
-- smoke test global
-- smoke tests WebSocket
-- test de rate limiting HTTP
-- test d'integration social
-
-Le workflow peut fonctionner :
-
-- sans secret GitHub, avec des valeurs CI de secours
-- avec des secrets de repo nommes `CI_POSTGRES_USER`, `CI_POSTGRES_PASSWORD`, `CI_POSTGRES_DB`, `CI_POSTGRES_PORT`, `CI_DATABASE_URL`, `CI_BACKEND_PORT`, `CI_FRONTEND_PORT`, `CI_JWT_SECRET`
-
-## Secrets et variables
-
-- Le projet charge ses variables depuis `.env`
-- Le fichier versionne est `.env.example`
-- Ne jamais commiter une vraie valeur secrete dans `.env`
-
-Variables principales :
-
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- `POSTGRES_PORT`
-- `DATABASE_URL`
-- `BACKEND_PORT`
-- `FRONTEND_PORT`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
-- `FRONTEND_ORIGIN`
-- `GAME_QUESTION_DURATION_MS`
-- `GAME_ANSWER_GRACE_MS`
-- `ROOM_RECONNECT_GRACE_MS`
-- `ROOM_CLEANUP_INTERVAL_MS`
-- `ROOM_WAITING_TTL_MS`
-- `ROOM_FINISHED_TTL_MS`
-- `BACKUP_INTERVAL_SECONDS`
-- `BACKUP_RETENTION_COUNT`
-- `AUTH_COOKIE_SAMESITE`
-- `AUTH_COOKIE_SECURE`
-- `FT_CLIENT_ID`
-- `FT_CLIENT_SECRET`
-- `FT_REDIRECT_URI`
-- `FT_SCOPE`
-- `OAUTH_HTTP_TIMEOUT_MS`
-
-## URLs utiles
+URLs utiles :
 
 - frontend : `https://localhost:3000`
-- frontend status : `https://localhost:3000/status`
+- login : `https://localhost:3000/login`
+- profile : `https://localhost:3000/profile`
+- friends : `https://localhost:3000/friends`
+- leaderboard : `https://localhost:3000/leaderboard`
+- status : `https://localhost:3000/status`
 - backend health : `https://localhost:4000/health`
-- frontend health via proxy : `https://localhost:3000/health`
-- page profil : `https://localhost:3000/profile`
-- page amis : `https://localhost:3000/friends`
 
-## API et temps reel
+## 7. Cartographie documentaire
 
-Le backend expose actuellement les blocs suivants :
+Documents de reference a utiliser pour la soutenance :
 
-- `auth`
-- `users`
-- `friends`
-- `notifications`
-- `rooms`
-- `game`
-- `scores`
-- `quizzes`
-- `ws` via Socket.IO sur `/ws`
+- [docs/sujet-conformite-matrice.md](/Users/d9125/Downloads/transcendance-dev/docs/sujet-conformite-matrice.md)
+- [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
+- [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
+- [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
+- [docs/backend-front-enablement-spec.md](/Users/d9125/Downloads/transcendance-dev/docs/backend-front-enablement-spec.md)
+- [docs/front-handover-roadmap.md](/Users/d9125/Downloads/transcendance-dev/docs/front-handover-roadmap.md)
+- [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
+- [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
+- [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)
 
-Exemples de routes clefs :
+## 8. Elements Intra encore a completer manuellement
 
-- `POST /auth/register`
-- `POST /auth/login`
-- `POST /auth/guest`
-- `GET /auth/42/start`
-- `GET /auth/42/callback`
-- `POST /auth/logout`
-- `GET /auth/session`
-- `GET /users/me`
-- `PATCH /users/me`
-- `GET /friends`
-- `GET /friends/requests`
-- `GET /notifications`
-- `DELETE /notifications/:id`
-- `GET /rooms`
-- `POST /rooms`
-- `GET /game/:roomId/state`
-- `GET /scores/leaderboard?limit=10`
-- `GET /scores/users/:userId`
-- `GET /scores/users/:userId/history?limit=10`
-- `GET /quizzes`
-- `GET /quizzes/:quizId`
-- `POST /quizzes` avec cookie `access_token`
+Le repo permet aujourd'hui de documenter l'etat technique et les modules revendiques, mais certains elements demandes par l'Intra ne sont pas encore traces de facon complete ici.
 
-Important en dev :
+A completer avant soutenance si vous voulez un dossier Intra propre :
 
-- le proxy frontend couvre `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/uploads` et `/socket.io`
-- les navigations HTML vers `/friends` et `/notifications` restent servies par React Router; seules les requetes non HTML sont proxyfiees vers le backend
-- le front peut appeler ces routes directement sur `https://localhost:3000`
-- utiliser `credentials: "include"` pour que la session cookie fonctionne
-- l'auth OAuth exposee dans l'etat actuel est 42 uniquement
-- `POST /quizzes` est protege par `AuthGuard` et throttle a `10` creations par minute
-- le seed de dev charge maintenant un premier catalogue de quiz ancrés dans l'univers 42
-- si `quizId` est omis a la creation d'une room, le code tente de demarrer avec un quiz par defaut nomme `"Culture générale"`; ce quiz n'est pas cree par le seed courant, donc fournir `quizId` est recommande
-- `questionDurationMs` peut etre fourni a la creation d'une room; sans valeur explicite, le backend retombe sur `GAME_QUESTION_DURATION_MS`
+- noms exacts des membres du groupe
+- roles explicites par membre
+- organisation du travail / methode de coordination
+- contribution individuelle par feature
+- schema DB lisible a joindre si vous voulez une piece visuelle dediee
 
-## Cartographie documentaire
+Important :
 
-Documents de reference a lire en priorite :
-
-- `docs/api-front-contract.md`
-- `docs/ws-event-contract.md`
-- `docs/front2-realtime-integration.md`
-- `docs/quiz-room-game-integration.md`
-- `docs/backend-front-enablement-spec.md`
-- `docs/front-handover-roadmap.md`
-- `docs/design-system/transcendance-web-app/MASTER.md` (source design UI/UX)
-- `docs/design-system/transcendance-web-app/pages/lobby.md` (overrides lobby)
-- `docs/design-system/transcendance-web-app/pages/game-room.md` (overrides game room)
-- `docs/sujet-conformite-matrice.md`
-- `docs/codex-binome-guide.md`
-- `dev.md`
-
-## Conformite sujet
-
-La source de verite pour le barème reste les 2 PDFs du dossier `srcs_subject/`.
-`docs/sujet-conformite-matrice.md` est une matrice de travail derivee de ces PDFs et de l'etat du code.
-
-Pour la cible produit actuelle :
-
-- score valide aujourd'hui : `14`
-- score vise a terme : `19`
-- score interne estime aujourd'hui : `19`
-- plus aucun module actif restant dans le plan interne courant vers `19`
-
-## Quand ajouter nginx
-
-Ajouter un service `nginx` plus tard si tu veux :
-
-- un seul point d'entree public
-- servir un build frontend statique
-- faire du reverse proxy `/api`
-- preparer une architecture de production
+- cette section est volontairement explicite
+- elle signale ce qui manque encore au dossier
+- elle n'invente aucune information absente du repo
