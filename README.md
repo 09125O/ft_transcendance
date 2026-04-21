@@ -1,54 +1,54 @@
 # ft_transcendance
 
-README de soutenance et d'exploitation locale pour l'etat courant de `dev`.
+README de soutenance et d'exploitation locale pour l'état courant de `dev`.
 
 ## 1. Sources officielles
 
-Les seules sources officielles pour la liste des modules, leur nature `Major` ou `Minor`, et le cadre d'evaluation sont :
+Les seules sources officielles pour la liste des modules, leur nature `Major` ou `Minor`, et le cadre d'évaluation sont :
 
 - `srcs_subject/en.subject.pdf`
 - `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
 
-Ce README ne remplace pas ces PDFs. Il sert a :
+Ce README ne remplace pas ces PDFs. Il sert à :
 
-- decrire l'implementation effectivement presente dans le repo
+- décrire l'implémentation effectivement présente dans le repo
 - expliciter la lecture interne retenue pour la soutenance
-- fournir des parcours de demo reproductibles
+- fournir des parcours de démo reproductibles
 
-## 2. Etat actuel du projet
+## 2. État actuel du projet
 
 Le projet est aujourd'hui :
 
-- lancable en stack Docker locale
+- lançable en stack Docker locale
 - jouable en multijoueur distant
-- demonstrable sur les flux auth, social, room, game, stats et status
+- démonstrable sur les flux auth, social, room, game, stats et status
 
 Services de la stack locale :
 
 - `frontend`: React + TypeScript + Webpack Dev Server, `https://localhost:3000`
 - `backend`: NestJS + TypeScript + Prisma, `https://localhost:4000`
 - `db`: PostgreSQL, `localhost:5432`
-- `backup`: sidecar de sauvegarde PostgreSQL automatisee, sans port expose
+- `backup`: sidecar de sauvegarde PostgreSQL automatisée, sans port exposé
 
-Fonctionnalites produit demonstrables :
+Fonctionnalités produit démontrables :
 
 - auth locale, guest et OAuth 42
 - pages `profile`, `friends`, `leaderboard`, `status`
-- upload natif d'avatar avec fallback par defaut
+- upload natif d'avatar avec fallback par défaut
 - demandes d'amis, acceptation, refus, suppression d'ami
-- notifications sociales en temps reel avec lecture et suppression
-- lobby quiz/rooms avec creation, jointure et demarrage
-- partie realtime avec timer serveur, reponses, leaderboard et chat
-- creation de quiz et creation de room depuis un quiz
+- notifications sociales en temps réel avec lecture et suppression
+- lobby quiz/rooms avec création, jointure et démarrage
+- partie realtime avec timer serveur, réponses, leaderboard et chat
+- création de quiz et création de room depuis un quiz
 - historique de parties et stats joueur
 - status page lisant `/health`
-- sauvegarde PostgreSQL automatisee locale + restauration manuelle
+- sauvegarde PostgreSQL automatisée locale + restauration manuelle
 
-Modules non implementes ou non retenus dans le plan courant :
+Modules non implémentés ou non retenus dans le plan courant :
 
 - `2FA`
 - `SSR`
-- mode spectateur cote UI
+- mode spectateur côté UI
 
 ## 3. Lecture interne du score
 
@@ -57,18 +57,18 @@ Rappels issus des PDFs officiels :
 - `Major = 2 points`
 - `Minor = 1 point`
 - minimum requis : `14 points`
-- seul un module pleinement fonctionnel et correctement implemente compte
-- le bonus au-dela de `14` est plafonne a `+5`
+- seul un module pleinement fonctionnel et correctement implémenté compte
+- le bonus au-delà de `14` est plafonné à `+5`
 
 Lecture interne retenue aujourd'hui :
 
 - estimation interne defendable : `19 / 14`
-- cette estimation n'est pas une verite officielle
-- la decision finale appartient aux evaluateurs
+- cette estimation n'est pas une vérité officielle
+- la décision finale appartient aux évaluateurs
 
 ### 3.1 Chemin principal defendu vers `19`
 
-Chemin que la documentation et la demo doivent privilegier :
+Chemin que la documentation et la démo doivent privilégier :
 
 - `[Major][2]` Use a framework for both frontend and backend
 - `[Major][2]` Implement real-time features
@@ -85,18 +85,18 @@ Chemin que la documentation et la demo doivent privilegier :
 
 Total interne defendu par ce chemin : `19`
 
-### 3.2 Modules implementes mais non necessaires a ce `19`
+### 3.2 Modules implémentés mais non nécessaires à ce `19`
 
-Ces modules existent dans le repo, mais ne sont pas indispensables a l'argumentaire principal :
+Ces modules existent dans le repo, mais ne sont pas indispensables à l'argumentaire principal :
 
 - `[Minor][1]` Notification system
 - `[Minor][1]` Support for additional browsers
 
-### 3.3 Modules explicitement non revendiques
+### 3.3 Modules explicitement non revendiqués
 
 - `[Minor][1]` Two-factor authentication
 - `[Minor][1]` SSR
-- `[Minor][1]` Spectator mode cote UI
+- `[Minor][1]` Spectator mode côté UI
 
 ## 4. Modules revendicables et preuves
 
@@ -112,14 +112,14 @@ Preuves techniques :
 - [frontend/src/pages/ProfilePage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/ProfilePage.tsx)
 - [frontend/src/pages/FriendsPage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/FriendsPage.tsx)
 
-Ce qui est effectivement demonstrable :
+Ce qui est effectivement démontrable :
 
 - inscription
 - login
 - session
 - logout
 - guest login
-- edition de profil
+- édition de profil
 - upload avatar natif
 - retour a l'avatar par defaut
 - affichage des amis et du statut en ligne / hors ligne
@@ -135,14 +135,14 @@ Preuves techniques :
 - scripts [scripts/backup-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/backup-db.sh) et [scripts/restore-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/restore-db.sh)
 - runbook [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
 
-Ce qui est effectivement demonstrable :
+Ce qui est effectivement démontrable :
 
 - frontend actif
 - backend actif
 - base joignable
-- etat de sauvegarde automatisee visible
+- état de sauvegarde automatisée visible
 - backup manuel
-- restauration manuelle documentee
+- restauration manuelle documentée
 
 ### 4.3 Realtime multiplayer web game
 
@@ -155,7 +155,7 @@ Preuves techniques :
 - leaderboard room
 - smoke tests WebSocket et smoke global
 
-Points d'entree utiles :
+Points d'entrée utiles :
 
 - [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
 - [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
@@ -176,39 +176,39 @@ Preuves techniques :
 Preuves techniques :
 
 - `POST /rooms` accepte `questionDurationMs`
-- room privee / publique
-- room liee a un quiz via `quizId`
-- affichage de la duree configuree dans le flux room / pre-match / game
+- room privée / publique
+- room liée à un quiz via `quizId`
+- affichage de la durée configurée dans le flux room / pre-match / game
 
-Points d'entree utiles :
+Points d'entrée utiles :
 
 - [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
 - [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
 
-## 5. Parcours de demo recommandes
+## 5. Parcours de démo recommandés
 
-Checklist de demo detaillee :
+Checklist de démo détaillée :
 
 - [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
 
-Parcours courts a preparer :
+Parcours courts à préparer :
 
 1. `Auth`
-   connexion locale, guest ou OAuth 42, puis verification de session.
+   connexion locale, guest ou OAuth 42, puis vérification de session.
 2. `User management`
    profil, upload avatar, avatar visible sur profil et amis.
 3. `Social`
    demande d'ami, acceptation, notification, suppression.
 4. `Game`
-   quiz -> room -> join -> start -> reponse -> leaderboard.
+   quiz -> room -> join -> start -> réponse -> leaderboard.
 5. `Stats`
    leaderboard globale + historique utilisateur.
 6. `Status`
    page `/status`, `make test-stack`, `make smoke-test`, backup auto visible, `make backup-db`.
 
-## 6. Demarrage local et verification
+## 6. Démarrage local et vérification
 
-Demarrage minimal :
+Démarrage minimal :
 
 ```bash
 make env-init
@@ -264,7 +264,7 @@ Documents de reference a utiliser pour la soutenance :
 
 ## 8. Elements Intra encore a completer manuellement
 
-Le repo permet aujourd'hui de documenter l'etat technique et les modules revendiques, mais certains elements demandes par l'Intra ne sont pas encore traces de facon complete ici.
+Le repo permet aujourd'hui de documenter l'état technique et les modules revendiqués, mais certains éléments demandés par l'Intra ne sont pas encore tracés de façon complète ici.
 
 A completer avant soutenance si vous voulez un dossier Intra propre :
 
