@@ -7,10 +7,11 @@ CERT_DIR="${ROOT_DIR}/certs"
 CERT_FILE="${CERT_DIR}/dev-localhost.crt"
 KEY_FILE="${CERT_DIR}/dev-localhost.key"
 CA_FILE="${CERT_DIR}/mkcert-rootCA.pem"
+LOCAL_IPV4=""
+EXTRA_TLS_HOSTS="${EXTRA_TLS_HOSTS:-}"
 
-if [ -s "$CERT_FILE" ] && [ -s "$KEY_FILE" ] && [ -s "$CA_FILE" ]; then
-	printf '[OK] Certificat TLS de dev present: %s\n' "$CERT_FILE"
-	exit 0
+if command -v ifconfig >/dev/null 2>&1; then
+	LOCAL_IPV4="$(ifconfig en0 2>/dev/null | awk '/inet / { print $2; exit }')"
 fi
 
 command -v mkcert >/dev/null 2>&1 || {
@@ -30,10 +31,22 @@ ROOT_CA_SOURCE="${CAROOT}/rootCA.pem"
 mkdir -p "$CERT_DIR"
 cp "$ROOT_CA_SOURCE" "$CA_FILE"
 
+set -- localhost 127.0.0.1 ::1 frontend backend quiz_frontend quiz_backend
+
+if [ -n "$LOCAL_IPV4" ]; then
+	set -- "$@" "$LOCAL_IPV4"
+fi
+
+if [ -n "$EXTRA_TLS_HOSTS" ]; then
+	for host in $EXTRA_TLS_HOSTS; do
+		set -- "$@" "$host"
+	done
+fi
+
 mkcert \
 	-cert-file "$CERT_FILE" \
 	-key-file "$KEY_FILE" \
-	localhost 127.0.0.1 ::1 frontend backend quiz_frontend quiz_backend \
+	"$@" \
 	>/dev/null 2>&1
 
 chmod 600 "$KEY_FILE"

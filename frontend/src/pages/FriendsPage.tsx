@@ -44,11 +44,11 @@ function getNotificationDescription(notification: NotificationItem): string | nu
     case "FRIEND_REQUEST_RECEIVED":
       return fromUsername ? `${fromUsername} souhaite vous ajouter.` : null;
     case "FRIEND_REQUEST_ACCEPTED":
-      return actorUsername ? `${actorUsername} a accepte votre demande.` : null;
+      return actorUsername ? `${actorUsername} a accepté votre demande.` : null;
     case "FRIEND_REQUEST_DECLINED":
-      return actorUsername ? `${actorUsername} a refuse votre demande.` : null;
+      return actorUsername ? `${actorUsername} a refusé votre demande.` : null;
     case "FRIEND_REMOVED":
-      return actorUsername ? `${actorUsername} vous a retire de sa liste d'amis.` : null;
+      return actorUsername ? `${actorUsername} vous a retiré de sa liste d'amis.` : null;
     default:
       return null;
   }

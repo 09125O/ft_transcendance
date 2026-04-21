@@ -32,16 +32,16 @@ function buildAchievements(stats: UserScore | null): Achievement[] {
     },
     {
       label: "Top scorer",
-      description: "Atteindre 100 points cumules.",
+      description: "Atteindre 100 points cumulés.",
       unlocked: safeStats.score >= 100,
     },
     {
-      label: "Serie gagnante",
+      label: "Série gagnante",
       description: "Remporter 3 parties ou plus.",
       unlocked: safeStats.wins >= 3,
     },
     {
-      label: "Veteran",
+      label: "Vétéran",
       description: "Jouer 10 parties ou plus.",
       unlocked: safeStats.gamesPlayed >= 10,
     },
@@ -147,10 +147,10 @@ export default function LeaderboardPage() {
               Stats & historique
             </span>
             <h1 className="m-0 max-w-4xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
-              Classement global, progression joueur et matchs recents
+              Classement global, progression joueur et matchs récents
             </h1>
             <p className="ui-muted max-w-3xl text-sm sm:text-base">
-              Suis les meilleurs scores, ton niveau actuel et les dernieres parties jouees.
+              Suis les meilleurs scores, ton niveau actuel et les dernières parties jouées.
             </p>
           </div>
         </Panel>
@@ -173,7 +173,7 @@ export default function LeaderboardPage() {
                 </h2>
               </div>
               <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/70">
-                {leaderboard.length} entree{leaderboard.length > 1 ? "s" : ""}
+                {leaderboard.length} entrée{leaderboard.length > 1 ? "s" : ""}
               </span>
             </div>
 
@@ -185,7 +185,7 @@ export default function LeaderboardPage() {
 
             {!isLoading && leaderboard.length === 0 ? (
               <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/70">
-                Aucune partie terminee pour le moment.
+                Aucune partie terminée pour le moment.
               </div>
             ) : null}
 
@@ -211,7 +211,7 @@ export default function LeaderboardPage() {
                       {entry.username}
                     </Link>
                     <p className="m-0 mt-1 text-xs text-text/60">
-                      {entry.gamesPlayed} partie{entry.gamesPlayed > 1 ? "s" : ""} • {entry.losses} defaite{entry.losses > 1 ? "s" : ""}
+                      {entry.gamesPlayed} partie{entry.gamesPlayed > 1 ? "s" : ""} • {entry.losses} défaite{entry.losses > 1 ? "s" : ""}
                     </p>
                   </div>
                   <div>
@@ -309,7 +309,7 @@ export default function LeaderboardPage() {
                                 : "border border-white/10 bg-background text-text/50",
                             ].join(" ")}
                           >
-                            {achievement.unlocked ? "Debloque" : "A venir"}
+                            {achievement.unlocked ? "Débloqué" : "À venir"}
                           </span>
                         </div>
                       </div>
@@ -331,7 +331,7 @@ export default function LeaderboardPage() {
                   Historique
                 </p>
                 <h2 className="m-0 text-2xl font-semibold text-text">
-                  Parties recentes
+                  Parties récentes
                 </h2>
               </div>
 
@@ -343,7 +343,7 @@ export default function LeaderboardPage() {
 
               {currentUser && currentUserHistory.length === 0 ? (
                 <p className="m-0 text-sm text-text/70">
-                  Aucune partie terminee pour le moment.
+                  Aucune partie terminée pour le moment.
                 </p>
               ) : null}
 
