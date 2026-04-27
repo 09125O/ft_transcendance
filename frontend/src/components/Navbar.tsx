@@ -151,7 +151,7 @@ export default function Navbar() {
                 <PrimaryButton
                   aria-expanded={isAccountMenuOpen}
                   aria-haspopup="menu"
-                  className="h-9 px-2 text-sm"
+                  className="h-9 pl-1 pr-2 text-sm"
                   onClick={() => {
                     setIsAccountMenuOpen((isOpen) => !isOpen);
                   }}

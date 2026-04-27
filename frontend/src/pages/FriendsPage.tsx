@@ -240,8 +240,7 @@ export default function FriendsPage() {
   return (
     <main className="flex flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-[8%] lg:py-10">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.85fr)]">
-        <Panel className="relative overflow-hidden p-6 sm:p-7">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.24),transparent_55%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_40%)]" />
+        <Panel className="relative overflow-hidden p-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.24),transparent_55%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_40%)] before:content-[''] sm:p-7">
           <div className="relative flex flex-col gap-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl space-y-3">

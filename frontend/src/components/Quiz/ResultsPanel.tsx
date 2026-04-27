@@ -69,8 +69,7 @@ export default function ResultsPanel({
 
   return (
     <div className="grid w-full gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)]">
-      <Panel className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-8 xl:min-h-[80vh]">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.2),transparent_42%)]" />
+      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.2),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
         <div className="relative flex h-full flex-col justify-between gap-8">
           <div className="space-y-4">
             <span className="ui-kicker inline-flex w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200">
