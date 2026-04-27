@@ -128,10 +128,9 @@ export default function GamePanel({
       </div>
 
       <Panel className={[
-        "order-1 relative overflow-hidden px-5 py-5 sm:px-7 sm:py-6 xl:min-h-[80vh]",
+        "order-1 relative overflow-hidden px-5 py-5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_42%)] before:content-[''] sm:px-7 sm:py-6 xl:min-h-[80vh]",
         mobileTab === "stage" ? "block" : "hidden xl:block",
       ].join(" ")}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_42%)]" />
         <div className="relative flex h-full flex-col">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div className="max-w-3xl space-y-3">

@@ -105,8 +105,7 @@ export default function StatusPage() {
   return (
     <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
       <div className="flex w-full flex-col gap-6">
-        <Panel className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.22),transparent_58%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.18),transparent_42%)]" />
+        <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.22),transparent_58%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.18),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
           <div className="relative space-y-4">
             <span className="ui-kicker inline-flex w-fit rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
               Santé système

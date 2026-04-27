@@ -76,8 +76,7 @@ export default function LobbyOverviewPanel({
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <Panel className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.26),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.18),transparent_42%)]" />
+      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.26),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.18),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
         <div className="relative space-y-5">
           <div className="space-y-5">
             <span className="ui-kicker inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
