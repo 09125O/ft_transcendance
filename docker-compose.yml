@@ -24,7 +24,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "const target = process.env.FRONTEND_ORIGIN || 'https://localhost:3000'; const { request } = require(target.startsWith('https://') ? 'https' : 'http'); const req = request(target, { rejectUnauthorized: false }, (response) => process.exit(response.statusCode && response.statusCode < 500 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();",
+          "const target = 'https://127.0.0.1:3000'; const { request } = require('https'); const req = request(target, { rejectUnauthorized: false }, (response) => process.exit(response.statusCode && response.statusCode < 500 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();",
         ]
       interval: 10s
       timeout: 5s

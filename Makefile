@@ -28,7 +28,7 @@ help:
 	@echo "  make down                -> Stop containers"
 	@echo "  make clean               -> Remove containers and images, keep volumes"
 	@echo "  make fclean              -> Full clean: containers, images and volumes"
-	@echo "  make re                  -> Full clean then rebuild and start"
+	@echo "  make re                  -> Reset containers/volumes, then rebuild and start"
 	@echo "  make restart             -> Restart all containers with rebuild"
 	@echo "  make logs                -> Follow all docker logs"
 	@echo "  make logs-back           -> Follow backend logs"
@@ -94,7 +94,9 @@ clean: compose-check
 fclean: compose-check
 	$(COMPOSE) down -v --rmi all
 
-re: fclean up
+re: compose-check
+	$(COMPOSE) down -v --remove-orphans
+	@$(MAKE) up
 
 restart: env-check compose-check
 	bash scripts/generate-dev-cert.sh
