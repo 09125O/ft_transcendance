@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Panel from "../Panel";
+import DangerButton from "../DangerButton";
 import PrimaryButton from "../PrimaryButton";
+import SecondaryButton from "../SecondaryButton";
 import type { PublicQuestion } from "../../types/game";
 
 type ScoreEntry = {
@@ -92,8 +94,8 @@ export default function GamePanel({
             className={[
               "rounded-xl px-3 py-2 text-sm font-semibold transition duration-200",
               mobileTab === "stage"
-                ? "bg-primary text-[#04111e]"
-                : "bg-background text-text/80 hover:bg-white/5",
+                ? "bg-primary text-text"
+                : "bg-background text-text/80 hover:bg-text/5",
             ].join(" ")}
             type="button"
             onClick={() => setMobileTab("stage")}
@@ -104,8 +106,8 @@ export default function GamePanel({
             className={[
               "rounded-xl px-3 py-2 text-sm font-semibold transition duration-200",
               mobileTab === "score"
-                ? "bg-primary text-[#04111e]"
-                : "bg-background text-text/80 hover:bg-white/5",
+                ? "bg-primary text-text"
+                : "bg-background text-text/80 hover:bg-text/5",
             ].join(" ")}
             type="button"
             onClick={() => setMobileTab("score")}
@@ -116,8 +118,8 @@ export default function GamePanel({
             className={[
               "rounded-xl px-3 py-2 text-sm font-semibold transition duration-200",
               mobileTab === "chat"
-                ? "bg-primary text-[#04111e]"
-                : "bg-background text-text/80 hover:bg-white/5",
+                ? "bg-primary text-text"
+                : "bg-background text-text/80 hover:bg-text/5",
             ].join(" ")}
             type="button"
             onClick={() => setMobileTab("chat")}
@@ -128,13 +130,13 @@ export default function GamePanel({
       </div>
 
       <Panel className={[
-        "order-1 relative overflow-hidden px-5 py-5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.16),transparent_42%)] before:content-[''] sm:px-7 sm:py-6 xl:min-h-[80vh]",
+        "order-1 relative overflow-hidden px-5 py-5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_16%,transparent),transparent_42%)] before:content-[''] sm:px-7 sm:py-6 xl:min-h-[80vh]",
         mobileTab === "stage" ? "block" : "hidden xl:block",
       ].join(" ")}>
         <div className="relative flex h-full flex-col">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div className="max-w-3xl space-y-3">
-              <span className="ui-kicker inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 {isFinished
                   ? "Partie terminee"
                   : hasQuestion
@@ -144,7 +146,7 @@ export default function GamePanel({
                       : "Salon en attente"}
               </span>
               <div className="space-y-2">
-                <p className="ui-kicker m-0 text-sm text-text/55">
+                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-sm text-text/55">
                   Table de jeu
                 </p>
                 <p className="m-0 text-balance text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -155,7 +157,7 @@ export default function GamePanel({
                 </p>
               </div>
               {!hasQuestion ? (
-                <p className="ui-muted m-0 max-w-2xl text-sm sm:text-base">
+                <p className="text-text-muted m-0 max-w-2xl text-sm sm:text-base">
                   {isFinished
                     ? "La partie est finie. Consulte le classement final ou quitte la room."
                     : "Le panneau principal sert maintenant d’espace focal. Dès qu’une question démarre, les propositions prennent tout le premier rôle."}
@@ -166,9 +168,9 @@ export default function GamePanel({
                   className={[
                     "m-0 text-sm font-semibold",
                     answerFeedback === "correct"
-                      ? "text-emerald-300"
+                      ? "text-success"
                       : answerFeedback === "incorrect"
-                        ? "text-red-300"
+                        ? "text-danger"
                         : "text-text/70",
                   ].join(" ")}
                 >
@@ -181,15 +183,15 @@ export default function GamePanel({
               ) : null}
               {hasQuestion && timerProgress !== null ? (
                 <div className="mt-2 max-w-2xl space-y-2">
-                  <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-text/10">
                     <div
                       className={[
                         "h-full rounded-full transition-[width,background-color] duration-100 ease-linear",
                         timerProgress <= 25
-                          ? "bg-red-400"
+                          ? "bg-danger"
                           : timerProgress <= 50
-                            ? "bg-amber-300"
-                            : "bg-cyan-300",
+                            ? "bg-urgency"
+                            : "bg-accent",
                       ].join(" ")}
                       style={{ width: `${timerProgress}%` }}
                     />
@@ -206,13 +208,12 @@ export default function GamePanel({
                   Démarrer
                 </PrimaryButton>
               ) : null}
-              <button
-                className="ui-btn-secondary px-4 py-2.5 text-sm"
-                type="button"
+              <SecondaryButton
+                className="px-4 py-2.5 text-sm"
                 onClick={onToggleRules}
               >
                 Règles
-              </button>
+              </SecondaryButton>
             </div>
           </div>
 
@@ -229,12 +230,12 @@ export default function GamePanel({
                       className={[
                         "group flex min-h-28 flex-col justify-between rounded-[24px] border px-5 py-4 text-left transition duration-200",
                         showAnswerState && isCorrectOption
-                          ? "border-emerald-400/75 bg-emerald-500/22 shadow-[0_28px_48px_-32px_rgba(16,185,129,0.88)]"
+                          ? "border-success/75 bg-success/22 shadow-[0_28px_48px_-32px_color-mix(in_srgb,var(--color-success)_88%,transparent)]"
                           : showAnswerState && isSelected && answerFeedback === "incorrect"
-                            ? "border-red-400/75 bg-red-500/20 shadow-[0_28px_48px_-32px_rgba(239,68,68,0.86)]"
+                            ? "border-danger/75 bg-danger/20 shadow-[0_28px_48px_-32px_color-mix(in_srgb,var(--color-danger)_86%,transparent)]"
                             : isSelected
-                              ? "border-primary bg-primary text-[#04111f] shadow-[0_28px_48px_-32px_rgba(6,182,212,0.88)]"
-                              : "border-primary/20 bg-background/85 hover:border-primary/55 hover:bg-white/5",
+                              ? "border-primary bg-primary text-text shadow-[0_28px_48px_-32px_color-mix(in_srgb,var(--color-primary)_88%,transparent)]"
+                              : "border-primary/20 bg-background/85 hover:border-primary/55 hover:bg-text/5",
                       ].join(" ")}
                       key={`${currentQuestion.id}-${index}-${option}`}
                       type="button"
@@ -252,15 +253,15 @@ export default function GamePanel({
                           className={[
                             "mt-2 inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold",
                             answerFeedback === "correct"
-                              ? "bg-emerald-500/25 text-emerald-200"
-                              : "bg-red-500/25 text-red-200",
+                              ? "bg-success/25 text-success"
+                              : "bg-danger/25 text-danger",
                           ].join(" ")}
                         >
                           {answerFeedback === "correct" ? "Ton choix est correct" : "Ton choix est incorrect"}
                         </span>
                       ) : null}
                       {showAnswerState && answerFeedback === "incorrect" && isCorrectOption && !isSelected ? (
-                        <span className="mt-2 inline-flex w-fit rounded-full bg-emerald-500/25 px-2.5 py-1 text-xs font-semibold text-emerald-200">
+                        <span className="mt-2 inline-flex w-fit rounded-full bg-success/25 px-2.5 py-1 text-xs font-semibold text-success">
                           Bonne réponse
                         </span>
                       ) : null}
@@ -270,10 +271,10 @@ export default function GamePanel({
               </div>
             ) : (
               <div className="rounded-[28px] border border-dashed border-primary/25 bg-background/70 px-6 py-10 text-center">
-                <p className="ui-kicker m-0 text-sm text-text/55">
+                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-sm text-text/55">
                   {isFinished ? "Partie terminee" : "Prêt à jouer"}
                 </p>
-                <p className="ui-muted mt-3 text-lg">
+                <p className="text-text-muted mt-3 text-lg">
                   {isFinished
                     ? "Le quiz est terminé. Le classement final reste visible dans le panneau de droite."
                     : "Le chat et le classement restent disponibles, mais l’espace central attend le top départ."}
@@ -291,28 +292,27 @@ export default function GamePanel({
         ].join(" ")}>
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <p className="ui-kicker m-0 text-xs font-semibold text-text/55">
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
                 Classement
               </p>
               <p className="m-0 text-2xl font-semibold text-text">Points</p>
             </div>
-            <button
-              className="ui-btn-danger px-4 py-2.5 text-sm"
-              type="button"
+            <DangerButton
+              className="px-4 py-2.5 text-sm"
               onClick={onLeaveRoom}
             >
               Quitter
-            </button>
+            </DangerButton>
           </div>
 
           <div className="mb-4 rounded-[22px] border border-primary/20 bg-background/80 px-4 py-4">
-            <p className="ui-kicker m-0 text-xs font-semibold text-text/55">
+            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
               Leader actuel
             </p>
             <p className="mt-2 text-lg font-semibold text-text">
               {leader?.username ?? "Aucun joueur"}
             </p>
-            <p className="ui-muted m-0 text-sm">
+            <p className="text-text-muted m-0 text-sm">
               {leader
                 ? `${leader.score} point${leader.score > 1 ? "s" : ""} en tête`
                 : "Le tableau se remplira dès les premières réponses."}
@@ -335,8 +335,8 @@ export default function GamePanel({
                       className={[
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
                         index === 0
-                          ? "bg-primary text-[#03111e]"
-                          : "bg-white/8 text-text/75",
+                          ? "bg-primary text-text"
+                          : "bg-text/8 text-text/75",
                       ].join(" ")}
                     >
                       {index + 1}
@@ -348,7 +348,7 @@ export default function GamePanel({
                         src={entry.avatarUrl}
                       />
                     ) : (
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/75">
                         {entry.username.charAt(0).toUpperCase()}
                       </span>
                     )}
@@ -378,7 +378,7 @@ export default function GamePanel({
         ].join(" ")}>
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
-              <p className="ui-kicker m-0 text-xs font-semibold text-text/55">
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
                 Conversation
               </p>
               <p className="m-0 text-2xl font-semibold text-text">Chat</p>
@@ -400,8 +400,8 @@ export default function GamePanel({
                 chatMessages.map((message) => (
                   <div
                     className={[
-                      "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_rgba(0,0,0,0.8)]",
-                      message.isSelf ? "self-end bg-primary text-[#04111e]" : "bg-background",
+                      "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_color-mix(in_srgb,var(--color-background)_80%,transparent)]",
+                      message.isSelf ? "self-end bg-primary text-text" : "bg-background",
                     ].join(" ")}
                     key={`${message.userId}-${message.sentAt}-${message.content}`}
                   >
@@ -433,7 +433,7 @@ export default function GamePanel({
             </PrimaryButton>
           </form>
           {chatError ? (
-            <p className="mt-3 text-sm text-red-300">{chatError}</p>
+            <p className="mt-3 text-sm text-danger">{chatError}</p>
           ) : null}
         </Panel>
       </div>

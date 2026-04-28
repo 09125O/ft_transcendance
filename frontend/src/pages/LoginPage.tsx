@@ -76,7 +76,7 @@ export default function LoginPage() {
             Email
           </label>
           <input
-            className="mb-4 w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+            className="mb-4 w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
             id="login-email"
             type="email"
             placeholder="email@exemple.com"
@@ -93,7 +93,7 @@ export default function LoginPage() {
             Mot de passe
           </label>
           <input
-            className="mb-6 w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+            className="mb-6 w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
             id="login-password"
             type="password"
             placeholder="Mot de passe"
@@ -105,7 +105,7 @@ export default function LoginPage() {
           />
 
           {error ? (
-            <p className="mb-4 text-sm text-red-300" role="alert">
+            <p className="mb-4 text-sm text-danger" role="alert">
               {error}
             </p>
           ) : null}
@@ -115,7 +115,7 @@ export default function LoginPage() {
           </PrimaryButton>
 
           <PrimaryButton
-            className="mt-3 w-full bg-white/10 py-3 text-base hover:bg-white/20"
+            className="mt-3 w-full bg-text/10 py-3 text-base hover:bg-text/20"
             disabled={isSubmitting}
             onClick={() => void handleGuestLogin()}
             type="button"
@@ -124,7 +124,7 @@ export default function LoginPage() {
           </PrimaryButton>
 
           <PrimaryButton
-            className="mt-3 w-full bg-white/10 py-3 text-base hover:bg-white/20"
+            className="mt-3 w-full bg-text/10 py-3 text-base hover:bg-text/20"
             disabled={isSubmitting}
             onClick={loginWithFortyTwo}
             type="button"

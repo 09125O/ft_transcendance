@@ -19,7 +19,7 @@ const QuizCreatePage = lazy(() => import("./pages/QuizCreatePage"));
 function RouteFallback() {
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
-      <div className="w-full max-w-xl rounded-[24px] border border-white/10 bg-surface/90 px-6 py-8 text-center text-sm text-text/70 shadow-[0_30px_80px_-45px_rgba(0,0,0,0.85)] backdrop-blur">
+      <div className="w-full max-w-xl rounded-[24px] border border-text/10 bg-surface/90 px-6 py-8 text-center text-sm text-text/70 shadow-[0_30px_80px_-45px_color-mix(in_srgb,var(--color-background)_85%,transparent)] backdrop-blur">
         Chargement de l&apos;interface...
       </div>
     </main>

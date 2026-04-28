@@ -126,7 +126,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-3 z-50 px-4 py-3 sm:px-6">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[20px] border border-white/12 bg-surface/86 px-4 py-3 text-text shadow-[0_24px_64px_-42px_rgba(0,0,0,0.85)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[20px] border border-text/12 bg-surface/86 px-4 py-3 text-text shadow-[0_24px_64px_-42px_color-mix(in_srgb,var(--color-background)_85%,transparent)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <Link
           className="text-sm font-medium uppercase tracking-[0.18em]"
           to="/"
@@ -142,7 +142,7 @@ export default function Navbar() {
               <Link className="relative inline-flex h-9 items-center text-sm font-medium text-text" to="/friends">
                 Amis
                 {friendsBadgeCount > 0 ? (
-                  <span className="absolute -right-3 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_8px_18px_-10px_rgba(239,68,68,0.95)]">
+                  <span className="absolute -right-3 -top-2 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-text shadow-[0_8px_18px_-10px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
                     {friendsBadgeCount > 99 ? "99+" : friendsBadgeCount}
                   </span>
                 ) : null}
@@ -158,7 +158,7 @@ export default function Navbar() {
                   type="button"
                 >
                   <span className="inline-flex h-full max-w-[11rem] items-center gap-2 leading-none">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/8 text-[11px] font-semibold uppercase text-text">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-text/15 bg-text/8 text-[11px] font-semibold uppercase text-text">
                       {currentUser.avatar_url ? (
                         <img
                           alt={`Avatar de ${currentUser.username}`}
@@ -174,11 +174,11 @@ export default function Navbar() {
                 </PrimaryButton>
                 {isAccountMenuOpen ? (
                   <div
-                    className="absolute right-0 z-50 mt-2 min-w-[12rem] rounded-2xl border border-white/12 bg-surface/95 p-2 shadow-[0_24px_64px_-42px_rgba(0,0,0,0.85)] backdrop-blur"
+                    className="absolute right-0 z-50 mt-2 min-w-[12rem] rounded-2xl border border-text/12 bg-surface/95 p-2 shadow-[0_24px_64px_-42px_color-mix(in_srgb,var(--color-background)_85%,transparent)] backdrop-blur"
                     role="menu"
                   >
                     <Link
-                      className="block rounded-xl px-3 py-2 text-sm text-text transition hover:bg-white/8"
+                      className="block rounded-xl px-3 py-2 text-sm text-text transition hover:bg-text/8"
                       onClick={() => {
                         setIsAccountMenuOpen(false);
                       }}
@@ -188,7 +188,7 @@ export default function Navbar() {
                       Mon profil
                     </Link>
                     <button
-                      className="block w-full rounded-xl px-3 py-2 text-left text-sm text-text transition hover:bg-white/8"
+                      className="block w-full rounded-xl px-3 py-2 text-left text-sm text-text transition hover:bg-text/8"
                       onClick={() => {
                         setIsAccountMenuOpen(false);
                         void (async () => {

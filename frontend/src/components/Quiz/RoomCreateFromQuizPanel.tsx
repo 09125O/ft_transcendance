@@ -91,7 +91,7 @@ export default function RoomCreateFromQuizPanel({
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="m-0 text-3xl font-semibold text-text">Créer une room</h1>
         <button
-          className="w-full rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text sm:w-auto"
+          className="w-full rounded-md border border-text/10 bg-background px-4 py-2 text-sm font-semibold text-text sm:w-auto"
           type="button"
           onClick={onBack}
         >
@@ -109,7 +109,7 @@ export default function RoomCreateFromQuizPanel({
               Quiz sélectionné
             </label>
             <input
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text/70 outline-none"
+              className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text/70 outline-none"
               id="room-quiz"
               readOnly
               type="text"
@@ -125,7 +125,7 @@ export default function RoomCreateFromQuizPanel({
               Nom de la room
             </label>
             <input
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+              className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
               id="room-name"
               type="text"
               placeholder="Nom de la room"
@@ -142,7 +142,7 @@ export default function RoomCreateFromQuizPanel({
               Nombre de questions
             </label>
             <input
-              className="h-12 w-full rounded-xl border border-white/10 bg-background px-4 text-text/70 outline-none"
+              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text/70 outline-none"
               id="room-rounds"
               readOnly
               type="text"
@@ -158,7 +158,7 @@ export default function RoomCreateFromQuizPanel({
               Temps par question
             </label>
             <select
-              className="h-12 w-full rounded-xl border border-white/10 bg-background px-4 text-text outline-none"
+              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text outline-none"
               id="question-duration"
               value={questionDurationSeconds}
               onChange={(event) =>
@@ -177,7 +177,7 @@ export default function RoomCreateFromQuizPanel({
             <p className="mb-2 text-sm font-medium text-text/70" id="room-privacy-label">
               Salon privé
             </p>
-            <div className="inline-flex rounded-lg border border-white/10 bg-background p-1">
+            <div className="inline-flex rounded-lg border border-text/10 bg-background p-1">
               <button
                 aria-pressed={!isPrivateRoom}
                 aria-describedby="room-privacy-label"
@@ -214,7 +214,7 @@ export default function RoomCreateFromQuizPanel({
                 Mot de passe
               </label>
               <input
-                className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+                className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
                 id="room-password"
                 placeholder="Mot de passe"
                 type="password"
@@ -225,7 +225,7 @@ export default function RoomCreateFromQuizPanel({
           ) : null}
 
           {createError ? (
-            <p className="m-0 text-sm text-red-300" role="alert">
+            <p className="m-0 text-sm text-danger" role="alert">
               {createError}
             </p>
           ) : null}
@@ -241,12 +241,12 @@ export default function RoomCreateFromQuizPanel({
           </PrimaryButton>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-background px-5 py-5">
+        <div className="rounded-2xl border border-text/10 bg-background px-5 py-5">
           <p className="m-0 text-lg font-semibold text-text">Résumé du quiz</p>
           <p className="m-0 mt-1 text-sm text-text/60">
             Paramètres de la partie sélectionnée.
           </p>
-          <div className="mt-5 rounded-xl border border-white/10 bg-background/70 px-4 py-4 text-sm text-text/70">
+          <div className="mt-5 rounded-xl border border-text/10 bg-background/70 px-4 py-4 text-sm text-text/70">
             <p className="m-0">
               Ce quiz contient {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}.
             </p>

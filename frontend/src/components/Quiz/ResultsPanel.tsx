@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
+import SecondaryButton from "../SecondaryButton";
 
 type ScoreEntry = {
   userId: number;
@@ -69,10 +70,10 @@ export default function ResultsPanel({
 
   return (
     <div className="grid w-full gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)]">
-      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.2),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
+      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-urgency)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-accent)_20%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
         <div className="relative flex h-full flex-col justify-between gap-8">
           <div className="space-y-4">
-            <span className="ui-kicker inline-flex w-fit rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200">
+            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-urgency/25 bg-urgency/10 px-3 py-1 text-xs font-semibold text-urgency">
               Fin de partie
             </span>
             <h1 className="m-0 text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -81,11 +82,11 @@ export default function ResultsPanel({
           </div>
 
           <div className="rounded-[24px] border border-primary/20 bg-background/75 px-5 py-5">
-            <p className="ui-kicker m-0 text-xs text-text/55">Vainqueur</p>
+            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Vainqueur</p>
             <p className="m-0 mt-2 text-2xl font-semibold text-text">
               {winner?.username ?? "Aucun joueur"}
             </p>
-            <p className="ui-muted m-0 mt-2 text-sm">
+            <p className="text-text-muted m-0 mt-2 text-sm">
               {winner
                 ? `${winner.score} point${winner.score > 1 ? "s" : ""}`
                 : "Le classement final n&apos;est pas disponible."}
@@ -96,13 +97,12 @@ export default function ResultsPanel({
             <PrimaryButton className="px-5 py-3 text-sm sm:text-base" onClick={onLeaveRoom}>
               Retour au lobby
             </PrimaryButton>
-            <button
-              className="ui-btn-secondary px-5 py-3 text-sm sm:text-base"
-              type="button"
+            <SecondaryButton
+              className="px-5 py-3 text-sm sm:text-base"
               onClick={onOpenRules}
             >
               Revoir les règles
-            </button>
+            </SecondaryButton>
           </div>
         </div>
       </Panel>
@@ -114,8 +114,8 @@ export default function ResultsPanel({
               className={[
                 "rounded-xl px-3 py-2 text-sm font-semibold transition duration-200",
                 mobileTab === "podium"
-                  ? "bg-primary text-[#04111e]"
-                  : "bg-background text-text/80 hover:bg-white/5",
+                  ? "bg-primary text-text"
+                  : "bg-background text-text/80 hover:bg-text/5",
               ].join(" ")}
               type="button"
               onClick={() => setMobileTab("podium")}
@@ -126,15 +126,15 @@ export default function ResultsPanel({
               className={[
                 "relative rounded-xl px-3 py-2 text-sm font-semibold transition duration-200",
                 mobileTab === "chat"
-                  ? "bg-primary text-[#04111e]"
-                  : "bg-background text-text/80 hover:bg-white/5",
+                  ? "bg-primary text-text"
+                  : "bg-background text-text/80 hover:bg-text/5",
               ].join(" ")}
               type="button"
               onClick={() => setMobileTab("chat")}
             >
               Chat
               {unreadChatCount > 0 && mobileTab !== "chat" ? (
-                <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_6px_16px_-8px_rgba(239,68,68,0.95)]">
+                <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
                   {unreadChatCount > 99 ? "99+" : unreadChatCount}
                 </span>
               ) : null}
@@ -143,7 +143,7 @@ export default function ResultsPanel({
         </div>
 
         <div className="mb-5">
-          <p className="ui-kicker m-0 text-xs font-semibold text-text/55">Classement final</p>
+          <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">Classement final</p>
           <p className="m-0 text-2xl font-semibold text-text">Podium</p>
         </div>
 
@@ -168,12 +168,12 @@ export default function ResultsPanel({
                     className={[
                       "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold",
                       index === 0
-                        ? "bg-amber-300 text-[#2a1701]"
+                        ? "bg-urgency text-text"
                         : index === 1
-                          ? "bg-slate-300 text-[#111827]"
+                          ? "bg-surface-alt text-text"
                           : index === 2
-                            ? "bg-orange-300 text-[#2a1201]"
-                            : "bg-white/8 text-text/75",
+                            ? "bg-urgency text-text"
+                            : "bg-text/8 text-text/75",
                     ].join(" ")}
                   >
                     {index + 1}
@@ -185,7 +185,7 @@ export default function ResultsPanel({
                       src={entry.avatarUrl}
                     />
                   ) : (
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/75">
                       {entry.username.charAt(0).toUpperCase()}
                     </span>
                   )}
@@ -207,7 +207,7 @@ export default function ResultsPanel({
             <p className="m-0 inline-flex items-center gap-2 text-sm font-semibold text-text/80">
               <span>Chat de fin de partie</span>
               {unreadChatCount > 0 && mobileTab !== "chat" ? (
-                <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-[0_6px_16px_-8px_rgba(239,68,68,0.95)]">
+                <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
                   {unreadChatCount > 99 ? "99+" : unreadChatCount}
                 </span>
               ) : null}
@@ -230,7 +230,7 @@ export default function ResultsPanel({
                 <div
                   className={[
                     "max-w-[90%] rounded-xl px-3 py-2 text-sm",
-                    message.isSelf ? "ml-auto bg-primary text-[#03111e]" : "bg-background text-text",
+                    message.isSelf ? "ml-auto bg-primary text-text" : "bg-background text-text",
                   ].join(" ")}
                   key={`${message.userId}-${message.sentAt}-${message.content}`}
                 >
@@ -262,7 +262,7 @@ export default function ResultsPanel({
             </PrimaryButton>
           </form>
           {chatError ? (
-            <p className="mt-2 text-xs text-red-300">{chatError}</p>
+            <p className="mt-2 text-xs text-danger">{chatError}</p>
           ) : null}
         </div>
       </Panel>

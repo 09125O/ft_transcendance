@@ -119,7 +119,7 @@ export default function QuizCreatePanel({
           <h1 className="m-0 text-3xl font-semibold text-text">Créer un quiz</h1>
         </div>
         <button
-          className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
+          className="rounded-md border border-text/10 bg-background px-4 py-2 text-sm font-semibold text-text"
           type="button"
           onClick={onBack}
         >
@@ -137,7 +137,7 @@ export default function QuizCreatePanel({
               Titre du quiz
             </label>
             <input
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+              className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
               id="quiz-title"
               type="text"
               placeholder="Culture générale"
@@ -154,7 +154,7 @@ export default function QuizCreatePanel({
               Question
             </label>
             <textarea
-              className="h-24 w-full resize-none rounded-xl border border-white/10 bg-background px-4 py-4 leading-8 text-text outline-none placeholder:text-text/40"
+              className="h-24 w-full resize-none rounded-xl border border-text/10 bg-background px-4 py-4 leading-8 text-text outline-none placeholder:text-text/40"
               id="quiz-question"
               placeholder="Quelle est la capitale de la France ?"
               value={questionText}
@@ -174,7 +174,7 @@ export default function QuizCreatePanel({
                   onChange={() => setCorrectAnswerIndex(index)}
                 />
                 <input
-                  className="min-w-0 flex-1 rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+                  className="min-w-0 flex-1 rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
                   maxLength={200}
                   placeholder={`Réponse ${index + 1}${index >= QUIZ_MIN_ANSWERS ? " (optionnelle)" : ""}`}
                   type="text"
@@ -190,14 +190,14 @@ export default function QuizCreatePanel({
           </div>
 
           {createError ? (
-            <p className="m-0 text-sm text-red-300" role="alert">
+            <p className="m-0 text-sm text-danger" role="alert">
               {createError}
             </p>
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
+              className="rounded-md border border-text/10 bg-background px-4 py-2 text-sm font-semibold text-text"
               type="button"
               onClick={handleAddQuestion}
             >
@@ -206,7 +206,7 @@ export default function QuizCreatePanel({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-background px-5 py-5">
+        <div className="flex min-h-0 flex-col rounded-2xl border border-text/10 bg-background px-5 py-5">
           <div className="shrink-0">
             <p className="m-0 text-lg font-semibold text-text">
               Questions ajoutées

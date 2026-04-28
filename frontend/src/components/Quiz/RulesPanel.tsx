@@ -1,4 +1,5 @@
 import Panel from "../Panel";
+import SecondaryButton from "../SecondaryButton";
 
 type RulesPanelProps = {
   onClose: () => void;
@@ -8,13 +9,9 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
   return (
     <Panel className="h-full w-full px-8 py-6">
       <div className="mb-6 flex items-center justify-end">
-        <button
-          className="ui-btn-secondary px-4 py-2 text-sm"
-          type="button"
-          onClick={onClose}
-        >
+        <SecondaryButton className="px-4 py-2 text-sm" onClick={onClose}>
           Fermer les règles
-        </button>
+        </SecondaryButton>
       </div>
       <div className="flex flex-1 items-center justify-center">
         <div className="max-w-3xl text-center">

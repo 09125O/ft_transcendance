@@ -54,7 +54,7 @@ export default function RegisterPage() {
             Email
           </label>
           <input
-            className="mb-4 w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+            className="mb-4 w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
             id="register-email"
             type="email"
             placeholder="email@exemple.com"
@@ -71,7 +71,7 @@ export default function RegisterPage() {
             Pseudo
           </label>
           <input
-            className="mb-4 w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+            className="mb-4 w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
             id="register-username"
             type="text"
             placeholder="Ton pseudo"
@@ -89,7 +89,7 @@ export default function RegisterPage() {
             Mot de passe
           </label>
           <input
-            className="mb-6 w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+            className="mb-6 w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
             id="register-password"
             type="password"
             placeholder={`Minimum ${AUTH_PASSWORD_MIN_LENGTH} caractères`}
@@ -102,7 +102,7 @@ export default function RegisterPage() {
           />
 
           {error ? (
-            <p className="mb-4 text-sm text-red-300" role="alert">
+            <p className="mb-4 text-sm text-danger" role="alert">
               {error}
             </p>
           ) : null}

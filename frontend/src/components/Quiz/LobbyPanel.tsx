@@ -98,13 +98,13 @@ export default function LobbyPanel({
           </div>
           <div className="space-y-3">
             {roomsMessage ? (
-              <p className="m-0 rounded-xl border border-white/10 bg-background px-4 py-4 text-sm text-text/70">
+              <p className="m-0 rounded-xl border border-text/10 bg-background px-4 py-4 text-sm text-text/70">
                 {roomsMessage}
               </p>
             ) : null}
             {rooms.map((room) => (
               <div
-                className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-4"
+                className="flex items-center justify-between rounded-xl border border-text/10 px-4 py-4"
                 key={room.id}
               >
                 <div>
@@ -170,7 +170,7 @@ export default function LobbyPanel({
             Créer une partie
           </h2>
           <button
-            className="rounded-md border border-white/10 bg-background px-4 py-2 text-sm font-semibold text-text"
+            className="rounded-md border border-text/10 bg-background px-4 py-2 text-sm font-semibold text-text"
             type="button"
             onClick={onToggleRules}
           >
@@ -191,7 +191,7 @@ export default function LobbyPanel({
               Nom de la partie
             </label>
             <input
-              className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+              className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
               id="room-name"
               type="text"
               placeholder="Nom de la partie"
@@ -207,7 +207,7 @@ export default function LobbyPanel({
               Nombre de manches
             </label>
             <select
-              className="h-12 w-full rounded-xl border border-white/10 bg-background px-4 text-text outline-none"
+              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text outline-none"
               id="room-rounds"
               value={rounds}
               onChange={(event) => setRounds(Number(event.target.value))}
@@ -230,7 +230,7 @@ export default function LobbyPanel({
               Temps par question
             </label>
             <select
-              className="h-12 w-full rounded-xl border border-white/10 bg-background px-4 text-text outline-none"
+              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text outline-none"
               id="room-question-duration"
               value={questionDurationMs}
               onChange={(event) => setQuestionDurationMs(Number(event.target.value))}
@@ -247,7 +247,7 @@ export default function LobbyPanel({
             <p className="mb-2 text-sm font-medium text-text/70" id="room-privacy-label">
               Salon privé
             </p>
-            <div className="inline-flex rounded-lg border border-white/10 bg-background p-1">
+            <div className="inline-flex rounded-lg border border-text/10 bg-background p-1">
               <button
                 aria-pressed={!isPrivateRoom}
                 aria-describedby="room-privacy-label"
@@ -287,7 +287,7 @@ export default function LobbyPanel({
                 Mot de passe
               </label>
               <input
-                className="w-full rounded-xl border border-white/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
+                className="w-full rounded-xl border border-text/10 bg-background px-4 py-3 text-text outline-none placeholder:text-text/40"
                 id="room-password"
                 type="password"
                 placeholder="Mot de passe"
@@ -297,7 +297,7 @@ export default function LobbyPanel({
             </div>
           ) : null}
           {createError ? (
-            <p className="m-0 text-sm text-red-300" role="alert">
+            <p className="m-0 text-sm text-danger" role="alert">
               {createError}
             </p>
           ) : null}

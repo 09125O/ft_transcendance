@@ -1,5 +1,7 @@
 import Panel from "../Panel";
+import DangerButton from "../DangerButton";
 import PrimaryButton from "../PrimaryButton";
+import SecondaryButton from "../SecondaryButton";
 
 type ScoreEntry = {
   userId: number;
@@ -37,37 +39,37 @@ export default function PreMatchPanel({
 
   return (
     <div className="grid w-full gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,23rem)]">
-      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.24),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.18),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
+      <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
         <div className="relative flex h-full flex-col justify-between gap-8">
           <div className="space-y-4">
-            <span className="ui-kicker inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Pré-match
             </span>
             <h1 className="m-0 text-3xl font-semibold leading-tight text-text sm:text-4xl">
               {displayRoomName}
             </h1>
-            <p className="ui-muted m-0 max-w-2xl text-sm sm:text-base">
+            <p className="text-text-muted m-0 max-w-2xl text-sm sm:text-base">
               Les joueurs sont en salle. Lance la partie quand tout le monde est prêt.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="ui-kicker m-0 text-xs text-text/55">Joueurs</p>
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Joueurs</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{scoreEntries.length}</p>
             </div>
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="ui-kicker m-0 text-xs text-text/55">Manches</p>
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Manches</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{rounds}</p>
             </div>
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="ui-kicker m-0 text-xs text-text/55">Temps</p>
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Temps</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">
                 {Math.round(questionDurationMs / 1000)}s
               </p>
             </div>
             <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="ui-kicker m-0 text-xs text-text/55">Etat</p>
+              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Etat</p>
               <p className="m-0 mt-2 text-base font-semibold text-text">En attente du départ</p>
             </div>
           </div>
@@ -78,20 +80,18 @@ export default function PreMatchPanel({
                 Démarrer la partie
               </PrimaryButton>
             ) : null}
-            <button
-              className="ui-btn-secondary px-5 py-3 text-sm sm:text-base"
-              type="button"
+            <SecondaryButton
+              className="px-5 py-3 text-sm sm:text-base"
               onClick={onOpenRules}
             >
               Voir les règles
-            </button>
-            <button
-              className="ui-btn-danger px-5 py-3 text-sm sm:text-base"
-              type="button"
+            </SecondaryButton>
+            <DangerButton
+              className="px-5 py-3 text-sm sm:text-base"
               onClick={onLeaveRoom}
             >
               Quitter la room
-            </button>
+            </DangerButton>
           </div>
         </div>
       </Panel>
@@ -99,7 +99,7 @@ export default function PreMatchPanel({
       <Panel className="px-5 py-5 sm:px-6 sm:py-6 xl:min-h-[80vh]">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="ui-kicker m-0 text-xs font-semibold text-text/55">Participants</p>
+            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">Participants</p>
             <p className="m-0 text-2xl font-semibold text-text">Salle d&apos;attente</p>
           </div>
           <span className="rounded-full border border-primary/20 bg-background px-3 py-1 text-xs text-text/75">
@@ -126,7 +126,7 @@ export default function PreMatchPanel({
                       src={entry.avatarUrl}
                     />
                   ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/75">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/75">
                       {entry.username.charAt(0).toUpperCase()}
                     </span>
                   )}

@@ -95,7 +95,7 @@ export default function QuizReadyPage() {
 
     return (
       <button
-        className="flex h-full w-full cursor-pointer flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_rgba(2,6,23,0.9)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 disabled:cursor-not-allowed disabled:opacity-70"
+        className="flex h-full w-full cursor-pointer flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 disabled:cursor-not-allowed disabled:opacity-70"
         disabled={isCreatingRoom}
         key={quiz.id}
         type="button"
@@ -107,7 +107,7 @@ export default function QuizReadyPage() {
           <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
             {decoratedQuiz.category.title}
           </span>
-          <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-text/70">
+          <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-text/70">
             {decoratedQuiz.level}
           </span>
         </div>
@@ -116,16 +116,16 @@ export default function QuizReadyPage() {
           <h2 className="m-0 text-lg font-semibold text-text sm:text-xl">
             {quiz.title}
           </h2>
-          <p className="ui-muted mt-1 text-sm">{decoratedQuiz.summary}</p>
+          <p className="text-text-muted mt-1 text-sm">{decoratedQuiz.summary}</p>
           <div className="flex flex-wrap gap-2 text-xs text-text/70">
-            <span className="rounded-full border border-white/10 bg-background px-3 py-1">
+            <span className="rounded-full border border-text/10 bg-background px-3 py-1">
               {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}
             </span>
-            <span className="rounded-full border border-white/10 bg-background px-3 py-1">
+            <span className="rounded-full border border-text/10 bg-background px-3 py-1">
               {playLabel}
             </span>
             {quiz.activeRoomCount > 0 ? (
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-emerald-200">
+              <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-success">
                 {quiz.activeRoomCount} room{quiz.activeRoomCount > 1 ? "s" : ""} active{quiz.activeRoomCount > 1 ? "s" : ""}
               </span>
             ) : null}
@@ -150,15 +150,15 @@ export default function QuizReadyPage() {
   return (
     <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
       <div className="flex w-full flex-col gap-6">
-        <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(6,182,212,0.26),transparent_58%),radial-gradient(circle_at_top_right,rgba(245,158,11,0.18),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
+        <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_26%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
           <div className="relative space-y-4">
-            <span className="ui-kicker inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Quiz prêts à lancer
             </span>
             <h1 className="m-0 max-w-4xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
               Tous les quiz live pour codeurs, gamers et builders
             </h1>
-            <p className="ui-muted max-w-3xl text-sm sm:text-base">
+            <p className="text-text-muted max-w-3xl text-sm sm:text-base">
               Ici tu retrouves les quiz à jouer dans l&apos;univers 42.
             </p>
             <div>
@@ -190,7 +190,7 @@ export default function QuizReadyPage() {
               <p className="m-0 text-xl font-semibold text-text">
                 Aucun quiz n&apos;est encore disponible.
               </p>
-              <p className="ui-muted mt-3 text-sm">
+              <p className="text-text-muted mt-3 text-sm">
                 Reviens plus tard ou crée un quiz depuis la page dédiée.
               </p>
             </div>
@@ -199,7 +199,7 @@ export default function QuizReadyPage() {
           {launchQuizzes.length > 0 ? (
             <section className="space-y-4 rounded-[24px] border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent p-4 sm:p-5">
               <div className="space-y-2">
-                <span className="ui-kicker inline-flex w-fit rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   Sélection officielle
                 </span>
                 <h2 className="m-0 text-2xl font-semibold leading-tight text-text sm:text-3xl">
@@ -214,11 +214,11 @@ export default function QuizReadyPage() {
 
           {communityQuizzes.length > 0 ? (
             <section
-              className="mt-6 space-y-4 rounded-[24px] border border-amber-300/20 bg-gradient-to-br from-amber-300/10 to-transparent p-4 sm:p-5"
+              className="mt-6 space-y-4 rounded-[24px] border border-urgency/20 bg-gradient-to-br from-urgency/10 to-transparent p-4 sm:p-5"
               id="community-quizzes"
             >
               <div className="space-y-2">
-                <span className="ui-kicker inline-flex w-fit rounded-full border border-amber-300/30 bg-amber-300/15 px-3 py-1 text-xs font-semibold text-amber-200">
+                <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-urgency/30 bg-urgency/15 px-3 py-1 text-xs font-semibold text-urgency">
                   Sélection des joueurs
                 </span>
                 <h2 className="m-0 text-2xl font-semibold leading-tight text-text sm:text-3xl">
