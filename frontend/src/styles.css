@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #050914;
-  --color-surface: #111a2d;
-  --color-surface-alt: #17243c;
-  --color-primary: #0070cc;
-  --color-primary-hover: #1eaedb;
-  --color-link-hover: #1883fd;
-  --color-accent: #1883fd;
-  --color-urgency: #d53b00;
+  --font-kicker: "Space Mono", "Menlo", monospace;
+  --color-background: #080512;
+  --color-surface: #171126;
+  --color-surface-alt: #22173a;
+  --color-primary: #7c3aed;
+  --color-primary-hover: #8b5cf6;
+  --color-accent: #a78bfa;
+  --color-urgency: #f4c430;
   --color-danger: #ef4444;
   --color-success: #22c55e;
-  --color-text: #e6edf8;
-  --color-text-muted: #9fb0cd;
+  --color-text: #f3efff;
+  --color-text-muted: #b8afd6;
 }
 
 * {
@@ -64,49 +64,6 @@ a {
   text-decoration: none;
 }
 
-.ui-kicker {
-  font-family: "Space Mono", "Menlo", monospace;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-.ui-muted {
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-}
-
-.ui-btn-secondary {
-  border-radius: 999px;
-  border: 2px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
-  background: color-mix(in srgb, var(--color-background) 92%, transparent);
-  color: var(--color-text);
-  font-weight: 600;
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-}
-
-.ui-btn-secondary:hover {
-  border-color: #ffffff;
-  background: var(--color-primary-hover);
-  color: #ffffff;
-  box-shadow: 0 0 0 2px var(--color-primary);
-  transform: scale(1.06);
-}
-
-.ui-btn-danger {
-  border-radius: 999px;
-  border: 2px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 14%, var(--color-background));
-  color: #ffffff;
-  font-weight: 600;
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-}
-
-.ui-btn-danger:hover {
-  border-color: color-mix(in srgb, var(--color-danger) 75%, white);
-  background: color-mix(in srgb, var(--color-danger) 24%, var(--color-background));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger) 55%, transparent);
-  transform: scale(1.04);
-}
-
 @keyframes sweep-ambient {
   from {
     transform: translateX(-35%);
@@ -119,11 +76,6 @@ a {
 @media (prefers-reduced-motion: reduce) {
   body::before {
     animation: none;
-    transform: none;
-  }
-
-  .ui-btn-secondary:hover,
-  .ui-btn-danger:hover {
     transform: none;
   }
 }

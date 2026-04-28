@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Panel from "../components/Panel";
+import { secondaryButtonClassName } from "../components/SecondaryButton";
 import PrimaryButton from "../components/PrimaryButton";
 import { useAuth } from "../providers/AuthProvider";
 import {
@@ -220,13 +221,13 @@ export default function FriendsPage() {
           </p>
           <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
-              className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover sm:text-base"
+              className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-text transition hover:bg-primary-hover sm:text-base"
               to="/login"
             >
               Se connecter
             </Link>
             <Link
-              className="ui-btn-secondary inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base"
+              className={`${secondaryButtonClassName} inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base`}
               to="/register"
             >
               Créer un compte
@@ -240,7 +241,7 @@ export default function FriendsPage() {
   return (
     <main className="flex flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-[8%] lg:py-10">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.85fr)]">
-        <Panel className="relative overflow-hidden p-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.24),transparent_55%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_40%)] before:content-[''] sm:p-7">
+        <Panel className="relative overflow-hidden p-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-primary)_24%,transparent),transparent_55%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-accent)_14%,transparent),transparent_40%)] before:content-[''] sm:p-7">
           <div className="relative flex flex-col gap-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl space-y-3">
@@ -258,22 +259,22 @@ export default function FriendsPage() {
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <div className="rounded-[22px] border border-white/10 bg-background/80 px-4 py-3 text-center">
+                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
                   <p className="m-0 text-2xl font-semibold text-text">{friends.length}</p>
                   <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Amis</p>
                 </div>
-                <div className="rounded-[22px] border border-white/10 bg-background/80 px-4 py-3 text-center">
+                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
                   <p className="m-0 text-2xl font-semibold text-text">{requests.incoming.length}</p>
                   <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Reçues</p>
                 </div>
-                <div className="rounded-[22px] border border-white/10 bg-background/80 px-4 py-3 text-center">
+                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
                   <p className="m-0 text-2xl font-semibold text-text">{unreadNotificationsCount}</p>
                   <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Non lues</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-background/78 p-4 sm:p-5">
+            <div className="rounded-[24px] border border-text/10 bg-background/78 p-4 sm:p-5">
               <div className="mb-4">
                 <h2 className="m-0 text-lg font-semibold text-text">Ajouter un ami</h2>
               </div>
@@ -281,7 +282,7 @@ export default function FriendsPage() {
                 <label className="flex flex-1 flex-col gap-2 text-sm">
                   <span className="font-medium text-text/75">Identifiant ou pseudo</span>
                   <input
-                    className="rounded-xl border border-white/10 bg-surface px-4 py-3 text-text outline-none placeholder:text-text/40"
+                    className="rounded-xl border border-text/10 bg-surface px-4 py-3 text-text outline-none placeholder:text-text/40"
                     inputMode="text"
                     onChange={(event) => {
                       const alphanumericIdentifier = event.target.value.replace(
@@ -303,7 +304,7 @@ export default function FriendsPage() {
                 </PrimaryButton>
               </div>
               {feedback ? (
-                <p className="mt-4 text-sm text-emerald-300">{feedback}</p>
+                <p className="mt-4 text-sm text-success">{feedback}</p>
               ) : null}
               {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
             </div>
@@ -320,7 +321,7 @@ export default function FriendsPage() {
             </div>
             {unreadNotificationsCount > 0 ? (
               <button
-                className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/70 transition hover:border-primary/40 hover:text-text"
+                className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/70 transition hover:border-primary/40 hover:text-text"
                 onClick={handleMarkAll}
                 type="button"
               >
@@ -330,7 +331,7 @@ export default function FriendsPage() {
           </div>
 
           {notifications.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/60">
+            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
               Aucune activité pour le moment.
             </div>
           ) : (
@@ -339,7 +340,7 @@ export default function FriendsPage() {
                 <li
                   className={`rounded-[22px] border p-4 ${
                     notification.read
-                      ? "border-white/10 bg-background/60 opacity-70"
+                      ? "border-text/10 bg-background/60 opacity-70"
                       : "border-primary/20 bg-primary/8"
                   }`}
                   key={notification.id}
@@ -359,7 +360,7 @@ export default function FriendsPage() {
                     <div className="flex shrink-0 flex-wrap gap-2">
                       {!notification.read ? (
                         <button
-                          className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-primary/40 hover:text-text"
+                          className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-primary/40 hover:text-text"
                           onClick={() => handleMarkOne(notification.id)}
                           type="button"
                         >
@@ -368,7 +369,7 @@ export default function FriendsPage() {
                       ) : null}
                       {notification.dismissible ? (
                         <button
-                          className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-white/35 hover:text-text"
+                          className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/75 transition hover:border-text/35 hover:text-text"
                           onClick={() => handleDeleteNotification(notification.id)}
                           type="button"
                         >
@@ -395,20 +396,20 @@ export default function FriendsPage() {
                 Invitations en attente
               </h2>
             </div>
-            <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/65">
+            <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/65">
               {requests.incoming.length} à traiter
             </span>
           </div>
 
           {requests.incoming.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/60">
+            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
               Aucune invitation en attente.
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
               {requests.incoming.map((request) => (
                 <li
-                  className="rounded-[22px] border border-white/10 bg-background/75 p-4"
+                  className="rounded-[22px] border border-text/10 bg-background/75 p-4"
                   key={request.id}
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -420,7 +421,7 @@ export default function FriendsPage() {
                           src={request.counterpartAvatarUrl}
                         />
                       ) : (
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/80">
                           {request.counterpartUsername.charAt(0).toUpperCase()}
                         </span>
                       )}
@@ -441,7 +442,7 @@ export default function FriendsPage() {
                         Accepter
                       </PrimaryButton>
                       <button
-                        className="rounded-xl border border-white/20 px-4 py-2 text-sm text-text transition hover:border-white/35 hover:bg-white/5"
+                        className="rounded-xl border border-text/20 px-4 py-2 text-sm text-text transition hover:border-text/35 hover:bg-text/5"
                         onClick={() => handleDecline(request.id)}
                         type="button"
                       >
@@ -463,20 +464,20 @@ export default function FriendsPage() {
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">Mes amis</h2>
             </div>
-            <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/65">
+            <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/65">
               {friends.length} contact{friends.length > 1 ? "s" : ""}
             </span>
           </div>
 
           {friends.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-white/10 bg-background/70 px-5 py-6 text-sm text-text/60">
+            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
               Aucun ami pour le moment.
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
               {friends.map((friend) => (
                 <li
-                  className="rounded-[22px] border border-white/10 bg-background/75 p-4"
+                  className="rounded-[22px] border border-text/10 bg-background/75 p-4"
                   key={friend.friendshipId}
                 >
                   {(() => {
@@ -501,14 +502,14 @@ export default function FriendsPage() {
                             src={friend.avatarUrl as string}
                           />
                         ) : (
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/80">
                             {friend.username.charAt(0).toUpperCase()}
                           </span>
                         )}
                         <span
                           aria-label={friend.status}
                           className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-background ${
-                            friend.status === "online" ? "bg-emerald-400" : "bg-white/30"
+                            friend.status === "online" ? "bg-success" : "bg-text/30"
                           }`}
                         />
                       </span>
@@ -549,14 +550,14 @@ export default function FriendsPage() {
                 Demandes envoyées
               </h2>
             </div>
-            <span className="rounded-full border border-white/10 bg-background px-3 py-1 text-xs text-text/65">
+            <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs text-text/65">
               {requests.outgoing.length} en cours
             </span>
           </div>
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {requests.outgoing.map((request) => (
               <li
-                className="rounded-[22px] border border-white/10 bg-background/75 p-4"
+                className="rounded-[22px] border border-text/10 bg-background/75 p-4"
                 key={request.id}
               >
                 <div className="flex items-center gap-3">
@@ -567,7 +568,7 @@ export default function FriendsPage() {
                       src={request.counterpartAvatarUrl}
                     />
                   ) : (
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 text-sm font-semibold text-text/80">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-text/8 text-sm font-semibold text-text/80">
                       {request.counterpartUsername.charAt(0).toUpperCase()}
                     </span>
                   )}

@@ -5,7 +5,7 @@ export default function TermsPage() {
     <main className="flex flex-1 justify-center px-[10%] py-10">
       <Panel className="w-full max-w-3xl gap-6 p-8 text-sm leading-relaxed">
         <h1 className="text-2xl font-semibold">Conditions d&apos;utilisation</h1>
-        <p className="text-white/70">Dernière mise à jour : 17 avril 2026</p>
+        <p className="text-text/70">Dernière mise à jour : 17 avril 2026</p>
 
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">1. Objet</h2>
