@@ -136,6 +136,8 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     username:
       scoreEntries.find((entry) => entry.userId === message.userId)?.username ??
       `Joueur #${message.userId}`,
+    avatarUrl:
+      scoreEntries.find((entry) => entry.userId === message.userId)?.avatarUrl ?? null,
     isSelf: sessionUser?.id === message.userId,
   }));
 

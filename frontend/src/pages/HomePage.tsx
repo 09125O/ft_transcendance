@@ -1,6 +1,16 @@
+import { Suspense, lazy } from "react";
 import { useParams } from "react-router-dom";
-import LobbyScreen from "../components/Quiz/LobbyScreen";
-import RoomScreen from "../components/Quiz/RoomScreen";
+
+const LobbyScreen = lazy(() => import("../components/Quiz/LobbyScreen"));
+const RoomScreen = lazy(() => import("../components/Quiz/RoomScreen"));
+
+function ScreenFallback() {
+  return (
+    <section className="flex w-full items-center justify-center py-14 text-sm text-text/70">
+      Chargement...
+    </section>
+  );
+}
 
 export default function HomePage() {
   const { roomId: roomIdParam } = useParams();
@@ -17,11 +27,13 @@ export default function HomePage() {
           : "px-4 py-6 sm:px-6 lg:px-[8%]",
       ].join(" ")}
     >
-      {isRoomRoute ? (
-        <RoomScreen requestedRoomId={requestedRoomId} />
-      ) : (
-        <LobbyScreen />
-      )}
+      <Suspense fallback={<ScreenFallback />}>
+        {isRoomRoute ? (
+          <RoomScreen requestedRoomId={requestedRoomId} />
+        ) : (
+          <LobbyScreen />
+        )}
+      </Suspense>
     </main>
   );
 }

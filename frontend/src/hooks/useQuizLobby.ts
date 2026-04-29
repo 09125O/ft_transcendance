@@ -29,7 +29,7 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
 
     try {
       const fetchedRooms = await getRooms();
-      setRooms(fetchedRooms);
+      setRooms(fetchedRooms.filter((room) => room.status === "waiting"));
     } catch (error) {
       setRoomsError(
         error instanceof Error ? error.message : "Impossible de charger les rooms",
@@ -67,6 +67,10 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
         const message =
           error instanceof Error ? error.message : "Impossible de rejoindre la room";
         setJoinError(message);
+        if (message === "Room is not joinable") {
+          setRoomsError("Cette room n'est plus disponible. La liste a été actualisée.");
+          await loadRooms();
+        }
         throw error;
       } finally {
         setIsJoining(false);

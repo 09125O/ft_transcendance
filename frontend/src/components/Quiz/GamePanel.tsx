@@ -13,6 +13,7 @@ type ScoreEntry = {
 type ChatEntry = {
   userId: number;
   username: string;
+  avatarUrl: string | null;
   content: string;
   sentAt: string;
   isSelf: boolean;
@@ -398,18 +399,59 @@ export default function GamePanel({
                   La conversation s&apos;ouvrira dès que les joueurs commenceront à échanger.
                 </div>
               ) : (
-                chatMessages.map((message) => (
+                chatMessages.map((message, index) => (
                   <div
+                    data-side={message.isSelf ? "right" : "left"}
                     className={[
-                      "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_rgba(0,0,0,0.8)]",
-                      message.isSelf ? "self-end bg-primary text-[#04111e]" : "bg-background",
+                      "ui-chat-row flex max-w-[92%] items-end gap-3",
+                      message.isSelf ? "self-end flex-row-reverse" : "self-start",
                     ].join(" ")}
                     key={`${message.userId}-${message.sentAt}-${message.content}`}
+                    style={{ animationDelay: `${Math.max(0, chatMessages.length - index - 1) * 55}ms` }}
                   >
-                    {!message.isSelf ? (
-                      <p className="m-0 text-sm text-text/70">{message.username}</p>
-                    ) : null}
-                    <p className="m-0 text-base text-text">{message.content}</p>
+                    {message.avatarUrl ? (
+                      <img
+                        alt={`Avatar de ${message.username}`}
+                        className="ui-chat-avatar h-9 w-9 shrink-0 rounded-full border border-white/10 object-cover shadow-[0_18px_40px_-28px_rgba(0,0,0,0.8)]"
+                        src={message.avatarUrl}
+                        style={{ animationDelay: `${Math.max(0, chatMessages.length - index - 1) * 55}ms` }}
+                      />
+                    ) : (
+                      <span
+                        className="ui-chat-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/8 text-xs font-semibold uppercase text-text/80 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.8)]"
+                        style={{ animationDelay: `${Math.max(0, chatMessages.length - index - 1) * 55}ms` }}
+                      >
+                        {message.username.charAt(0)}
+                      </span>
+                    )}
+                    <div
+                      className={[
+                        "ui-chat-bubble max-w-[16rem] rounded-[22px] px-4 py-3 shadow-[0_20px_44px_-30px_rgba(0,0,0,0.84)] sm:max-w-[18rem]",
+                        message.isSelf
+                          ? "ui-chat-bubble-right bg-primary text-[#04111e]"
+                          : "ui-chat-bubble-left border border-white/8 bg-background/95 text-text",
+                      ].join(" ")}
+                      style={{ animationDelay: `${Math.max(0, chatMessages.length - index - 1) * 55 + 90}ms` }}
+                    >
+                      <div className={message.isSelf ? "text-right" : "text-left"}>
+                        <p
+                          className={[
+                            "m-0 text-[11px] font-semibold uppercase tracking-[0.2em]",
+                            message.isSelf ? "text-[#04111e]/65" : "text-text/48",
+                          ].join(" ")}
+                        >
+                          {message.isSelf ? "You" : message.username}
+                        </p>
+                        <p
+                          className={[
+                            "mt-2 text-[15px] leading-6",
+                            message.isSelf ? "text-[#04111e]" : "text-text",
+                          ].join(" ")}
+                        >
+                          {message.content}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}

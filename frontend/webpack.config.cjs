@@ -54,8 +54,22 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "assets/app.[contenthash].js",
+    chunkFilename: "assets/chunk.[contenthash].js",
     publicPath: "/",
     clean: true,
+  },
+  optimization: {
+    runtimeChunk: "single",
+    splitChunks: {
+      chunks: "all",
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendor",
+          chunks: "all",
+        },
+      },
+    },
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],

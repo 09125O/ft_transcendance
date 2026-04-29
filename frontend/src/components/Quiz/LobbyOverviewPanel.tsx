@@ -1,5 +1,6 @@
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
+import TypewriterWords from "../TypewriterWords";
 import { QUIZ_CATEGORIES } from "../../content/quizCatalog";
 import type { Room } from "../../services/quiz";
 
@@ -20,6 +21,8 @@ const categoryPitchById: Record<string, string> = {
   "startup-tech": "Passe de l'idée au MVP avec des questions orientées builder.",
   career: "Prépare stage, alternance et entretiens avec les bons réflexes tech.",
 };
+
+const heroAudienceWords = ["codeurs", "gamers", "builders"];
 
 function stripGeneratedTimeSuffix(value: string): string {
   return value.replace(/\s-\s\d{2}:\d{2}$/, "").trim();
@@ -85,7 +88,11 @@ export default function LobbyOverviewPanel({
             </span>
             <div className="space-y-3">
               <h1 className="m-0 max-w-4xl text-4xl font-semibold leading-tight text-text sm:text-5xl">
-                Quiz live pour codeurs, gamers et builders
+                Quiz live pour{" "}
+                <TypewriterWords
+                  className="text-primary"
+                  words={heroAudienceWords}
+                />
               </h1>
               <p className="ui-muted max-w-2xl text-sm sm:text-base">
                 Choisis un quiz, ouvre une room et joue en temps réel. Code, gaming, startup et carrière dans l’univers 42.

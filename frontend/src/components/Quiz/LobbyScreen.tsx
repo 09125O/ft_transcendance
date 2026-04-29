@@ -37,9 +37,12 @@ export default function LobbyScreen() {
         onGoToReadyQuizzes={() => navigate("/quiz-ready")}
         onGoToCreateQuiz={() => navigate("/quiz-create")}
         onJoinRoom={async (room) => {
-          await requestJoinRoom(room);
-          if (!room.isPrivate) {
-            navigate(`/room/${room.id}`);
+          try {
+            const joinedRoom = await requestJoinRoom(room);
+            if (joinedRoom) {
+              navigate(`/room/${joinedRoom.id}`);
+            }
+          } catch {
           }
         }}
         onRequireAuth={requireAuth}
@@ -55,9 +58,13 @@ export default function LobbyScreen() {
         onClose={closeJoinModal}
         onConfirm={() => {
           void (async () => {
-            const room = await confirmJoinRoom();
-            if (room) {
-              navigate(`/room/${room.id}`);
+            try {
+              const room = await confirmJoinRoom();
+              if (room) {
+                navigate(`/room/${room.id}`);
+              }
+            } catch {
+              // The modal already displays the join error.
             }
           })();
         }}
