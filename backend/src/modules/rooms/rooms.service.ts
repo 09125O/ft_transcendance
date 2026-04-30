@@ -5,7 +5,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { Room as PrismaRoom, RoomPlayer as PrismaRoomPlayer } from "@generated/prisma/client";
+import {
+  Prisma,
+  Room as PrismaRoom,
+  RoomPlayer as PrismaRoomPlayer,
+} from "@generated/prisma/client";
 import * as bcrypt from "bcrypt";
 import { CreateRoomDto } from "./dto/create-room.dto";
 import { JoinRoomDto } from "./dto/join-room.dto";
@@ -46,21 +50,22 @@ export class RoomsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list(): Promise<Array<Omit<Room, "passwordHash">>> {
-    const rooms = await this.prisma.client.room.findMany({
-      where: {
-        players: {
-          some: {},
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      include: {
-        players: {
-          orderBy: { joinedAt: "asc" },
-        },
+    return this.findRooms({
+      players: {
+        some: {},
       },
     });
+  }
 
-    return rooms.map((room) => this.stripPasswordHash(this.toRoom(room)));
+  async listVisible(): Promise<Array<Omit<Room, "passwordHash">>> {
+    return this.findRooms({
+      players: {
+        some: {},
+      },
+      status: {
+        in: ["waiting", "playing"],
+      },
+    });
   }
 
   async getById(roomId: number): Promise<Omit<Room, "passwordHash">> {
@@ -401,6 +406,22 @@ export class RoomsService {
     }
 
     return room;
+  }
+
+  private async findRooms(
+    where: Prisma.RoomWhereInput,
+  ): Promise<Array<Omit<Room, "passwordHash">>> {
+    const rooms = await this.prisma.client.room.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
+
+    return rooms.map((room) => this.stripPasswordHash(this.toRoom(room)));
   }
 
   private toRoom(room: RoomWithPlayers): Room {

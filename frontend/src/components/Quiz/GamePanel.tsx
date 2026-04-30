@@ -39,6 +39,15 @@ type GamePanelProps = {
   onSendChatMessage: (content: string) => void;
 };
 
+function formatTechnicalQuotes(value: string): string {
+  return value
+    .replace(/`([^`]+)`/g, "“$1”")
+    .replace(
+      /(^|[\s([{])'([^'\n]+)'(?=$|[\s)\]}.,;:!?])/g,
+      (_match, prefix: string, quoted: string) => `${prefix}“${quoted}”`,
+    );
+}
+
 export default function GamePanel({
   onToggleRules,
   onLeaveRoom,
@@ -63,6 +72,11 @@ export default function GamePanel({
   const hasQuestion = currentQuestion !== null;
   const isFinished = roomStatus === "finished";
   const leader = scoreEntries[0] ?? null;
+  const stageHeading = currentQuestion
+    ? formatTechnicalQuotes(currentQuestion.text)
+    : isFinished
+      ? "Le quiz est termine."
+      : "Le salon est prêt. Lance la partie quand tout le monde est installé.";
   const timerProgress =
     timerDurationMs && timerDurationMs > 0 && typeof timerRemainingMs === "number"
       ? Math.max(0, Math.min(100, (timerRemainingMs / timerDurationMs) * 100))
@@ -150,10 +164,7 @@ export default function GamePanel({
                   Table de jeu
                 </p>
                 <p className="m-0 text-balance text-3xl font-semibold leading-tight text-text sm:text-4xl">
-                  {currentQuestion?.text ??
-                    (isFinished
-                      ? "Le quiz est termine."
-                      : "Le salon est prêt. Lance la partie quand tout le monde est installé.")}
+                  {stageHeading}
                 </p>
               </div>
               {!hasQuestion ? (
@@ -186,14 +197,16 @@ export default function GamePanel({
                   <div className="h-2.5 overflow-hidden rounded-full bg-text/10">
                     <div
                       className={[
-                        "h-full rounded-full transition-[width,background-color] duration-100 ease-linear",
+                        "h-full w-full origin-left rounded-full transition-colors duration-150 ease-linear will-change-transform",
                         timerProgress <= 25
                           ? "bg-danger"
                           : timerProgress <= 50
                             ? "bg-urgency"
                             : "bg-accent",
                       ].join(" ")}
-                      style={{ width: `${timerProgress}%` }}
+                      style={{
+                        transform: `scaleX(${Math.max(0, Math.min(1, timerProgress / 100))})`,
+                      }}
                     />
                   </div>
                 </div>
@@ -246,7 +259,7 @@ export default function GamePanel({
                         Réponse {index + 1}
                       </span>
                       <span className="text-lg font-medium">
-                        {option}
+                        {formatTechnicalQuotes(option)}
                       </span>
                       {showAnswerState && isSelected ? (
                         <span

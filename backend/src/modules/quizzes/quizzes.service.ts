@@ -17,10 +17,17 @@ type QuizWithCounts = {
   createdAt: Date;
   _count: {
     games: number;
-    rooms: number;
     questions: number;
   };
 };
+
+const HIDDEN_PLAYER_QUIZ_TITLE_PATTERNS = [
+  /^__WS_SMOKE_/i,
+  /^WS Smoke Quiz\b/i,
+  /^__.*DO_NOT_USE__$/i,
+  /^Rate Limit Quiz\b/i,
+  /^Smoke quiz\b/i,
+];
 
 @Injectable()
 export class QuizzesService {
@@ -50,7 +57,6 @@ export class QuizzesService {
         _count: {
           select: {
             games: true,
-            rooms: true,
             questions: true,
           },
         },
@@ -69,14 +75,17 @@ export class QuizzesService {
         _count: {
           select: {
             games: true,
-            rooms: true,
             questions: true,
           },
         },
       },
     })) as QuizWithCounts[];
 
-    return quizzes.map((quiz) => this.toQuizResponse(quiz));
+    return Promise.all(
+      quizzes
+        .filter((quiz) => this.isPlayerVisibleQuiz(quiz.title))
+        .map((quiz) => this.toQuizResponse(quiz)),
+    );
   }
 
   async getQuizById(quizId: number): Promise<QuizResponse> {
@@ -86,7 +95,6 @@ export class QuizzesService {
         _count: {
           select: {
             games: true,
-            rooms: true,
             questions: true,
           },
         },
@@ -110,14 +118,34 @@ export class QuizzesService {
     });
   }
 
-  private toQuizResponse(quiz: QuizWithCounts): QuizResponse {
+  private async toQuizResponse(quiz: QuizWithCounts): Promise<QuizResponse> {
     return {
       id: quiz.id,
       title: quiz.title,
       createdAt: quiz.createdAt.toISOString(),
       playCount: quiz._count.games,
-      activeRoomCount: quiz._count.rooms,
+      activeRoomCount: await this.getActiveRoomCount(quiz.id),
       questionCount: quiz._count.questions,
     };
+  }
+
+  private async getActiveRoomCount(quizId: number): Promise<number> {
+    return this.prisma.client.room.count({
+      where: {
+        quizId,
+        status: {
+          in: ["waiting", "playing"],
+        },
+        players: {
+          some: {},
+        },
+      },
+    });
+  }
+
+  private isPlayerVisibleQuiz(title: string): boolean {
+    return !HIDDEN_PLAYER_QUIZ_TITLE_PATTERNS.some((pattern) =>
+      pattern.test(title.trim()),
+    );
   }
 }

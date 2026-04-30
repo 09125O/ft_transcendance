@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { Room } from "../services/quiz";
 import type { PublicQuestion } from "../types/game";
 import type { RoomLeaderboardPayload } from "./useRoomParticipants";
@@ -68,6 +68,35 @@ export function useRoomRealtime({
   onAnswerResult,
   onTimerTick,
 }: UseRoomRealtimeOptions): void {
+  const syncCurrentRoomRef = useRef(syncCurrentRoom);
+  const clearCurrentRoomRef = useRef(clearCurrentRoom);
+  const onRoomClosedRef = useRef(onRoomClosed);
+  const onLeaderboardRef = useRef(onLeaderboard);
+  const onQuestionStartedRef = useRef(onQuestionStarted);
+  const onGameEndedRef = useRef(onGameEnded);
+  const onAnswerResultRef = useRef(onAnswerResult);
+  const onTimerTickRef = useRef(onTimerTick);
+
+  useEffect(() => {
+    syncCurrentRoomRef.current = syncCurrentRoom;
+    clearCurrentRoomRef.current = clearCurrentRoom;
+    onRoomClosedRef.current = onRoomClosed;
+    onLeaderboardRef.current = onLeaderboard;
+    onQuestionStartedRef.current = onQuestionStarted;
+    onGameEndedRef.current = onGameEnded;
+    onAnswerResultRef.current = onAnswerResult;
+    onTimerTickRef.current = onTimerTick;
+  }, [
+    clearCurrentRoom,
+    onAnswerResult,
+    onGameEnded,
+    onLeaderboard,
+    onQuestionStarted,
+    onRoomClosed,
+    onTimerTick,
+    syncCurrentRoom,
+  ]);
+
   useEffect(() => {
     const handleRoomState = (response: WsResponse<Room>) => {
       if (!response.success || !response.data) {
@@ -78,7 +107,7 @@ export function useRoomRealtime({
         return;
       }
 
-      syncCurrentRoom(response.data);
+      syncCurrentRoomRef.current(response.data);
     };
 
     const handleRoomClosed = (
@@ -92,8 +121,8 @@ export function useRoomRealtime({
         return;
       }
 
-      clearCurrentRoom();
-      onRoomClosed();
+      clearCurrentRoomRef.current();
+      onRoomClosedRef.current();
     };
 
     onWs("room:state", handleRoomState);
@@ -105,7 +134,7 @@ export function useRoomRealtime({
       offWs("room:started", handleRoomState);
       offWs("room:closed", handleRoomClosed);
     };
-  }, [clearCurrentRoom, onRoomClosed, requestedRoomId, syncCurrentRoom]);
+  }, [requestedRoomId]);
 
   useEffect(() => {
     const handleLeaderboard = (
@@ -119,7 +148,7 @@ export function useRoomRealtime({
         return;
       }
 
-      onLeaderboard(response.data);
+      onLeaderboardRef.current(response.data);
     };
 
     onWs("game:leaderboard", handleLeaderboard);
@@ -127,7 +156,7 @@ export function useRoomRealtime({
     return () => {
       offWs("game:leaderboard", handleLeaderboard);
     };
-  }, [onLeaderboard, requestedRoomId]);
+  }, [requestedRoomId]);
 
   useEffect(() => {
     const handleQuestionStarted = (
@@ -149,7 +178,7 @@ export function useRoomRealtime({
         return;
       }
 
-      onQuestionStarted({
+      onQuestionStartedRef.current({
         question: response.data.question,
         durationMs: response.data.durationMs,
         endsAt: response.data.endsAt,
@@ -168,7 +197,7 @@ export function useRoomRealtime({
         return;
       }
 
-      onGameEnded();
+      onGameEndedRef.current();
     };
 
     const handleAnswerResult = (response: WsResponse<AnswerResultPayload>) => {
@@ -180,7 +209,7 @@ export function useRoomRealtime({
         return;
       }
 
-      onAnswerResult(response.data);
+      onAnswerResultRef.current(response.data);
     };
 
     const handleTimerTick = (response: WsResponse<TimerPayload>) => {
@@ -192,7 +221,7 @@ export function useRoomRealtime({
         return;
       }
 
-      onTimerTick(response.data);
+      onTimerTickRef.current(response.data);
     };
 
     onWs("game:question:started", handleQuestionStarted);
@@ -206,7 +235,7 @@ export function useRoomRealtime({
       offWs("game:answer:result", handleAnswerResult);
       offWs("game:timer", handleTimerTick);
     };
-  }, [onAnswerResult, onGameEnded, onQuestionStarted, onTimerTick, requestedRoomId]);
+  }, [requestedRoomId]);
 
   useEffect(() => {
     if (currentRoomId === null || userId === null) {

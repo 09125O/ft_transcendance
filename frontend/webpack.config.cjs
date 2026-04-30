@@ -10,6 +10,9 @@ const tlsCertPath = process.env.TLS_CERT_FILE || "/certs/dev-localhost.crt";
 const trustedCaPath = process.env.NODE_EXTRA_CA_CERTS || "/certs/mkcert-rootCA.pem";
 const hasCustomTlsFiles =
   fs.existsSync(tlsKeyPath) && fs.existsSync(tlsCertPath);
+const shouldVerifyBackendTls =
+  process.env.BACKEND_PROXY_SECURE === "true" &&
+  fs.existsSync(trustedCaPath);
 const proxyPrefixes = [
   "/api",
   "/health",
@@ -99,7 +102,7 @@ module.exports = {
         context: shouldProxy,
         target: backendTarget,
         changeOrigin: true,
-        secure: fs.existsSync(trustedCaPath),
+        secure: shouldVerifyBackendTls,
         ws: true,
       },
     ],

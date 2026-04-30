@@ -115,6 +115,14 @@ const QUIZ_CATALOG_BY_TITLE = new Map(
   QUIZ_CATALOG.map((entry) => [entry.title, entry]),
 );
 
+const HIDDEN_PLAYER_QUIZ_TITLE_PATTERNS = [
+  /^__WS_SMOKE_/i,
+  /^WS Smoke Quiz\b/i,
+  /^__.*DO_NOT_USE__$/i,
+  /^Rate Limit Quiz\b/i,
+  /^Smoke quiz\b/i,
+];
+
 export type QuizWithCatalog = Quiz & {
   category: QuizCategory;
   summary: string;
@@ -122,6 +130,12 @@ export type QuizWithCatalog = Quiz & {
   isLaunchQuiz: boolean;
   sortOrder: number;
 };
+
+export function isPlayerVisibleQuiz(quiz: Pick<Quiz, "title">): boolean {
+  return !HIDDEN_PLAYER_QUIZ_TITLE_PATTERNS.some((pattern) =>
+    pattern.test(quiz.title.trim()),
+  );
+}
 
 export function decorateQuiz(quiz: Quiz): QuizWithCatalog {
   const catalog = QUIZ_CATALOG_BY_TITLE.get(quiz.title);

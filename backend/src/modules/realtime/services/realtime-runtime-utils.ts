@@ -25,5 +25,5 @@ export async function broadcastRoomList(
   roomsService: RoomsService,
   response: RealtimeResponseService,
 ): Promise<void> {
-  server.emit("room:list-updated", response.ok(await roomsService.list()));
+  server.emit("room:list-updated", response.ok(await roomsService.listVisible()));
 }

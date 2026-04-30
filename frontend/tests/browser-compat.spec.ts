@@ -34,14 +34,6 @@ test.describe("browser compatibility", () => {
       page.getByRole("heading", { name: /Quiz live pour codeurs, gamers et builders/i }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Leaderboard" }).click();
-    await expect(page).toHaveURL(/\/leaderboard$/);
-    await expect(
-      page.getByRole("heading", {
-        name: /Classement global, progression joueur et matchs recents/i,
-      }),
-    ).toBeVisible();
-
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Se connecter" })).toBeVisible();
 
@@ -54,6 +46,14 @@ test.describe("browser compatibility", () => {
     await loginAsGuest(page);
     await expect(
       page.getByRole("heading", { name: /Quiz live pour codeurs, gamers et builders/i }),
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Leaderboard" }).click();
+    await expect(page).toHaveURL(/\/leaderboard$/);
+    await expect(
+      page.getByRole("heading", {
+        name: /Classement global, progression joueur et matchs recents/i,
+      }),
     ).toBeVisible();
 
     await page.goto("/friends");

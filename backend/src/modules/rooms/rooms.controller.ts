@@ -24,7 +24,7 @@ export class RoomsController {
 
   @Get()
   async list(): Promise<ApiResponse<Array<Omit<Room, "passwordHash">>>> {
-    return ok(await this.roomsService.list());
+    return ok(await this.roomsService.listVisible());
   }
 
   @Get(":roomId")

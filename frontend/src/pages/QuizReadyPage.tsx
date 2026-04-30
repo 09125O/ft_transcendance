@@ -13,41 +13,12 @@ import { useAuth } from "../providers/AuthProvider";
 import { createRoom, type CreateRoomPayload } from "../services/quiz";
 import type { Quiz } from "../services/quizzes";
 
-const SCRIPT_GENERATED_QUIZ_TITLE_PATTERNS = [
-  /^__WS_SMOKE_/i,
-  /^__.*DO_NOT_USE__$/i,
-  /^Rate Limit Quiz\b/i,
-  /^Smoke quiz\b/i,
-];
-
-function isScriptGeneratedQuiz(quiz: Quiz): boolean {
-  return SCRIPT_GENERATED_QUIZ_TITLE_PATTERNS.some((pattern) =>
-    pattern.test(quiz.title.trim()),
-  );
-}
-
-function buildRoomName(quizTitle: string): string {
-  const timeLabel = new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const separator = " - ";
-  const maxTitleLength = 40 - separator.length - timeLabel.length;
-  const safeTitle = (quizTitle.trim() || "Quiz live").slice(
-    0,
-    Math.max(2, maxTitleLength),
-  );
-
-  return `${safeTitle}${separator}${timeLabel}`;
-}
-
 export default function QuizReadyPage() {
   const navigate = useNavigate();
   const { user: sessionUser, isLoading: isSessionLoading } = useAuth();
   const { quizzes, quizzesLoading, quizzesError } = useQuizLibrary();
-  const visibleQuizzes = quizzes.filter((quiz) => !isScriptGeneratedQuiz(quiz));
-  const launchQuizzes = getLaunchQuizzes(visibleQuizzes);
-  const communityQuizzes = getCommunityQuizzes(visibleQuizzes);
+  const launchQuizzes = getLaunchQuizzes(quizzes);
+  const communityQuizzes = getCommunityQuizzes(quizzes);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 
@@ -61,10 +32,7 @@ export default function QuizReadyPage() {
       return;
     }
 
-    setSelectedQuiz({
-      ...quiz,
-      title: buildRoomName(quiz.title),
-    });
+    setSelectedQuiz(quiz);
   };
 
   const handleCreateRoomFromQuiz = async (payload: CreateRoomPayload) => {
@@ -88,10 +56,6 @@ export default function QuizReadyPage() {
 
   const renderQuizCard = (quiz: Quiz) => {
     const decoratedQuiz = decorateQuiz(quiz);
-    const playLabel =
-      quiz.playCount > 0
-        ? `${quiz.playCount} partie${quiz.playCount > 1 ? "s" : ""}`
-        : "Nouveau";
 
     return (
       <button
@@ -120,9 +84,6 @@ export default function QuizReadyPage() {
           <div className="flex flex-wrap gap-2 text-xs text-text/70">
             <span className="rounded-full border border-text/10 bg-background px-3 py-1">
               {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}
-            </span>
-            <span className="rounded-full border border-text/10 bg-background px-3 py-1">
-              {playLabel}
             </span>
             {quiz.activeRoomCount > 0 ? (
               <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-success">

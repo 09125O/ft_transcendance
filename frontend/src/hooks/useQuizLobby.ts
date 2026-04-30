@@ -7,6 +7,11 @@ import {
   type CreateRoomPayload,
   type Room,
 } from "../services/quiz";
+import {
+  offWs,
+  onWs,
+  type WsResponse,
+} from "../services/ws";
 
 type UseQuizLobbyOptions = {
   userId: number | null;
@@ -124,6 +129,27 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
   useEffect(() => {
     void loadRooms();
   }, [loadRooms]);
+
+  useEffect(() => {
+    if (userId === null) {
+      return;
+    }
+
+    const handleRoomListUpdated = (response: WsResponse<Room[]>) => {
+      if (!response.success || !response.data) {
+        return;
+      }
+
+      setRooms(response.data);
+      setRoomsError(null);
+    };
+
+    onWs("room:list-updated", handleRoomListUpdated);
+
+    return () => {
+      offWs("room:list-updated", handleRoomListUpdated);
+    };
+  }, [userId]);
 
   return {
     rooms,

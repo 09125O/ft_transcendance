@@ -101,7 +101,7 @@ export class RealtimeRoomEventsService {
   }
 
   async handleRoomList(client: Socket): Promise<void> {
-    client.emit("room:list", this.response.ok(await this.roomsService.list()));
+    client.emit("room:list", this.response.ok(await this.roomsService.listVisible()));
   }
 
   async handleRoomCreate(
@@ -335,7 +335,7 @@ export class RealtimeRoomEventsService {
   }
 
   private async broadcastRoomList(server: Server): Promise<void> {
-    server.emit("room:list-updated", this.response.ok(await this.roomsService.list()));
+    server.emit("room:list-updated", this.response.ok(await this.roomsService.listVisible()));
   }
 
   private roomChannel(roomId: number): string {
