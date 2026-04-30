@@ -1,5 +1,9 @@
 import { PrismaService } from "@/prisma/prisma.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  TECHNICAL_SCORE_EMAIL_PREFIX,
+  isTechnicalScoreEmail,
+} from "./technical-score-filters";
 
 export type UserScore = {
   userId: number;
@@ -29,6 +33,41 @@ export type MatchHistoryEntry = {
   }>;
 };
 
+type AggregateLeaderboardRow = {
+  userId: number;
+  score: number;
+  wins: number;
+  user: {
+    username: string;
+  };
+};
+
+type MatchHistoryRow = {
+  finalScore: number;
+  rank: number | null;
+  isWinner: boolean;
+  createdAt: Date;
+  game: {
+    id: number;
+    roomId: number;
+    quizId: number;
+    finishedAt: Date | null;
+    createdAt: Date;
+    room: {
+      name: string;
+    };
+    quiz: {
+      title: string;
+    };
+    leaderboard: Array<{
+      userId: number;
+      user: {
+        username: string;
+      };
+    }>;
+  };
+};
+
 @Injectable()
 export class ScoresService {
   constructor(private readonly prisma: PrismaService) {}
@@ -44,13 +83,17 @@ export class ScoresService {
     const userIds = [...new Set(entries.map((entry) => entry.userId))];
     const existingUsers = await this.prisma.client.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true },
+      select: { id: true, email: true },
     });
-    const existingUserIdSet = new Set(existingUsers.map((user) => user.id));
+    const playerUserIdSet = new Set(
+      existingUsers
+        .filter((user) => !isTechnicalScoreEmail(user.email))
+        .map((user) => user.id),
+    );
 
     await this.prisma.client.$transaction(
       entries
-        .filter((entry) => existingUserIdSet.has(entry.userId))
+        .filter((entry) => playerUserIdSet.has(entry.userId))
         .map((entry) =>
           this.prisma.client.userAggregateScore.upsert({
             where: { userId: entry.userId },
@@ -71,8 +114,17 @@ export class ScoresService {
   }
 
   async getLeaderboard(limit = 10): Promise<UserScore[]> {
-    const rows = await this.prisma.client.userAggregateScore.findMany({
+    const rows: AggregateLeaderboardRow[] = await this.prisma.client.userAggregateScore.findMany({
       take: limit,
+      where: {
+        user: {
+          email: {
+            not: {
+              startsWith: TECHNICAL_SCORE_EMAIL_PREFIX,
+            },
+          },
+        },
+      },
       orderBy: [{ score: "desc" }, { wins: "desc" }, { userId: "asc" }],
       include: {
         user: {
@@ -157,7 +209,7 @@ export class ScoresService {
       throw new NotFoundException(`User ${userId} not found`);
     }
 
-    const rows = await this.prisma.client.leaderboard.findMany({
+    const rows: MatchHistoryRow[] = await this.prisma.client.leaderboard.findMany({
       where: { userId },
       take: limit,
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],

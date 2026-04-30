@@ -19,7 +19,6 @@ const socket: Socket = io(`${WS_BASE_URL}/ws`, {
   withCredentials: true,
   transports: ["websocket", "polling"],
   reconnection: true,
-  reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
 });
@@ -34,14 +33,30 @@ export type WsConnectionState =
 type Listener = (state: WsConnectionState) => void;
 const listeners = new Set<Listener>();
 let currentState: WsConnectionState = "idle";
+let intentionalDisconnect = false;
 
 function setState(next: WsConnectionState) {
   currentState = next;
   for (const listener of listeners) listener(next);
 }
 
-socket.on("connect", () => setState("connected"));
-socket.on("disconnect", () => setState("disconnected"));
+socket.on("connect", () => {
+  intentionalDisconnect = false;
+  setState("connected");
+});
+socket.on("disconnect", (reason) => {
+  if (intentionalDisconnect || reason === "io client disconnect") {
+    setState("idle");
+    return;
+  }
+
+  setState("reconnecting");
+});
+socket.on("connect_error", () => {
+  if (!intentionalDisconnect) {
+    setState("reconnecting");
+  }
+});
 socket.io.on("reconnect_attempt", () => setState("reconnecting"));
 socket.io.on("reconnect", () => setState("connected"));
 socket.io.on("reconnect_failed", () => setState("disconnected"));
@@ -56,14 +71,16 @@ export function subscribeWsConnection(listener: Listener): () => void {
 
 export function connectWs(): void {
   if (!socket.connected) {
+    intentionalDisconnect = false;
+    setState(currentState === "idle" ? "connecting" : "reconnecting");
     socket.connect();
   }
 }
 
 export function disconnectWs(): void {
-  if (socket.connected) {
-    socket.disconnect();
-  }
+  intentionalDisconnect = true;
+  socket.disconnect();
+  setState("idle");
 }
 
 export function emitWs<T>(event: string, payload?: T): void {

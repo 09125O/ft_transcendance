@@ -1,6 +1,7 @@
 import { GameModule } from "@/modules/game/game.module";
 import { RoomsModule } from "@/modules/rooms/rooms.module";
 import { ScoresModule } from "@/modules/scores/scores.module";
+import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 import { RealtimeGateway } from "./realtime.gateway";
 import { RealtimeGameEventsService } from "./services/realtime-game-events.service";
@@ -13,7 +14,7 @@ import { RealtimeNotifierService } from "./services/realtime-notifier.service";
 import { RealtimeValidationService } from "./services/realtime-validation.service";
 
 @Module({
-  imports: [RoomsModule, GameModule, ScoresModule],
+  imports: [RoomsModule, GameModule, ScoresModule, UsersModule],
   providers: [
     RealtimeGateway,
     RealtimeAuthService,
@@ -25,6 +26,6 @@ import { RealtimeValidationService } from "./services/realtime-validation.servic
     RealtimeGameEventsService,
     RealtimeRoomEventsService,
   ],
-  exports: [RealtimeNotifierService],
+  exports: [RealtimeNotifierService, RealtimePresenceService],
 })
 export class RealtimeModule {}

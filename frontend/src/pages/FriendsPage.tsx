@@ -96,6 +96,20 @@ export default function FriendsPage() {
       return;
     }
 
+    const intervalId = window.setInterval(() => {
+      void refresh();
+    }, 15000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [refresh, user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     const handleNotificationNew = (payload: WsResponse<NotificationItem>) => {
       if (!payload.success) {
         return;

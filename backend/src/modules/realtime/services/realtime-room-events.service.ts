@@ -1,4 +1,5 @@
 import { RoomsService } from "@/modules/rooms/rooms.service";
+import { UsersService } from "@/modules/users/users.service";
 import { ChatMessageDto } from "@/modules/realtime/dto/chat-message.dto";
 import { RoomCreateEventDto } from "@/modules/realtime/dto/room-create-event.dto";
 import { RoomJoinEventDto } from "@/modules/realtime/dto/room-join-event.dto";
@@ -31,6 +32,7 @@ export class RealtimeRoomEventsService {
   constructor(
     private readonly roomsService: RoomsService,
     private readonly gameService: GameService,
+    private readonly usersService: UsersService,
     private readonly validation: RealtimeValidationService,
     private readonly response: RealtimeResponseService,
     private readonly presence: RealtimePresenceService,
@@ -297,6 +299,10 @@ export class RealtimeRoomEventsService {
         if (this.presence.hasActiveSockets(userId)) {
           return;
         }
+        await this.usersService.updateUser({
+          where: { id: userId },
+          data: { status: "offline" },
+        });
         await this.removeUserFromRooms(userId, server);
       })();
     }, this.disconnectGraceMs);

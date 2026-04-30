@@ -1,4 +1,5 @@
 import { PrismaService } from "@/prisma/prisma.service";
+import { RealtimePresenceService } from "@/modules/realtime/services/realtime-presence.service";
 import { FriendshipStatus, Prisma, UserStatus } from "@generated/prisma/client";
 import {
   ConflictException,
@@ -61,7 +62,10 @@ export type FriendRequestRecord = {
 
 @Injectable()
 export class FriendsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly presence: RealtimePresenceService,
+  ) {}
 
   async listFriends(userId: number): Promise<FriendListEntry[]> {
     const relations = await this.prisma.client.friendRequests.findMany({
@@ -97,7 +101,7 @@ export class FriendsService {
         userId: user.id,
         username: user.username,
         avatar_url: user.avatar_url,
-        status: user.status,
+        status: this.getLiveStatus(user),
         since: relation.createdAt.toISOString(),
       };
     });
@@ -314,9 +318,13 @@ export class FriendsService {
       userId: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
-      status: user.status,
+      status: this.getLiveStatus(user),
       createdAt: createdAt.toISOString(),
     };
+  }
+
+  private getLiveStatus(user: BasicUser): UserStatus {
+    return this.presence.hasActiveSockets(user.id) ? "online" : "offline";
   }
 
   private async findRequestOrThrow(requestId: number) {
