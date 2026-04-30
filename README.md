@@ -218,6 +218,29 @@ make up
 make test-stack
 ```
 
+Démarrage recommandé, quelle que soit la machine :
+
+```bash
+make bootstrap
+```
+
+La commande détecte automatiquement le mode le plus adapté :
+
+- Docker disponible : génération TLS locale, build et démarrage de la stack complète
+- Docker absent : installation locale des dépendances `frontend` et `backend`
+
+Après `make bootstrap` :
+
+- en mode Docker : `make test-stack`
+- en mode local : lancer `cd backend && npm run start:dev` puis `cd frontend && npm run dev`
+
+Installation locale hors Docker :
+
+```bash
+make setup-local-deps
+make setup-local-browsers
+```
+
 Commandes utiles :
 
 - `make logs`

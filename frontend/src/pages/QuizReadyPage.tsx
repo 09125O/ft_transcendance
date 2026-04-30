@@ -58,14 +58,9 @@ export default function QuizReadyPage() {
     const decoratedQuiz = decorateQuiz(quiz);
 
     return (
-      <button
-        className="flex h-full w-full cursor-pointer flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={isCreatingRoom}
+      <article
+        className="flex h-full w-full flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-300"
         key={quiz.id}
-        type="button"
-        onClick={() => {
-          handleOpenRoomConfigurator(quiz);
-        }}
       >
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
@@ -92,7 +87,20 @@ export default function QuizReadyPage() {
             ) : null}
           </div>
         </div>
-      </button>
+
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <div />
+          <PrimaryButton
+            className="px-4 py-2 text-sm"
+            disabled={isCreatingRoom}
+            onClick={() => {
+              handleOpenRoomConfigurator(quiz);
+            }}
+          >
+            Lancer
+          </PrimaryButton>
+        </div>
+      </article>
     );
   };
 

@@ -25,6 +25,8 @@ all:
 help:
 	@echo "Usage: Docker"
 	@echo "  make up                  -> Build and start all containers in background"
+	@echo "  make bootstrap           -> One-shot setup with auto-detected mode: Docker if available, local fallback otherwise"
+	@echo "  make bootstrap-trust     -> Compatibility alias for bootstrap"
 	@echo "  make down                -> Stop containers"
 	@echo "  make clean               -> Remove containers and images, keep volumes"
 	@echo "  make fclean              -> Full clean: containers, images and volumes"
@@ -48,6 +50,8 @@ help:
 	@echo "  make env-check           -> Check required variables in .env"
 	@echo "  make tls-cert            -> Generate the shared local TLS certificate"
 	@echo "  make tls-trust           -> Install mkcert local CA into the system trust store"
+	@echo "  make setup-local-deps    -> Install frontend/backend Node dependencies locally"
+	@echo "  make setup-local-browsers -> Install Playwright browsers locally"
 	@echo "  make shell-back          -> Open shell in backend container"
 	@echo "  make shell-front         -> Open shell in frontend container"
 	@echo "  make shell-db            -> Open a psql session in the db container"
@@ -80,6 +84,12 @@ compose-check:
 		echo "Ni 'docker compose' ni 'docker-compose' n'est disponible sur cette machine."; \
 		exit 1; \
 	}
+
+bootstrap:
+	bash scripts/bootstrap.sh
+
+bootstrap-trust:
+	bash scripts/bootstrap.sh
 
 up: env-check compose-check
 	bash scripts/generate-dev-cert.sh
@@ -175,6 +185,12 @@ tls-cert:
 
 tls-trust:
 	mkcert -install
+
+setup-local-deps:
+	bash scripts/setup-local-deps.sh
+
+setup-local-browsers:
+	cd frontend && npm run test:browsers:install
 
 shell-back: compose-check
 	$(COMPOSE) exec backend sh
