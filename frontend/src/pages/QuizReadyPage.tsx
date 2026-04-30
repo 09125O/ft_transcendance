@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Panel from "../components/Panel";
 import PrimaryButton from "../components/PrimaryButton";
+import TypewriterWords from "../components/TypewriterWords";
 import RoomCreateFromQuizPanel from "../components/Quiz/RoomCreateFromQuizPanel";
 import {
   decorateQuiz,
@@ -76,16 +77,13 @@ export default function QuizReadyPage() {
             {quiz.title}
           </h2>
           <p className="text-text-muted mt-1 text-sm">{decoratedQuiz.summary}</p>
-          <div className="flex flex-wrap gap-2 text-xs text-text/70">
-            <span className="rounded-full border border-text/10 bg-background px-3 py-1">
-              {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}
-            </span>
-            {quiz.activeRoomCount > 0 ? (
+          {quiz.activeRoomCount > 0 ? (
+            <div className="flex flex-wrap gap-2 text-xs text-text/70">
               <span className="rounded-full border border-success/20 bg-success/10 px-3 py-1 text-success">
                 {quiz.activeRoomCount} room{quiz.activeRoomCount > 1 ? "s" : ""} active{quiz.activeRoomCount > 1 ? "s" : ""}
               </span>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-5 flex items-center justify-between gap-3">
@@ -125,7 +123,15 @@ export default function QuizReadyPage() {
               Quiz prêts à lancer
             </span>
             <h1 className="m-0 max-w-4xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
-              Tous les quiz live pour codeurs, gamers et builders
+              <span className="hero-title-stack">
+                <span className="hero-title-line">Tous les quiz live pour</span>
+                <span className="hero-typewriter-shell">
+                  <TypewriterWords
+                    className="hero-typewriter-word"
+                    words={["codeurs", "gamers", "builders"]}
+                  />
+                </span>
+              </span>
             </h1>
             <p className="text-text-muted max-w-3xl text-sm sm:text-base">
               Ici tu retrouves les quiz à jouer dans l&apos;univers 42.

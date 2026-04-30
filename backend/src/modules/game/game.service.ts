@@ -156,6 +156,15 @@ export class GameService {
     const room = await this.roomsService.getById(roomId);
     const quizId =
       typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
+    const questionIds = await this.getQuizQuestionIds(quizId);
+    if (questionIds.length === 0) {
+      throw new ConflictException(`Quiz ${quizId} has no questions`);
+    }
+
+    const selectedQuestionIds = this.pickRandomQuestionIds(
+      questionIds,
+      Math.min(Math.max(1, totalQuestions), questionIds.length),
+    );
     const runtime: RoomRuntime = {
       answeredByQuestion: new Map(),
       scoresByUser: new Map(),
@@ -175,6 +184,12 @@ export class GameService {
           quizId,
           status: "in_progress",
           startedAt,
+          questions: {
+            create: selectedQuestionIds.map((questionId, index) => ({
+              questionId,
+              position: index + 1,
+            })),
+          },
         },
       });
 
@@ -184,7 +199,7 @@ export class GameService {
           status: "playing",
           currentQuestionId: null,
           currentQuestionNumber: 0,
-          totalQuestions: Math.max(1, totalQuestions),
+          totalQuestions: selectedQuestionIds.length,
           questionDurationMs,
           questionStartedAt: null,
           questionEndsAt: null,
@@ -201,7 +216,7 @@ export class GameService {
           status: "playing",
           currentQuestionId: null,
           currentQuestionNumber: 0,
-          totalQuestions: Math.max(1, totalQuestions),
+          totalQuestions: selectedQuestionIds.length,
           questionDurationMs,
           questionStartedAt: null,
           questionEndsAt: null,
@@ -406,18 +421,33 @@ export class GameService {
   }
 
   async getQuestionOrder(roomId: number): Promise<number[]> {
+    const activeGame = await this.prisma.client.game.findFirst({
+      where: {
+        roomId,
+        status: {
+          in: ["waiting", "in_progress"],
+        },
+      },
+      orderBy: [{ createdAt: "desc" }],
+      select: {
+        questions: {
+          orderBy: { position: "asc" },
+          select: { questionId: true },
+        },
+      },
+    });
+    if (activeGame && activeGame.questions.length > 0) {
+      return activeGame.questions.map((question) => question.questionId);
+    }
+
     const room = await this.roomsService.getById(roomId);
     const quizId =
       typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
-    const questions = await this.prisma.client.quizQuestion.findMany({
-      where: { quizId },
-      orderBy: { position: "asc" },
-      select: { id: true },
-    });
-    if (questions.length === 0) {
+    const questionIds = await this.getQuizQuestionIds(quizId);
+    if (questionIds.length === 0) {
       throw new ConflictException(`Quiz ${quizId} has no questions`);
     }
-    return questions.map((question) => question.id);
+    return questionIds;
   }
 
   async getPublicQuestion(questionId: number): Promise<PublicQuestion> {
@@ -462,6 +492,29 @@ export class GameService {
         runtime.scoresByUser.delete(userId);
       }
     }
+  }
+
+  private async getQuizQuestionIds(quizId: number): Promise<number[]> {
+    const questions = await this.prisma.client.quizQuestion.findMany({
+      where: { quizId },
+      orderBy: { position: "asc" },
+      select: { id: true },
+    });
+
+    return questions.map((question) => question.id);
+  }
+
+  private pickRandomQuestionIds(questionIds: number[], count: number): number[] {
+    const shuffled = [...questionIds];
+
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      const current = shuffled[index];
+      shuffled[index] = shuffled[swapIndex];
+      shuffled[swapIndex] = current;
+    }
+
+    return shuffled.slice(0, count);
   }
 
   private async getQuestionEntry(questionId: number): Promise<QuestionEntry> {

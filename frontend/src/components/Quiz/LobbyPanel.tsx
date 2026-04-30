@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
+import PrivacySwitch from "./PrivacySwitch";
 import {
   QUIZ_ROOM_NAME_MIN_LENGTH,
   QUIZ_ROOM_PASSWORD_MIN_LENGTH,
@@ -247,36 +248,11 @@ export default function LobbyPanel({
             <p className="mb-2 text-sm font-medium text-text/70" id="room-privacy-label">
               Salon privé
             </p>
-            <div className="inline-flex rounded-lg border border-text/10 bg-background p-1">
-              <button
-                aria-pressed={!isPrivateRoom}
-                aria-describedby="room-privacy-label"
-                className={[
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                  isPrivateRoom
-                    ? "text-text/70"
-                    : "bg-primary text-text",
-                ].join(" ")}
-                type="button"
-                onClick={() => setIsPrivateRoom(false)}
-              >
-                Non
-              </button>
-              <button
-                aria-pressed={isPrivateRoom}
-                aria-describedby="room-privacy-label"
-                className={[
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                  isPrivateRoom
-                    ? "bg-primary text-text"
-                    : "text-text/70",
-                ].join(" ")}
-                type="button"
-                onClick={() => setIsPrivateRoom(true)}
-              >
-                Oui
-              </button>
-            </div>
+            <PrivacySwitch
+              checked={isPrivateRoom}
+              labelId="room-privacy-label"
+              onChange={setIsPrivateRoom}
+            />
           </div>
           {isPrivateRoom ? (
             <div>

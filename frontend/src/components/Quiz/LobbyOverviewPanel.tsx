@@ -83,9 +83,7 @@ export default function LobbyOverviewPanel({
         level: decoratedQuiz.level,
         title: quiz.title,
         summary: decoratedQuiz.summary,
-        meta: [
-          `${quiz.questionCount} question${quiz.questionCount > 1 ? "s" : ""}`,
-        ],
+        meta: [],
         accent: "primary",
       };
     });
@@ -347,18 +345,20 @@ export default function LobbyOverviewPanel({
                             </div>
                           </div>
 
-                          <div className="space-y-3">
-                            <div className="flex flex-wrap gap-2 text-xs text-text/70">
-                              {slide.meta.map((item) => (
-                                <span
-                                  className="rounded-full border border-text/10 bg-background px-3 py-1"
-                                  key={item}
-                                >
-                                  {item}
-                                </span>
-                              ))}
+                          {slide.meta.length > 0 ? (
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap gap-2 text-xs text-text/70">
+                                {slide.meta.map((item) => (
+                                  <span
+                                    className="rounded-full border border-text/10 bg-background px-3 py-1"
+                                    key={item}
+                                  >
+                                    {item}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          ) : null}
                         </article>
                       </div>
                     );
@@ -401,16 +401,18 @@ export default function LobbyOverviewPanel({
                       </div>
 
                       <div className="flex flex-col gap-3 sm:items-end">
-                        <div className="flex flex-wrap gap-2 text-xs text-text/70 sm:justify-end">
-                          {activeSlide.meta.map((item) => (
-                            <span
-                              className="rounded-full border border-text/10 bg-background px-3 py-1"
-                              key={item}
-                            >
-                              {item}
-                            </span>
-                          ))}
-                        </div>
+                        {activeSlide.meta.length > 0 ? (
+                          <div className="flex flex-wrap gap-2 text-xs text-text/70 sm:justify-end">
+                            {activeSlide.meta.map((item) => (
+                              <span
+                                className="rounded-full border border-text/10 bg-background px-3 py-1"
+                                key={item}
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
                         <PrimaryButton
                           className="w-56 justify-center px-5 py-3 text-sm"
                           onClick={onGoToReadyQuizzes}

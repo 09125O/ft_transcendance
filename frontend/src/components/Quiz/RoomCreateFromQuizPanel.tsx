@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
+import PrivacySwitch from "./PrivacySwitch";
 import {
   QUIZ_ROOM_NAME_MIN_LENGTH,
   QUIZ_ROOM_PASSWORD_MIN_LENGTH,
@@ -17,14 +18,117 @@ type RoomCreateFromQuizPanelProps = {
   onCreateRoom: (payload: CreateRoomPayload) => Promise<void>;
 };
 
+type CounterFieldProps = {
+  label: string;
+  helper: string;
+  value: number;
+  formatValue: (value: number) => string;
+  formatUnit?: (value: number) => string;
+  canDecrement: boolean;
+  canIncrement: boolean;
+  onDecrement: () => void;
+  onIncrement: () => void;
+};
+
 const questionDurations: QuestionDurationSeconds[] = [5, 10, 15, 20, 25, 30];
+const QUIZ_ROOM_ROUNDS_TARGET = 10;
+
+function AnimatedCounterField({
+  label,
+  helper,
+  value,
+  formatValue,
+  formatUnit,
+  canDecrement,
+  canIncrement,
+  onDecrement,
+  onIncrement,
+}: CounterFieldProps) {
+  const [previousValue, setPreviousValue] = useState(value);
+  const [direction, setDirection] = useState<"up" | "down">("up");
+
+  useEffect(() => {
+    if (value === previousValue) {
+      return;
+    }
+
+    setDirection(value > previousValue ? "up" : "down");
+    setPreviousValue(value);
+  }, [formatValue, previousValue, value]);
+
+  const currentValueText = formatValue(value);
+  const currentUnitText = formatUnit?.(value);
+
+  return (
+    <div className="quiz-counter-card">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <label className="block text-sm font-medium text-text/70">{label}</label>
+          <p className="mt-1 text-sm text-text/50">{helper}</p>
+        </div>
+      </div>
+
+      <div className="quiz-counter-display mt-4">
+        <button
+          aria-label={`Réduire ${label.toLowerCase()}`}
+          className="quiz-counter-button"
+          disabled={!canDecrement}
+          type="button"
+          onClick={onDecrement}
+        >
+          -
+        </button>
+
+        <div className="quiz-counter-readout">
+          <div aria-live="polite" className="quiz-counter-value-shell">
+            <span
+              className={[
+                "quiz-counter-value",
+                direction === "up"
+                  ? "quiz-counter-value-enter-up"
+                  : "quiz-counter-value-enter-down",
+              ].join(" ")}
+              key={`current-${currentValueText}`}
+            >
+              {currentValueText}
+            </span>
+          </div>
+          {currentUnitText ? (
+            <span className="quiz-counter-unit">{currentUnitText}</span>
+          ) : null}
+        </div>
+
+        <button
+          aria-label={`Augmenter ${label.toLowerCase()}`}
+          className="quiz-counter-button"
+          disabled={!canIncrement}
+          type="button"
+          onClick={onIncrement}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function RoomCreateFromQuizPanel({
   quiz,
   onBack,
   onCreateRoom,
 }: RoomCreateFromQuizPanelProps) {
+  const defaultQuestionCount = Math.min(
+    quiz.questionCount,
+    QUIZ_ROOM_ROUNDS_TARGET,
+  );
+  const questionCountOptions = Array.from(
+    { length: quiz.questionCount },
+    (_, index) => index + 1,
+  );
   const [roomName, setRoomName] = useState(quiz.title);
+  const [selectedQuestionCount, setSelectedQuestionCount] = useState(
+    defaultQuestionCount,
+  );
   const [questionDurationSeconds, setQuestionDurationSeconds] =
     useState<QuestionDurationSeconds>(
       (QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS / 1000) as QuestionDurationSeconds,
@@ -36,13 +140,37 @@ export default function RoomCreateFromQuizPanel({
 
   useEffect(() => {
     setRoomName(quiz.title);
+    setSelectedQuestionCount(defaultQuestionCount);
     setQuestionDurationSeconds(
       (QUIZ_ROOM_QUESTION_DURATION_DEFAULT_MS / 1000) as QuestionDurationSeconds,
     );
     setIsPrivateRoom(false);
     setPassword("");
     setCreateError(null);
-  }, [quiz]);
+  }, [defaultQuestionCount, quiz]);
+
+  const selectedQuestionCountIndex = questionCountOptions.findIndex(
+    (count) => count === selectedQuestionCount,
+  );
+  const selectedDurationIndex = questionDurations.findIndex(
+    (duration) => duration === questionDurationSeconds,
+  );
+
+  const handleQuestionCountStep = (delta: -1 | 1) => {
+    const nextIndex = selectedQuestionCountIndex + delta;
+    const nextValue = questionCountOptions[nextIndex];
+    if (typeof nextValue === "number") {
+      setSelectedQuestionCount(nextValue);
+    }
+  };
+
+  const handleDurationStep = (delta: -1 | 1) => {
+    const nextIndex = selectedDurationIndex + delta;
+    const nextValue = questionDurations[nextIndex];
+    if (typeof nextValue === "number") {
+      setQuestionDurationSeconds(nextValue);
+    }
+  };
 
   const handleCreateRoom = async () => {
     setCreateError(null);
@@ -66,12 +194,19 @@ export default function RoomCreateFromQuizPanel({
       return;
     }
 
+    if (selectedQuestionCount < 1 || selectedQuestionCount > quiz.questionCount) {
+      setCreateError(
+        `Le nombre de questions doit être compris entre 1 et ${quiz.questionCount}.`,
+      );
+      return;
+    }
+
     setIsCreatingRoom(true);
 
     try {
       await onCreateRoom({
         name: roomName.trim(),
-        rounds: quiz.questionCount,
+        rounds: selectedQuestionCount,
         questionDurationMs: questionDurationSeconds * 1000,
         isPrivate: isPrivateRoom,
         quizId: quiz.id,
@@ -134,75 +269,37 @@ export default function RoomCreateFromQuizPanel({
             />
           </div>
 
-          <div>
-            <label
-              className="mb-2 block text-sm font-medium text-text/70"
-              htmlFor="room-rounds"
-            >
-              Nombre de questions
-            </label>
-            <input
-              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text/70 outline-none"
-              id="room-rounds"
-              readOnly
-              type="text"
-              value={`${quiz.questionCount} question${quiz.questionCount > 1 ? "s" : ""}`}
-            />
-          </div>
+          <AnimatedCounterField
+            canDecrement={selectedQuestionCountIndex > 0}
+            canIncrement={selectedQuestionCountIndex < questionCountOptions.length - 1}
+            formatValue={(value) => `${value}`}
+            helper={`Choisis entre 1 et ${quiz.questionCount} questions pour cette partie.`}
+            label="Nombre de questions"
+            value={selectedQuestionCount}
+            onDecrement={() => handleQuestionCountStep(-1)}
+            onIncrement={() => handleQuestionCountStep(1)}
+          />
 
-          <div>
-            <label
-              className="mb-2 block text-sm font-medium text-text/70"
-              htmlFor="question-duration"
-            >
-              Temps par question
-            </label>
-            <select
-              className="h-12 w-full rounded-xl border border-text/10 bg-background px-4 text-text outline-none"
-              id="question-duration"
-              value={questionDurationSeconds}
-              onChange={(event) =>
-                setQuestionDurationSeconds(Number(event.target.value) as QuestionDurationSeconds)
-              }
-            >
-              {questionDurations.map((duration) => (
-                <option key={duration} value={duration}>
-                  {duration} secondes
-                </option>
-              ))}
-            </select>
-          </div>
+          <AnimatedCounterField
+            canDecrement={selectedDurationIndex > 0}
+            canIncrement={selectedDurationIndex < questionDurations.length - 1}
+            formatValue={(value) => `${value}s`}
+            helper="Ajuste le rythme sans perdre le côté live."
+            label="Temps par question"
+            value={questionDurationSeconds}
+            onDecrement={() => handleDurationStep(-1)}
+            onIncrement={() => handleDurationStep(1)}
+          />
 
           <div>
             <p className="mb-2 text-sm font-medium text-text/70" id="room-privacy-label">
               Salon privé
             </p>
-            <div className="inline-flex rounded-lg border border-text/10 bg-background p-1">
-              <button
-                aria-pressed={!isPrivateRoom}
-                aria-describedby="room-privacy-label"
-                className={[
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                  isPrivateRoom ? "text-text/70" : "bg-primary text-text",
-                ].join(" ")}
-                type="button"
-                onClick={() => setIsPrivateRoom(false)}
-              >
-                Non
-              </button>
-              <button
-                aria-pressed={isPrivateRoom}
-                aria-describedby="room-privacy-label"
-                className={[
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                  isPrivateRoom ? "bg-primary text-text" : "text-text/70",
-                ].join(" ")}
-                type="button"
-                onClick={() => setIsPrivateRoom(true)}
-              >
-                Oui
-              </button>
-            </div>
+            <PrivacySwitch
+              checked={isPrivateRoom}
+              labelId="room-privacy-label"
+              onChange={setIsPrivateRoom}
+            />
           </div>
 
           {isPrivateRoom ? (
@@ -243,15 +340,9 @@ export default function RoomCreateFromQuizPanel({
 
         <div className="rounded-2xl border border-text/10 bg-background px-5 py-5">
           <p className="m-0 text-lg font-semibold text-text">Résumé du quiz</p>
-          <p className="m-0 mt-1 text-sm text-text/60">
-            Paramètres de la partie sélectionnée.
-          </p>
           <div className="mt-5 rounded-xl border border-text/10 bg-background/70 px-4 py-4 text-sm text-text/70">
             <p className="m-0">
-              Ce quiz contient {quiz.questionCount} question{quiz.questionCount > 1 ? "s" : ""}.
-            </p>
-            <p className="m-0 mt-2">
-              Partie configurée sur {questionDurationSeconds} secondes par question.
+              Cette partie proposera {selectedQuestionCount} question{selectedQuestionCount > 1 ? "s" : ""}, avec {questionDurationSeconds} secondes par question.
             </p>
             <p className="m-0 mt-2">
               {isPrivateRoom ? "Salon privé protégé par mot de passe." : "Salon public accessible immédiatement."}

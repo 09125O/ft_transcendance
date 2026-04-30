@@ -87,4 +87,48 @@ describe("GameService", () => {
       ),
     ).rejects.toBeInstanceOf(ConflictException);
   });
+
+  it("returns the persisted active game question order when a game is running", async () => {
+    const service = new GameService({} as any, {
+      client: {
+        game: {
+          findFirst: jest.fn().mockResolvedValue({
+            questions: [
+              { questionId: 31 },
+              { questionId: 11 },
+              { questionId: 24 },
+            ],
+          }),
+        },
+      },
+    } as any);
+
+    await expect(service.getQuestionOrder(7)).resolves.toEqual([31, 11, 24]);
+  });
+
+  it("falls back to the quiz question order when no active game exists", async () => {
+    const roomsService = {
+      getById: jest.fn().mockResolvedValue({
+        id: 9,
+        quizId: 42,
+      }),
+    } as any;
+
+    const service = new GameService(roomsService, {
+      client: {
+        game: {
+          findFirst: jest.fn().mockResolvedValue(null),
+        },
+        quizQuestion: {
+          findMany: jest.fn().mockResolvedValue([
+            { id: 5 },
+            { id: 9 },
+            { id: 12 },
+          ]),
+        },
+      },
+    } as any);
+
+    await expect(service.getQuestionOrder(9)).resolves.toEqual([5, 9, 12]);
+  });
 });
