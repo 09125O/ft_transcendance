@@ -9,6 +9,7 @@ import {
 } from "../../content/quizCatalog";
 import { useQuizLibrary } from "../../hooks/useQuizLibrary";
 import type { Room } from "../../services/quiz";
+import type { Quiz } from "../../services/quizzes";
 
 type LobbyOverviewPanelProps = {
   rooms: Room[];
@@ -16,6 +17,7 @@ type LobbyOverviewPanelProps = {
   roomsError: string | null;
   actionsDisabled: boolean;
   onGoToReadyQuizzes: () => void;
+  onOpenQuizConfigurator: (quiz: Quiz) => void;
   onGoToCreateQuiz: () => void;
   onJoinRoom: (room: Room) => Promise<void>;
   onRequireAuth: () => void;
@@ -29,6 +31,9 @@ type LobbyQuizSlide = {
   summary: string;
   meta: string[];
   accent: "primary" | "urgency";
+  quiz?: Quiz;
+  cardImageUrl?: string;
+  cardImagePosition?: string;
 };
 
 function stripGeneratedTimeSuffix(value: string): string {
@@ -62,6 +67,7 @@ export default function LobbyOverviewPanel({
   roomsError,
   actionsDisabled,
   onGoToReadyQuizzes,
+  onOpenQuizConfigurator,
   onGoToCreateQuiz,
   onJoinRoom,
   onRequireAuth,
@@ -73,7 +79,6 @@ export default function LobbyOverviewPanel({
     ? "Chargement des parties..."
     : roomsError ?? null;
   const launchQuizSlides: LobbyQuizSlide[] = getLaunchQuizzes(quizzes)
-    .slice(0, 6)
     .map((quiz) => {
       const decoratedQuiz = decorateQuiz(quiz);
 
@@ -85,6 +90,9 @@ export default function LobbyOverviewPanel({
         summary: decoratedQuiz.summary,
         meta: [],
         accent: "primary",
+        quiz,
+        cardImageUrl: decoratedQuiz.cardImageUrl,
+        cardImagePosition: decoratedQuiz.cardImagePosition,
       };
     });
   const slides: LobbyQuizSlide[] = [
@@ -295,6 +303,10 @@ export default function LobbyOverviewPanel({
                         }}
                         tabIndex={0}
                         onClick={() => {
+                          if (isActive && slide.quiz) {
+                            onOpenQuizConfigurator(slide.quiz);
+                            return;
+                          }
                           if (isActive) {
                             onGoToReadyQuizzes();
                             return;
@@ -304,6 +316,10 @@ export default function LobbyOverviewPanel({
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
+                            if (isActive && slide.quiz) {
+                              onOpenQuizConfigurator(slide.quiz);
+                              return;
+                            }
                             if (isActive) {
                               onGoToReadyQuizzes();
                               return;
@@ -313,13 +329,41 @@ export default function LobbyOverviewPanel({
                         }}
                       >
                         <article
-                          className={`flex h-full flex-col justify-between overflow-hidden rounded-[24px] border p-4 shadow-[0_38px_90px_-48px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] transition duration-500 sm:p-5 ${
+                          className={`relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border p-4 shadow-[0_38px_90px_-48px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] transition duration-500 sm:p-5 ${
                             slide.accent === "urgency"
                               ? "border-urgency/35 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_98%,white_2%),color-mix(in_srgb,var(--color-urgency)_10%,var(--color-background)_90%))]"
                               : "border-primary/30 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_98%,white_2%),color-mix(in_srgb,var(--color-primary)_10%,var(--color-background)_90%))]"
                           } ${isActive ? "ring-1 ring-primary/35 shadow-[0_44px_95px_-55px_color-mix(in_srgb,var(--color-primary)_88%,transparent)]" : "ring-1 ring-black/5"}`}
                         >
-                          <div className="space-y-3">
+                          {slide.cardImageUrl ? (
+                            <>
+                              <div
+                                aria-hidden="true"
+                                className="absolute inset-0 scale-[1.04] bg-cover opacity-72 brightness-[1.1] saturate-[1.08]"
+                                style={{
+                                  backgroundImage: `url(${slide.cardImageUrl})`,
+                                  backgroundPosition:
+                                    slide.cardImagePosition ?? "center",
+                                }}
+                              />
+                              <div
+                                aria-hidden="true"
+                                className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_18%,transparent)_0%,color-mix(in_srgb,var(--color-background)_34%,transparent)_24%,color-mix(in_srgb,var(--color-background)_62%,transparent)_54%,color-mix(in_srgb,var(--color-background)_90%,var(--color-surface))_82%,color-mix(in_srgb,var(--color-background)_96%,var(--color-surface))_100%)]"
+                              />
+                              <div
+                                aria-hidden="true"
+                                className="absolute inset-0 bg-[linear-gradient(120deg,color-mix(in_srgb,var(--color-background)_72%,transparent)_0%,color-mix(in_srgb,var(--color-background)_44%,transparent)_32%,transparent_62%)]"
+                              />
+                            </>
+                          ) : null}
+
+                          <div
+                            aria-hidden="true"
+                            className="absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-primary)_10%,transparent),transparent_44%)]"
+                          />
+
+                          <div className="relative space-y-3">
+
                             <div className="flex flex-wrap items-center gap-2">
                               <span
                                 className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${
@@ -346,7 +390,7 @@ export default function LobbyOverviewPanel({
                           </div>
 
                           {slide.meta.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="relative space-y-3">
                               <div className="flex flex-wrap gap-2 text-xs text-text/70">
                                 {slide.meta.map((item) => (
                                   <span

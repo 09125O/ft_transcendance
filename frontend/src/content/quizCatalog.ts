@@ -1,4 +1,12 @@
 import type { Quiz } from "../services/quizzes";
+import cFundamentalsCardImage from "../assets/quiz-cards/c-fundamentals.png";
+import culture42CardImage from "../assets/quiz-cards/culture-42.png";
+import cppEssentialsCardImage from "../assets/quiz-cards/cpp-essentials.png";
+import gamingClassicsCardImage from "../assets/quiz-cards/gaming-classics.png";
+import studiosFranchisesCardImage from "../assets/quiz-cards/studios-franchises.png";
+import startupBasicsCardImage from "../assets/quiz-cards/startup-basics.png";
+import productGrowthCardImage from "../assets/quiz-cards/product-growth.png";
+import internshipTechCardImage from "../assets/quiz-cards/internship-tech.png";
 
 export type QuizCategory = {
   id: string;
@@ -13,6 +21,8 @@ export type QuizCatalogEntry = {
   level: "Débutant" | "Intermédiaire" | "Mixte";
   isLaunchQuiz: boolean;
   sortOrder: number;
+  cardImageUrl?: string;
+  cardImagePosition?: string;
 };
 
 export const QUIZ_CATEGORIES: QuizCategory[] = [
@@ -52,6 +62,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Débutant",
     isLaunchQuiz: true,
     sortOrder: 0,
+    cardImageUrl: cFundamentalsCardImage,
+    cardImagePosition: "center 30%",
   },
   {
     title: "C++ Essentials",
@@ -60,6 +72,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Intermédiaire",
     isLaunchQuiz: true,
     sortOrder: 1,
+    cardImageUrl: cppEssentialsCardImage,
+    cardImagePosition: "center 28%",
   },
   {
     title: "Culture 42",
@@ -68,6 +82,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Mixte",
     isLaunchQuiz: true,
     sortOrder: 2,
+    cardImageUrl: culture42CardImage,
+    cardImagePosition: "center 26%",
   },
   {
     title: "Gaming Classics",
@@ -76,6 +92,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Débutant",
     isLaunchQuiz: true,
     sortOrder: 3,
+    cardImageUrl: gamingClassicsCardImage,
+    cardImagePosition: "center 42%",
   },
   {
     title: "Studios & Franchises",
@@ -84,6 +102,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Intermédiaire",
     isLaunchQuiz: true,
     sortOrder: 4,
+    cardImageUrl: studiosFranchisesCardImage,
+    cardImagePosition: "center 34%",
   },
   {
     title: "Startup Basics",
@@ -92,6 +112,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Débutant",
     isLaunchQuiz: true,
     sortOrder: 5,
+    cardImageUrl: startupBasicsCardImage,
+    cardImagePosition: "center 32%",
   },
   {
     title: "Produit & Growth",
@@ -100,6 +122,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Intermédiaire",
     isLaunchQuiz: true,
     sortOrder: 6,
+    cardImageUrl: productGrowthCardImage,
+    cardImagePosition: "center 30%",
   },
   {
     title: "Décrocher son stage tech",
@@ -108,6 +132,8 @@ const QUIZ_CATALOG: QuizCatalogEntry[] = [
     level: "Débutant",
     isLaunchQuiz: true,
     sortOrder: 7,
+    cardImageUrl: internshipTechCardImage,
+    cardImagePosition: "center 38%",
   },
 ];
 
@@ -129,6 +155,8 @@ export type QuizWithCatalog = Quiz & {
   level: QuizCatalogEntry["level"];
   isLaunchQuiz: boolean;
   sortOrder: number;
+  cardImageUrl?: string;
+  cardImagePosition?: string;
 };
 
 export function isPlayerVisibleQuiz(quiz: Pick<Quiz, "title">): boolean {
@@ -152,6 +180,8 @@ export function decorateQuiz(quiz: Quiz): QuizWithCatalog {
     level: catalog?.level ?? "Mixte",
     isLaunchQuiz: catalog?.isLaunchQuiz ?? false,
     sortOrder: catalog?.sortOrder ?? 999,
+    cardImageUrl: catalog?.cardImageUrl,
+    cardImagePosition: catalog?.cardImagePosition,
   };
 }
 

@@ -60,10 +60,36 @@ export default function QuizReadyPage() {
 
     return (
       <article
-        className="flex h-full w-full flex-col justify-between rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-300"
+        className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-300"
         key={quiz.id}
       >
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+        {decoratedQuiz.cardImageUrl ? (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 scale-[1.03] bg-cover opacity-70 brightness-[1.1] saturate-[1.08] transition duration-500 group-hover:scale-[1.06] group-hover:opacity-80"
+              style={{
+                backgroundImage: `url(${decoratedQuiz.cardImageUrl})`,
+                backgroundPosition: decoratedQuiz.cardImagePosition ?? "center",
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_18%,transparent)_0%,color-mix(in_srgb,var(--color-background)_28%,transparent)_18%,color-mix(in_srgb,var(--color-background)_52%,transparent)_48%,color-mix(in_srgb,var(--color-background)_86%,var(--color-surface))_78%,color-mix(in_srgb,var(--color-background)_96%,var(--color-surface))_100%)]"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(115deg,color-mix(in_srgb,var(--color-background)_72%,transparent)_0%,color-mix(in_srgb,var(--color-background)_36%,transparent)_34%,transparent_62%)]"
+            />
+          </>
+        ) : null}
+
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-primary)_10%,transparent),transparent_42%)]"
+        />
+
+        <div className="relative mb-3 flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
             {decoratedQuiz.category.title}
           </span>
@@ -72,7 +98,7 @@ export default function QuizReadyPage() {
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="relative space-y-2">
           <h2 className="m-0 text-lg font-semibold text-text sm:text-xl">
             {quiz.title}
           </h2>
@@ -86,7 +112,7 @@ export default function QuizReadyPage() {
           ) : null}
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="relative mt-5 flex items-center justify-between gap-3">
           <div />
           <PrimaryButton
             className="px-4 py-2 text-sm"
