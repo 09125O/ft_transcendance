@@ -22,16 +22,14 @@ bash scripts/check-env.sh
 
 if [ -n "$COMPOSE_CMD" ]; then
   printf "[..] Mode detecte : docker\n"
+  COMPOSE_WAIT_FLAG=""
 
-  command -v mkcert >/dev/null 2>&1 || {
-    printf "[KO] mkcert est requis pour la stack Docker locale.\n" >&2
-    printf "Installe-le puis relance la meme commande: make bootstrap\n" >&2
-    exit 1
-  }
+  if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--wait'; then
+    COMPOSE_WAIT_FLAG="--wait"
+  fi
 
-  mkcert -install >/dev/null 2>&1 || true
   bash scripts/generate-dev-cert.sh
-  $COMPOSE_CMD up --build -d --wait
+  $COMPOSE_CMD up --build -d $COMPOSE_WAIT_FLAG
 
   set -a
   . ./.env

@@ -208,28 +208,18 @@ Parcours courts à préparer :
 
 ## 6. Démarrage local et vérification
 
-Démarrage minimal :
+Démarrage :
 
 ```bash
-make env-init
-make tls-trust
-make env-check
-make up
-make test-stack
-```
-
-Démarrage recommandé, quelle que soit la machine :
-
-```bash
-make bootstrap
+make
 ```
 
 La commande détecte automatiquement le mode le plus adapté :
 
-- Docker disponible : génération TLS locale, build et démarrage de la stack complète
+- Docker disponible : création de `.env` si besoin, installation locale de `mkcert` si besoin, génération TLS locale, build et démarrage de la stack complète
 - Docker absent : installation locale des dépendances `frontend` et `backend`
 
-Après `make bootstrap` :
+Après `make` :
 
 - en mode Docker : `make test-stack`
 - en mode local : lancer `cd backend && npm run start:dev` puis `cd frontend && npm run dev`

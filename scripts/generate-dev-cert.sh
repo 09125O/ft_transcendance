@@ -14,12 +14,10 @@ if command -v ifconfig >/dev/null 2>&1; then
 	LOCAL_IPV4="$(ifconfig en0 2>/dev/null | awk '/inet / { print $2; exit }')"
 fi
 
-command -v mkcert >/dev/null 2>&1 || {
-	printf '[KO] mkcert est requis. Installe-le avec: brew install mkcert\n' >&2
-	exit 1
-}
+MKCERT_BIN="$(bash "${ROOT_DIR}/scripts/ensure-mkcert.sh")"
+bash "${ROOT_DIR}/scripts/trust-dev-ca.sh"
 
-CAROOT="$(mkcert -CAROOT)"
+CAROOT="$("$MKCERT_BIN" -CAROOT)"
 ROOT_CA_SOURCE="${CAROOT}/rootCA.pem"
 
 [ -s "$ROOT_CA_SOURCE" ] || {
@@ -43,7 +41,7 @@ if [ -n "$EXTRA_TLS_HOSTS" ]; then
 	done
 fi
 
-mkcert \
+"$MKCERT_BIN" \
 	-cert-file "$CERT_FILE" \
 	-key-file "$KEY_FILE" \
 	"$@" \

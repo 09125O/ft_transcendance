@@ -10,6 +10,12 @@ COMPOSE := $(shell \
 	fi \
 )
 
+COMPOSE_UP_WAIT := $(shell \
+	if $(COMPOSE) up --help 2>/dev/null | grep -q -- '--wait'; then \
+		printf '%s' '--wait'; \
+	fi \
+)
+
 BRANCH := $(shell git branch --show-current 2>/dev/null)
 
 # **************************************************************************** #
@@ -17,16 +23,14 @@ BRANCH := $(shell git branch --show-current 2>/dev/null)
 # **************************************************************************** #
 
 all:
-	@if [ ! -f .env ]; then \
-		$(MAKE) env-init; \
-	fi
-	@$(MAKE) up
+	bash scripts/bootstrap.sh
 
 help:
 	@echo "Usage: Docker"
+	@echo "  make                     -> One-command setup and start"
 	@echo "  make up                  -> Build and start all containers in background"
-	@echo "  make bootstrap           -> One-shot setup with auto-detected mode: Docker if available, local fallback otherwise"
-	@echo "  make bootstrap-trust     -> Compatibility alias for bootstrap"
+	@echo "  make bootstrap           -> Compatibility alias for make"
+	@echo "  make bootstrap-trust     -> Compatibility alias for make"
 	@echo "  make down                -> Stop containers"
 	@echo "  make clean               -> Remove containers and images, keep volumes"
 	@echo "  make fclean              -> Full clean: containers, images and volumes"
@@ -49,7 +53,7 @@ help:
 	@echo "  make env-init            -> Create .env from .env.example if missing"
 	@echo "  make env-check           -> Check required variables in .env"
 	@echo "  make tls-cert            -> Generate the shared local TLS certificate"
-	@echo "  make tls-trust           -> Install mkcert local CA into the system trust store"
+	@echo "  make tls-trust           -> Install mkcert local CA into the browser trust store"
 	@echo "  make setup-local-deps    -> Install frontend/backend Node dependencies locally"
 	@echo "  make setup-local-browsers -> Install Playwright browsers locally"
 	@echo "  make shell-back          -> Open shell in backend container"
@@ -93,7 +97,7 @@ bootstrap-trust:
 
 up: env-check compose-check
 	bash scripts/generate-dev-cert.sh
-	$(COMPOSE) up --build -d --wait
+	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
 
 down: compose-check
 	$(COMPOSE) down
@@ -111,7 +115,7 @@ re: compose-check
 restart: env-check compose-check
 	bash scripts/generate-dev-cert.sh
 	$(COMPOSE) down
-	$(COMPOSE) up --build -d --wait
+	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
 
 logs: compose-check
 	$(COMPOSE) logs -f
@@ -184,7 +188,7 @@ tls-cert:
 	bash scripts/generate-dev-cert.sh
 
 tls-trust:
-	mkcert -install
+	bash scripts/trust-dev-ca.sh
 
 setup-local-deps:
 	bash scripts/setup-local-deps.sh

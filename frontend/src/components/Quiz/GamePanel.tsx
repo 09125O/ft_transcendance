@@ -413,15 +413,15 @@ export default function GamePanel({
                 chatMessages.map((message) => (
                   <div
                     className={[
-                      "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_color-mix(in_srgb,var(--color-background)_80%,transparent)]",
-                      message.isSelf ? "self-end bg-primary text-text" : "bg-background",
+                      "w-fit max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_color-mix(in_srgb,var(--color-background)_80%,transparent)]",
+                      message.isSelf ? "self-end bg-primary text-text" : "self-start bg-background",
                     ].join(" ")}
                     key={`${message.userId}-${message.sentAt}-${message.content}`}
                   >
                     {!message.isSelf ? (
                       <p className="m-0 text-sm text-text/70">{message.username}</p>
                     ) : null}
-                    <p className="m-0 text-base text-text">{message.content}</p>
+                    <p className="m-0 whitespace-pre-wrap break-words text-base text-text [overflow-wrap:anywhere]">{message.content}</p>
                   </div>
                 ))
               )}

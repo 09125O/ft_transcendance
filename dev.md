@@ -203,11 +203,12 @@ Si tu merges sur `dev`, puis que tu crees une nouvelle branche depuis `dev` :
 Pour faire fonctionner le projet apres un clone :
 
 - cloner le repo
-- lancer `make env-init`
-- lancer `make tls-trust` une fois pour installer la CA locale `mkcert`
 - remplir les vraies valeurs dans `.env`
-- lancer `make env-check`
-- lancer `make` ou `make up`
+- lancer `make`
+
+Sur Fedora 42, `make` installe automatiquement `mkcert` dans `.gstack/bin`
+si le binaire est absent, puis installe la CA locale dans le trust store
+navigateur utilisateur sans demander `sudo`.
 
 Conclusion :
 
@@ -220,7 +221,7 @@ Conclusion :
 ### Lancer le projet
 
 ```bash
-make up
+make
 ```
 
 ### Voir l'etat des containers

@@ -229,7 +229,7 @@ export default function ResultsPanel({
               chatMessages.map((message) => (
                 <div
                   className={[
-                    "max-w-[90%] rounded-xl px-3 py-2 text-sm",
+                    "w-fit max-w-[90%] rounded-xl px-3 py-2 text-sm",
                     message.isSelf ? "ml-auto bg-primary text-text" : "bg-background text-text",
                   ].join(" ")}
                   key={`${message.userId}-${message.sentAt}-${message.content}`}
@@ -237,7 +237,7 @@ export default function ResultsPanel({
                   {!message.isSelf ? (
                     <p className="m-0 text-xs text-text/65">{message.username}</p>
                   ) : null}
-                  <p className="m-0">{message.content}</p>
+                  <p className="m-0 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{message.content}</p>
                 </div>
               ))
             )}
