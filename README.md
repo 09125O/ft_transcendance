@@ -1,6 +1,6 @@
 # ft_transcendance
 
-README de soutenance et d'exploitation locale pour l'état courant de `dev`.
+README de soutenance et d'exploitation locale pour l'etat courant de `dev`.
 
 ## 1. Sources officielles
 
@@ -20,15 +20,20 @@ Ce README ne remplace pas ces PDFs. Il sert à :
 Le projet est aujourd'hui :
 
 - lançable en stack Docker locale
-- jouable en multijoueur distant
+- jouable en multijoueur local ou distant
 - démonstrable sur les flux auth, social, room, game, stats et status
 
 Services de la stack locale :
 
-- `frontend`: React + TypeScript + Webpack Dev Server, `https://localhost:3000`
-- `backend`: NestJS + TypeScript + Prisma, `https://localhost:4000`
+- `frontend`: React + TypeScript + Webpack Dev Server, `localhost:3000`
+- `backend`: NestJS + TypeScript + Prisma, `localhost:4000`
 - `db`: PostgreSQL, `localhost:5432`
 - `backup`: sidecar de sauvegarde PostgreSQL automatisée, sans port exposé
+
+Profils d'execution supportes :
+
+- `HTTPS local` pour le developpement mono-poste et la demo locale avec certificat de dev
+- `HTTP/LAN` pour tester plusieurs postes sur le meme reseau sans trust store local
 
 Fonctionnalités produit démontrables :
 
@@ -49,6 +54,16 @@ Modules non implémentés ou non retenus dans le plan courant :
 - `2FA`
 - `SSR`
 - mode spectateur côté UI
+
+### 2.1 Verification actuelle
+
+Verification reussie sur l'etat courant de `dev` :
+
+- `make smoke-test` en `HTTPS local`
+- `make smoke-test` en `HTTP/LAN`
+- `make browser-test` en `HTTPS local`
+- `make browser-test` en `HTTP/LAN`
+- workflow GitHub Actions `CI` passe au vert sur `dev`
 
 ## 3. Lecture interne du score
 
@@ -116,13 +131,14 @@ Ce qui est effectivement démontrable :
 
 - inscription
 - login
-- session
+- session anonyme ou authentifiee
 - logout
 - guest login
 - édition de profil
 - upload avatar natif
 - retour a l'avatar par defaut
 - affichage des amis et du statut en ligne / hors ligne
+- nettoyage d'une session invalide sans erreur frontale
 
 ### 4.2 Health check and status page
 
@@ -194,7 +210,7 @@ Checklist de démo détaillée :
 Parcours courts à préparer :
 
 1. `Auth`
-   connexion locale, guest ou OAuth 42, puis vérification de session.
+   connexion locale, guest ou OAuth 42, puis verification de session.
 2. `User management`
    profil, upload avatar, avatar visible sur profil et amis.
 3. `Social`
@@ -206,7 +222,49 @@ Parcours courts à préparer :
 6. `Status`
    page `/status`, `make test-stack`, `make smoke-test`, backup auto visible, `make backup-db`.
 
-## 6. Démarrage local et vérification
+## 6. Profils d'execution
+
+Deux modes sont supportes sans changement de code :
+
+### 6.1 `HTTPS local`
+
+Cas d'usage :
+
+- developpement perso sur une machine
+- demo locale avec certificat de dev
+
+Variables cle :
+
+```env
+APP_PROTOCOL=https
+FRONTEND_ORIGIN=https://localhost:3000
+AUTH_COOKIE_SECURE=true
+FT_REDIRECT_URI=https://localhost:4000/auth/42/callback
+```
+
+### 6.2 `HTTP/LAN`
+
+Cas d'usage :
+
+- test a plusieurs postes sur le meme reseau
+- pas de trust store local ni `mkcert` cote clients
+
+Variables cle :
+
+```env
+APP_PROTOCOL=http
+FRONTEND_ORIGIN=http://localhost:3000
+AUTH_COOKIE_SECURE=auto
+FT_REDIRECT_URI=http://localhost:4000/auth/42/callback
+```
+
+Important :
+
+- pour un test LAN, les autres postes ouvrent `http://IP_DE_LA_MACHINE_HOTE:3000`
+- dans ce mode, le frontend proxy relaie deja l'API et Socket.IO
+- OAuth 42 n'est pas le bon mode de test sur une IP locale `localhost`; privilegier auth locale ou guest
+
+## 7. Demarrage local et verification
 
 Démarrage :
 
@@ -214,10 +272,16 @@ Démarrage :
 make
 ```
 
-La commande détecte automatiquement le mode le plus adapté :
+La commande utilise le mode courant de `.env` :
 
-- Docker disponible : création de `.env` si besoin, installation locale de `mkcert` si besoin, génération TLS locale, build et démarrage de la stack complète
+- Docker disponible : creation de `.env` si besoin, installation locale de `mkcert` si besoin, generation TLS locale en mode `https`, build et demarrage de la stack complete
 - Docker absent : installation locale des dépendances `frontend` et `backend`
+
+Si vous changez de profil dans `.env`, relancer :
+
+```bash
+make restart
+```
 
 Après `make` :
 
@@ -253,15 +317,20 @@ Verification code :
 
 URLs utiles :
 
-- frontend : `https://localhost:3000`
-- login : `https://localhost:3000/login`
-- profile : `https://localhost:3000/profile`
-- friends : `https://localhost:3000/friends`
-- leaderboard : `https://localhost:3000/leaderboard`
-- status : `https://localhost:3000/status`
-- backend health : `https://localhost:4000/health`
+- frontend : `${FRONTEND_ORIGIN}`
+- login : `${FRONTEND_ORIGIN}/login`
+- profile : `${FRONTEND_ORIGIN}/profile`
+- friends : `${FRONTEND_ORIGIN}/friends`
+- leaderboard : `${FRONTEND_ORIGIN}/leaderboard`
+- status : `${FRONTEND_ORIGIN}/status`
+- backend health : `${APP_PROTOCOL}://localhost:${BACKEND_PORT}/health`
 
-## 7. Cartographie documentaire
+Notes d'exploitation :
+
+- les certificats de dev dans `certs/` sont generes localement et ne doivent pas etre consideres comme des artefacts de release
+- le mode `HTTP/LAN` sert au test multi-postes ; le mode `HTTPS local` sert au dev local et a la demo sur une machine
+
+## 8. Cartographie documentaire
 
 Documents de reference a utiliser pour la soutenance :
 
@@ -275,7 +344,7 @@ Documents de reference a utiliser pour la soutenance :
 - [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
 - [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)
 
-## 8. Elements Intra encore a completer manuellement
+## 9. Elements Intra encore a completer manuellement
 
 Le repo permet aujourd'hui de documenter l'état technique et les modules revendiqués, mais certains éléments demandés par l'Intra ne sont pas encore tracés de façon complète ici.
 

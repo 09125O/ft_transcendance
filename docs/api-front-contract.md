@@ -1,6 +1,6 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-04-18)
+Version: v1 (etat actuel de `dev` au 2026-05-05)
 Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, notifications
 
 ## Etat de persistance (important)
@@ -19,8 +19,8 @@ Consequence:
 
 ## Base URL et proxy
 
-- Backend direct: `https://localhost:4000`
-- Front dev server: `https://localhost:3000`
+- Backend direct: `${APP_PROTOCOL}://localhost:4000`
+- Front dev server: `${FRONTEND_ORIGIN}`
 - Proxy Webpack actuellement configure sur:
   - `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends`, `/notifications`, `/uploads`, `/socket.io`
 - En dev, le front peut appeler directement:
@@ -38,6 +38,7 @@ Consequence:
 Important:
 - Toujours envoyer `credentials: "include"` cote front pour la session cookie.
 - Les navigations HTML vers `/friends` et `/notifications` restent traitees par React Router; seules les requetes non HTML sont proxyfiees.
+- Le meme contrat HTTP/WS est supporte en `HTTPS local` et en `HTTP/LAN`.
 
 ## Format de reponse (commun)
 
@@ -83,7 +84,7 @@ Codes d'erreur standards (selon statut HTTP):
 
 ## Types utilises par le front
 
-`SafeUser` (retour auth/session):
+`SafeUser` (retour auth ou `auth/session.data.user`) :
 
 ```ts
 type SafeUser = {
@@ -272,12 +273,12 @@ Note:
 - Effet: suppression cookie `access_token`
 
 `GET /auth/session`
-- Auth: cookie `access_token` requis
-- Reponse: `200`, `ApiResponse<SafeUser>`
-- Erreurs:
-  - `401 UNAUTHORIZED` si pas de cookie
-  - `401 UNAUTHORIZED` si token invalide/expire
-  - `404 NOT_FOUND` si user du token introuvable
+- Auth: cookie `access_token` optionnel
+- Reponse: `200`, `ApiResponse<{ authenticated: boolean; user: SafeUser | null }>`
+- Cas attendus:
+  - sans cookie: `authenticated = false`, `user = null`
+  - cookie invalide/expire: `authenticated = false`, `user = null` et cookie nettoye
+  - cookie valide: `authenticated = true`, `user = SafeUser`
 
 ### Health
 
