@@ -52,7 +52,7 @@ async function getSessionUserId(cookieHeader, label) {
     fail(`Failed to resolve session for ${label} (${response.status})`);
   }
 
-  const userId = response?.json?.data?.id;
+  const userId = response?.json?.data?.user?.id;
   if (typeof userId !== "number") {
     fail(`Missing session user id for ${label}`);
   }
