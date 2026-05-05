@@ -80,7 +80,7 @@ Chacun peut modifier backend ou frontend, meme hors scope principal, a condition
 
 Toujours verifier ces fichiers:
 - docs/sujet-conformite-matrice.md
-- docs/front-handover-roadmap.md
+- docs/archive/historical/front-handover-roadmap.md
 
 Si HTTP API change:
 - docs/api-front-contract.md

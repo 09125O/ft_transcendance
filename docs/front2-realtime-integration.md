@@ -1,12 +1,12 @@
-# Front2 Realtime Integration (Back3)
+# Front2 Realtime Integration
 
-Version: etat actuel Back3 au 2026-04-18
+Version: etat actuel de `dev` au 2026-05-05
 Namespace WS: `/ws`
 Transport: `socket.io`
 
 ## Prerequis front
 
-- Etre authentifie via `POST /auth/login` avant ouverture du socket.
+- Etre authentifie via `POST /auth/login`, `POST /auth/register` ou `POST /auth/guest` avant ouverture du socket.
 - Ouvrir le socket avec `withCredentials: true` pour envoyer le cookie `access_token`.
 - Si reception de `ws:auth:error`, forcer retour login.
 
@@ -61,6 +61,7 @@ Transport: `socket.io`
 - listen `room:spectated`
 - listen `room:spectators:update`
 - un spectateur ne peut pas lancer `room:start` ni `game:answer`
+- une room privee ne peut pas etre spectatee par un tiers hors room
 - cette capacite reste exposee cote backend, mais aucun parcours UI dedie n'est prevu dans le scope frontend courant
 
 ## Flux Game
@@ -89,7 +90,8 @@ Transport: `socket.io`
 3. Reponse:
 - emit `game:answer` `{ roomId, questionId, answerIndex }`
 - listen `game:answer:result`
-  - payload inclut `correctAnswerIndex` pour afficher la bonne reponse meme en cas d'erreur
+  - event emis uniquement au joueur qui vient de repondre
+  - payload peut inclure `correctAnswerIndex` pour le feedback individuel, mais cette donnee n'est pas diffusee a toute la room
 - listen `game:state`
 - listen `game:leaderboard`
   - payload: `{ roomId, leaderboard: [{ userId, score }] }`
@@ -144,5 +146,5 @@ Transport: `socket.io`
 - Le backend limite `rounds` au nombre de questions disponibles dans le quiz.
 - Si le quiz par defaut est absent et qu'aucun `quizId` n'est fourni, `room:start` echoue (`CONFLICT`).
 - Pour la recette, lancer:
-  - `make up`
+  - `make restart`
   - `cd backend && npm run test:ws-smoke`

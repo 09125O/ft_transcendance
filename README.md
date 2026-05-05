@@ -334,12 +334,11 @@ Notes d'exploitation :
 
 Documents de reference a utiliser pour la soutenance :
 
+- [docs/README.md](/Users/d9125/Downloads/transcendance-dev/docs/README.md)
 - [docs/sujet-conformite-matrice.md](/Users/d9125/Downloads/transcendance-dev/docs/sujet-conformite-matrice.md)
 - [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
 - [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
 - [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
-- [docs/backend-front-enablement-spec.md](/Users/d9125/Downloads/transcendance-dev/docs/backend-front-enablement-spec.md)
-- [docs/front-handover-roadmap.md](/Users/d9125/Downloads/transcendance-dev/docs/front-handover-roadmap.md)
 - [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
 - [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
 - [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)

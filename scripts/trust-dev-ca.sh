@@ -11,6 +11,13 @@ if command -v certutil >/dev/null 2>&1; then
 	exit 0
 fi
 
-printf '[KO] certutil est requis pour faire confiance a mkcert sans sudo sur Fedora.\n' >&2
-printf 'Installe nss-tools ou utilise un poste 42 Fedora qui le fournit deja.\n' >&2
-exit 1
+case "$(uname -s)" in
+	Darwin)
+		"$MKCERT_BIN" -install
+		printf '[OK] CA locale mkcert installee dans le trust store macOS\n'
+		;;
+	*)
+		printf '[WARN] certutil absent: confiance navigateur non configuree automatiquement.\n' >&2
+		printf 'Le certificat local sera quand meme genere pour le stack de dev.\n' >&2
+		;;
+esac

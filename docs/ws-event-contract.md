@@ -1,6 +1,6 @@
-# WebSocket Event Contract (Back 3)
+# WebSocket Event Contract
 
-Version: `v1` (etat actuel de `dev` au 2026-04-18)
+Version: `v1` (etat actuel de `dev` au 2026-05-05)
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -340,6 +340,10 @@ Note:
 }
 ```
 
+Notes:
+- cet event est emis uniquement au joueur qui a soumis la reponse
+- `correctAnswerIndex` est reserve au feedback individuel et n'est pas diffuse a toute la room
+
 - `game:leaderboard`: `RoomLeaderboard`
 
 - `game:ended`:
@@ -354,12 +358,11 @@ Note:
     { "userId": 1, "score": 100 }
   ]
 }
+```
 
 Notes:
-- `game:answer:result.correctAnswerIndex` permet au front d'afficher la bonne reponse apres une tentative.
 - la question suivante peut demarrer avant `game:question:timeout` si tous les joueurs actifs ont deja repondu.
 - `game:ended.reason` peut valoir `all_answered` (en plus de `timer_completed`).
-```
 
 ### Chat
 
@@ -435,7 +438,7 @@ Codes d'erreur possibles:
 - `CONFLICT`
 - `INTERNAL_SERVER_ERROR`
 
-## Regles metier MVP
+## Regles metier actuelles
 
 - `room:join` autorise seulement en `waiting`.
 - `room:join` sur room privee exige un mot de passe valide et une relation d'amitie acceptee avec le owner (sauf owner).

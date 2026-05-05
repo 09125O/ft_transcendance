@@ -58,7 +58,7 @@ References:
 - docs/api-front-contract.md
 - docs/front2-realtime-integration.md
 - docs/ws-event-contract.md
-- docs/backend-front-enablement-spec.md
+- docs/archive/historical/backend-front-enablement-spec.md
 
 ### Gaps front visibles dans le scope courant
 
@@ -191,7 +191,7 @@ P2:
 - Risque principal: sur-promettre dans la soutenance plus que dans la demo
 - Dependance: rester strictement aligne avec les contrats API/WS deja exposes cote backend
 - Mitigation: centrer le discours sur les parcours montrables et sur le chemin principal interne vers `19`
-- Spec backend de rattrapage: docs/backend-front-enablement-spec.md
+- Spec backend de rattrapage: docs/archive/historical/backend-front-enablement-spec.md
 
 ## 8) Commandes utiles front
 

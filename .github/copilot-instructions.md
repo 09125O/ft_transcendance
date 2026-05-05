@@ -8,7 +8,6 @@ Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer 
 - docs/api-front-contract.md
 - docs/ws-event-contract.md
 - docs/front2-realtime-integration.md
-- docs/front-handover-roadmap.md
 - docs/sujet-conformite-matrice.md
 
 2. Respecter le module design UI/UX:
