@@ -234,7 +234,7 @@ export default function LobbyOverviewPanel({
 
             {!quizzesLoading && !quizzesError && slides.length > 0 ? (
               <div
-                className="relative min-h-[32rem] overflow-hidden rounded-[28px] border border-primary/18 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--color-primary)_20%,transparent),transparent_50%),linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_80%,transparent),color-mix(in_srgb,var(--color-background)_96%,transparent))] px-2 py-8 sm:px-4 sm:py-10"
+                className="relative min-h-[32rem] overflow-hidden bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_24%,transparent)_0%,transparent_24%,color-mix(in_srgb,var(--color-background)_18%,transparent)_100%)] px-2 py-8 sm:px-4 sm:py-10"
                 tabIndex={0}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowLeft") {
@@ -249,9 +249,9 @@ export default function LobbyOverviewPanel({
                 }}
               >
                 <div className="pointer-events-none absolute inset-x-[12%] top-8 h-16 rounded-full bg-primary/12 blur-3xl" />
-                <div className="pointer-events-none absolute inset-x-[18%] bottom-8 h-10 rounded-full bg-black/25 blur-2xl" />
-                <div className="pointer-events-none absolute left-[12%] top-0 h-full w-16 bg-gradient-to-r from-background via-background/55 to-transparent" />
-                <div className="pointer-events-none absolute right-[12%] top-0 h-full w-16 bg-gradient-to-l from-background via-background/55 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-[18%] bottom-8 h-10 rounded-full bg-[color:color-mix(in_srgb,var(--color-background)_28%,transparent)] blur-2xl" />
+                <div className="pointer-events-none absolute left-[12%] top-0 h-full w-16 bg-gradient-to-r from-surface via-surface/55 to-transparent" />
+                <div className="pointer-events-none absolute right-[12%] top-0 h-full w-16 bg-gradient-to-l from-surface via-surface/55 to-transparent" />
 
                 <div className="relative h-[22rem] overflow-hidden px-10 [perspective:1200px] sm:h-[24rem] sm:px-12 lg:h-[25rem]">
                   <button

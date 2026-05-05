@@ -198,7 +198,7 @@ export default function QuizReadyPage() {
           ) : null}
 
           {launchQuizzes.length > 0 ? (
-            <section className="space-y-4 rounded-[24px] border border-primary/20 bg-gradient-to-br from-primary/10 to-transparent p-4 sm:p-5">
+            <section className="space-y-4">
               <div className="space-y-2">
                 <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   Sélection officielle
@@ -215,7 +215,7 @@ export default function QuizReadyPage() {
 
           {communityQuizzes.length > 0 ? (
             <section
-              className="mt-6 space-y-4 rounded-[24px] border border-urgency/20 bg-gradient-to-br from-urgency/10 to-transparent p-4 sm:p-5"
+              className="mt-6 space-y-4"
               id="community-quizzes"
             >
               <div className="space-y-2">
