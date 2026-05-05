@@ -1,6 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || "https://localhost:3000";
+const appProtocol =
+  process.env.APP_PROTOCOL === "https" ||
+  process.env.FRONTEND_ORIGIN?.startsWith("https://")
+    ? "https"
+    : "http";
+const baseURL =
+  process.env.PLAYWRIGHT_BASE_URL || `${appProtocol}://localhost:3000`;
 
 export default defineConfig({
   testDir: "./tests",

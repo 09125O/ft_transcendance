@@ -16,6 +16,7 @@ import { randomUUID } from "crypto";
 import { CookieOptions, Request, Response } from "express";
 import { AuthPayload } from "./types/auth-payload.type";
 import type { SafeUser } from "./types/safe-user.type";
+import { getAppProtocol, getFrontendOrigin } from "@/config/runtime";
 
 type FortyTwoTokenResponse = {
   access_token: string;
@@ -187,7 +188,9 @@ export class AuthService {
       return true;
     }
 
-    return process.env.FRONTEND_ORIGIN?.startsWith("https://") === true;
+    return (
+      getFrontendOrigin().startsWith("https://") || getAppProtocol() === "https"
+    );
   }
 
   private getAuthCookieOptions(): CookieOptions {
@@ -452,5 +455,29 @@ export class AuthService {
     }
 
     return this.sanitizeUser(user);
+  }
+
+  async getOptionalSessionUser(
+    req: Request,
+    res: Response,
+  ): Promise<SafeUser | null> {
+    const token = req.cookies?.access_token;
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const auth = await this.jwtService.verifyAsync<AuthPayload>(token);
+      const user = await this.usersService.findUser({ id: auth.sub });
+      if (!user) {
+        res.clearCookie("access_token", this.getAuthCookieOptions());
+        return null;
+      }
+
+      return this.sanitizeUser(user);
+    } catch {
+      res.clearCookie("access_token", this.getAuthCookieOptions());
+      return null;
+    }
   }
 }

@@ -96,7 +96,12 @@ bootstrap-trust:
 	bash scripts/bootstrap.sh
 
 up: env-check compose-check
-	bash scripts/generate-dev-cert.sh
+	@set -a; . ./.env; set +a; \
+	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
+		bash scripts/generate-dev-cert.sh; \
+	else \
+		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
+	fi
 	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
 
 down: compose-check
@@ -113,7 +118,12 @@ re: compose-check
 	@$(MAKE) up
 
 restart: env-check compose-check
-	bash scripts/generate-dev-cert.sh
+	@set -a; . ./.env; set +a; \
+	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
+		bash scripts/generate-dev-cert.sh; \
+	else \
+		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
+	fi
 	$(COMPOSE) down
 	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
 
@@ -150,11 +160,13 @@ ps: compose-check
 test-stack: env-check compose-check
 	$(COMPOSE) ps
 	@set -a; . ./.env; set +a; \
-	echo "Frontend : https://localhost:$${FRONTEND_PORT}"; \
-	echo "Backend  : https://localhost:$${BACKEND_PORT}/health"; \
+	if [ -n "$${APP_PROTOCOL:-}" ]; then proto="$$APP_PROTOCOL"; elif printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then proto="https"; else proto="http"; fi; \
+	echo "Frontend : $${FRONTEND_ORIGIN}"; \
+	echo "Backend  : $$proto://localhost:$${BACKEND_PORT}/health"; \
 	echo "Database : localhost:$${POSTGRES_PORT}"
 
 browser-test: env-check compose-check
+	@set -a; . ./.env; set +a; \
 	cd frontend && npm run test:browsers
 
 smoke-test: env-check compose-check

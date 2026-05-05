@@ -12,16 +12,26 @@ import { existsSync, mkdirSync, readFileSync } from "fs";
 import helmet from "helmet";
 import "reflect-metadata";
 import { AppModule } from "./app.module";
+import { getAppProtocol, getFrontendOrigin, isOriginAllowed } from "./config/runtime";
 
 async function bootstrap() {
   const port = Number(process.env.BACKEND_PORT || 4000);
-  const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://localhost:3000";
+  const frontendOrigin = getFrontendOrigin();
+  const appProtocol = getAppProtocol();
   const tlsKeyPath = process.env.TLS_KEY_FILE || "/certs/dev-localhost.key";
   const tlsCertPath = process.env.TLS_CERT_FILE || "/certs/dev-localhost.crt";
   const hasTlsFiles = existsSync(tlsKeyPath) && existsSync(tlsCertPath);
+  const shouldUseHttps = appProtocol === "https";
+
+  if (shouldUseHttps && !hasTlsFiles) {
+    throw new Error(
+      `HTTPS is enabled but TLS files are missing (${tlsKeyPath}, ${tlsCertPath})`,
+    );
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
-    hasTlsFiles
+    shouldUseHttps
       ? {
           httpsOptions: {
             key: readFileSync(tlsKeyPath),
@@ -33,7 +43,9 @@ async function bootstrap() {
 
   app.enableCors({
     credentials: true,
-    origin: frontendOrigin,
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
   });
 
   app.use(helmet());
@@ -55,7 +67,7 @@ async function bootstrap() {
 
   await app.listen(port, "0.0.0.0");
   console.log(
-    `Backend listening on ${hasTlsFiles ? "https" : "http"}://0.0.0.0:${port}`,
+    `Backend listening on ${appProtocol}://0.0.0.0:${port} (frontend origin: ${frontendOrigin})`,
   );
 }
 

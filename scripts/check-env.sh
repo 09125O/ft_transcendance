@@ -53,6 +53,7 @@ POSTGRES_PASSWORD_VALUE="$(get_env_value POSTGRES_PASSWORD)"
 POSTGRES_DB_VALUE="$(get_env_value POSTGRES_DB)"
 DATABASE_URL_VALUE="$(get_env_value DATABASE_URL)"
 FRONTEND_PORT_VALUE="$(get_env_value FRONTEND_PORT)"
+APP_PROTOCOL_VALUE="$(get_env_value APP_PROTOCOL)"
 FRONTEND_ORIGIN_VALUE="$(get_env_value FRONTEND_ORIGIN)"
 GAME_QUESTION_DURATION_MS_VALUE="$(get_env_value GAME_QUESTION_DURATION_MS)"
 BACKUP_INTERVAL_SECONDS_VALUE="$(get_env_value BACKUP_INTERVAL_SECONDS)"
@@ -102,12 +103,33 @@ if ! printf '%s' "$DATABASE_URL_VALUE" | grep -F -q "/${POSTGRES_DB_VALUE}"; the
   invalid=1
 fi
 
-case "$FRONTEND_ORIGIN_VALUE" in
-  https://*)
+if [ -z "$APP_PROTOCOL_VALUE" ]; then
+  case "$FRONTEND_ORIGIN_VALUE" in
+    https://*)
+      APP_PROTOCOL_VALUE="https"
+      ;;
+    *)
+      APP_PROTOCOL_VALUE="http"
+      ;;
+  esac
+fi
+
+case "$APP_PROTOCOL_VALUE" in
+  http|https)
     :
     ;;
   *)
-    printf '[KO] FRONTEND_ORIGIN doit commencer par https:// pour la stack TLS locale\n' >&2
+    printf '[KO] APP_PROTOCOL doit etre "http" ou "https"\n' >&2
+    invalid=1
+    ;;
+esac
+
+case "$FRONTEND_ORIGIN_VALUE" in
+  "${APP_PROTOCOL_VALUE}://"*)
+    :
+    ;;
+  *)
+    printf '[KO] FRONTEND_ORIGIN doit commencer par %s://\n' "$APP_PROTOCOL_VALUE" >&2
     invalid=1
     ;;
 esac

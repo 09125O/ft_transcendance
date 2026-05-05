@@ -18,11 +18,16 @@ export function fail(message) {
 
 export function createSocket(namespaceUrl, cookieHeader) {
   const allowInsecureTls = process.env.WS_TLS_INSECURE === "1";
+  const appProtocol =
+    process.env.APP_PROTOCOL === "https" ||
+    process.env.FRONTEND_ORIGIN?.startsWith("https://")
+      ? "https"
+      : "http";
   const extraHeaders = {
     Origin:
       process.env.WS_SMOKE_ORIGIN ||
       process.env.FRONTEND_ORIGIN ||
-      "https://localhost:3000",
+      `${appProtocol}://localhost:3000`,
     ...(cookieHeader ? { Cookie: cookieHeader } : {}),
   };
 
@@ -104,7 +109,8 @@ export async function connectAuthenticatedSocket(namespaceUrl, cookieHeader) {
 
 export async function createAuthenticatedSession(baseUrl, label) {
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-  const email = `ws-smoke-${label}-${suffix}@test.com`;
+  const email = `qa-smoke-${label}-${suffix}@test.com`;
+  const username = `ws_${label}_${suffix}`.slice(0, 32);
   const password = "longsecuredpassword123!";
 
   const registerResponse = await requestJson(
@@ -112,7 +118,7 @@ export async function createAuthenticatedSession(baseUrl, label) {
     "/auth/register",
     {
       email,
-      username: `ws_${label}_${Math.floor(Math.random() * 1000)}`,
+      username,
       password,
     },
   );

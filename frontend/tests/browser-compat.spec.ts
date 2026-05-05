@@ -23,6 +23,7 @@ async function loginAsGuest(page: Page) {
   await expect(page.getByRole("heading", { name: "Se connecter" })).toBeVisible();
   await page.getByRole("button", { name: "Continuer en invité" }).click();
   await page.waitForURL(/\/$/);
+  await expect(page.getByText(/Guest-/i)).toBeVisible();
 }
 
 test.describe("browser compatibility", () => {
@@ -30,9 +31,8 @@ test.describe("browser compatibility", () => {
     const assertNoUnexpectedBrowserErrors = trackUnexpectedBrowserErrors(page);
 
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: /Quiz live pour codeurs, gamers et builders/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Live Quiz pour/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Jouer maintenant" })).toBeVisible();
 
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Se connecter" })).toBeVisible();
@@ -44,15 +44,13 @@ test.describe("browser compatibility", () => {
     const assertNoUnexpectedBrowserErrors = trackUnexpectedBrowserErrors(page);
 
     await loginAsGuest(page);
-    await expect(
-      page.getByRole("heading", { name: /Quiz live pour codeurs, gamers et builders/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Live Quiz pour/i })).toBeVisible();
 
     await page.getByRole("link", { name: "Leaderboard" }).click();
     await expect(page).toHaveURL(/\/leaderboard$/);
     await expect(
       page.getByRole("heading", {
-        name: /Classement global, progression joueur et matchs recents/i,
+        name: /Classement global, progression joueur et matchs récen/i,
       }),
     ).toBeVisible();
 
@@ -62,21 +60,19 @@ test.describe("browser compatibility", () => {
     ).toBeVisible();
 
     await page.goto("/profile");
-    await expect(page.getByRole("heading", { level: 2, name: "Historique recent" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: /Historique récent/i }),
+    ).toBeVisible();
 
     await page.goto("/quiz-ready");
-    await expect(
-      page.getByRole("heading", {
-        name: /Tous les quiz live pour codeurs, gamers et builders/i,
-      }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Tous les quiz live pour/i })).toBeVisible();
 
     const officialSection = page.locator("section").filter({ hasText: "Sélection officielle" }).first();
     await expect(officialSection.locator("button").first()).toBeVisible();
     await officialSection.locator("button").first().click();
 
     await expect(page.getByRole("heading", { name: "Créer une room" })).toBeVisible();
-    await page.getByLabel("Temps par question").selectOption("10");
+    await expect(page.getByText("10s", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Créer et jouer" }).click();
 
     await page.waitForURL(/\/room\/\d+$/);

@@ -240,8 +240,13 @@ export class RealtimeRoomEventsService {
     server: Server,
   ): Promise<void> {
     const payload = this.validation.validatePayload(RoomSpectateDto, rawPayload);
-    this.presence.resolveSocketUser(client.id, payload.userId);
+    const userId = this.presence.resolveSocketUser(client.id, payload.userId);
     const room = await this.roomsService.getById(payload.roomId);
+    const isMember = room.players.some((player) => player.userId === userId);
+
+    if (room.isPrivate && !isMember) {
+      throw new UnauthorizedException("Private room cannot be spectated");
+    }
 
     client.join(this.roomChannel(payload.roomId));
     this.presence.markSpectator(client.id, payload.roomId);
@@ -266,6 +271,10 @@ export class RealtimeRoomEventsService {
 
     for (const room of await this.roomsService.list()) {
       if (!room.players.some((player) => player.userId === userId)) {
+        continue;
+      }
+
+      if (room.status === "playing") {
         continue;
       }
 

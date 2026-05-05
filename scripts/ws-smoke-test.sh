@@ -5,6 +5,12 @@ set -eu
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if [ -f .env ]; then
+	set -a
+	. ./.env
+	set +a
+fi
+
 compose() {
 	if docker compose version >/dev/null 2>&1; then
 		docker compose "$@"
@@ -37,7 +43,23 @@ trap cleanup EXIT
 cleanup_ws_smoke_users
 
 if [ -n "${WS_BASE_URL:-}" ]; then
-	compose exec -T -e WS_BASE_URL="$WS_BASE_URL" backend sh -lc 'NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs'
+	if [ -n "${APP_PROTOCOL:-}" ]; then
+		EFFECTIVE_PROTOCOL="$APP_PROTOCOL"
+	elif printf '%s' "${WS_BASE_URL}" | grep -Eq '^https://'; then
+		EFFECTIVE_PROTOCOL="https"
+	elif printf '%s' "${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then
+		EFFECTIVE_PROTOCOL="https"
+	else
+		EFFECTIVE_PROTOCOL="http"
+	fi
+
+	compose exec -T -e WS_BASE_URL="$WS_BASE_URL" backend sh -lc '
+		if [ "'"$EFFECTIVE_PROTOCOL"'" = "https" ] && [ -f /certs/mkcert-rootCA.pem ]; then
+			NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs
+		else
+			node scripts/ws-smoke-test.mjs
+		fi
+	'
 else
 	compose exec -T backend sh -lc 'npm run test:ws-smoke'
 fi

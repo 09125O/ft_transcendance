@@ -2,8 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-const backendTarget = process.env.BACKEND_TARGET || "https://localhost:4000";
-const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://localhost:3000";
+const inferredProtocol =
+  process.env.FRONTEND_ORIGIN?.startsWith("https://") ? "https" : "http";
+const appProtocol = process.env.APP_PROTOCOL === "https" ? "https" : inferredProtocol;
+const backendHost = process.env.BACKEND_HOST || "localhost";
+const backendPort = process.env.BACKEND_PORT || "4000";
+const backendTarget =
+  process.env.BACKEND_TARGET || `${appProtocol}://${backendHost}:${backendPort}`;
+const frontendOrigin =
+  process.env.FRONTEND_ORIGIN || `${appProtocol}://localhost:3000`;
 const shouldUseHttps = frontendOrigin.startsWith("https://");
 const tlsKeyPath = process.env.TLS_KEY_FILE || "/certs/dev-localhost.key";
 const tlsCertPath = process.env.TLS_CERT_FILE || "/certs/dev-localhost.crt";
@@ -11,6 +18,7 @@ const trustedCaPath = process.env.NODE_EXTRA_CA_CERTS || "/certs/mkcert-rootCA.p
 const hasCustomTlsFiles =
   fs.existsSync(tlsKeyPath) && fs.existsSync(tlsCertPath);
 const shouldVerifyBackendTls =
+  backendTarget.startsWith("https://") &&
   process.env.BACKEND_PROXY_SECURE === "true" &&
   fs.existsSync(trustedCaPath);
 const proxyPrefixes = [

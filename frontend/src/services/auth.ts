@@ -58,8 +58,11 @@ export function loginWithFortyTwo(): void {
   window.location.href = "/auth/42/start";
 }
 
-export function getSession(): Promise<SafeUser> {
-  return apiRequest<SafeUser>("/auth/session");
+export async function getSession(): Promise<SafeUser | null> {
+  const session = await apiRequest<{ authenticated: boolean; user: SafeUser | null }>(
+    "/auth/session",
+  );
+  return session.user;
 }
 
 export async function logout(): Promise<{ loggedOut: true }> {

@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     environment:
-      BACKEND_TARGET: https://backend:4000
+      BACKEND_HOST: backend
     depends_on:
       backend:
         condition: service_healthy
@@ -24,7 +24,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "const target = 'https://127.0.0.1:3000'; const { request } = require('https'); const req = request(target, { rejectUnauthorized: false }, (response) => process.exit(response.statusCode && response.statusCode < 500 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();",
+          "const protocol = process.env.APP_PROTOCOL === 'https' || (process.env.FRONTEND_ORIGIN || '').startsWith('https://') ? 'https' : 'http'; const transport = require(protocol); const target = protocol + '://127.0.0.1:3000'; const onResponse = (response) => process.exit(response.statusCode && response.statusCode < 500 ? 0 : 1); const req = protocol === 'https' ? transport.request(target, { rejectUnauthorized: false }, onResponse) : transport.request(target, onResponse); req.on('error', () => process.exit(1)); req.end();",
         ]
       interval: 10s
       timeout: 5s
@@ -47,7 +47,7 @@ services:
     env_file:
       - .env
     environment:
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-https://localhost:3000}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
       BACKUP_STATUS_FILE: /app/.runtime/backup-status.json
     depends_on:
       db:
@@ -58,7 +58,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "const https = require('https'); const http = require('http'); const checkHttp = () => { const req = http.request('http://127.0.0.1:4000/health', (response) => process.exit(response.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end(); }; const req = https.request('https://127.0.0.1:4000/health', { rejectUnauthorized: false }, (response) => process.exit(response.statusCode === 200 ? 0 : 1)); req.on('error', checkHttp); req.end();",
+          "const protocol = process.env.APP_PROTOCOL === 'https' || (process.env.FRONTEND_ORIGIN || '').startsWith('https://') ? 'https' : 'http'; const transport = require(protocol); const target = protocol + '://127.0.0.1:4000/health'; const onResponse = (response) => process.exit(response.statusCode === 200 ? 0 : 1); const req = protocol === 'https' ? transport.request(target, { rejectUnauthorized: false }, onResponse) : transport.request(target, onResponse); req.on('error', () => process.exit(1)); req.end();",
         ]
       interval: 10s
       timeout: 5s

@@ -20,6 +20,20 @@ fi
 
 bash scripts/check-env.sh
 
+set -a
+. ./.env
+set +a
+
+if [ -n "${APP_PROTOCOL:-}" ]; then
+  APP_PROTOCOL="$APP_PROTOCOL"
+elif printf '%s' "${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then
+  APP_PROTOCOL="https"
+else
+  APP_PROTOCOL="http"
+fi
+FRONTEND_ORIGIN="${FRONTEND_ORIGIN:-${APP_PROTOCOL}://localhost:${FRONTEND_PORT:-3000}}"
+BACKEND_URL="${APP_PROTOCOL}://localhost:${BACKEND_PORT:-4000}/health"
+
 if [ -n "$COMPOSE_CMD" ]; then
   printf "[..] Mode detecte : docker\n"
   COMPOSE_WAIT_FLAG=""
@@ -28,16 +42,16 @@ if [ -n "$COMPOSE_CMD" ]; then
     COMPOSE_WAIT_FLAG="--wait"
   fi
 
-  bash scripts/generate-dev-cert.sh
+  if [ "$APP_PROTOCOL" = "https" ]; then
+    bash scripts/generate-dev-cert.sh
+  else
+    printf "[OK] Mode HTTP actif: generation TLS ignoree\n"
+  fi
   $COMPOSE_CMD up --build -d $COMPOSE_WAIT_FLAG
 
-  set -a
-  . ./.env
-  set +a
-
   printf "[OK] Stack prete\n"
-  printf "Frontend : https://localhost:%s\n" "${FRONTEND_PORT}"
-  printf "Backend  : https://localhost:%s/health\n" "${BACKEND_PORT}"
+  printf "Frontend : %s\n" "${FRONTEND_ORIGIN}"
+  printf "Backend  : %s\n" "${BACKEND_URL}"
   printf "Base     : localhost:%s\n" "${POSTGRES_PORT}"
   printf "Commandes utiles : make logs | make test-stack | make smoke-test\n"
   exit 0

@@ -2,8 +2,13 @@
 
 const BACKEND_PORT = Number(process.env.BACKEND_PORT || 4000);
 const BACKEND_HOST = process.env.BACKEND_HOST || "localhost";
+const APP_PROTOCOL =
+  process.env.APP_PROTOCOL === "https" ||
+  process.env.FRONTEND_ORIGIN?.startsWith("https://")
+    ? "https"
+    : "http";
 const BACKEND_BASE_URL =
-  process.env.WS_BASE_URL || `https://${BACKEND_HOST}:${BACKEND_PORT}`;
+  process.env.WS_BASE_URL || `${APP_PROTOCOL}://${BACKEND_HOST}:${BACKEND_PORT}`;
 
 const LOGIN_ATTEMPTS = Number(process.env.RATE_LIMIT_ATTEMPTS || 75);
 const QUIZ_ATTEMPTS = Number(process.env.QUIZ_RATE_LIMIT_ATTEMPTS || 20);

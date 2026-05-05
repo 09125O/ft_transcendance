@@ -5,11 +5,24 @@ set -eu
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+if [ -f .env ]; then
+	set -a
+	. ./.env
+	set +a
+fi
+
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 BACKEND_PORT="${BACKEND_PORT:-4000}"
+if [ -n "${APP_PROTOCOL:-}" ]; then
+	APP_PROTOCOL="$APP_PROTOCOL"
+elif printf '%s' "${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then
+	APP_PROTOCOL="https"
+else
+	APP_PROTOCOL="http"
+fi
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
-BACKEND_BASE_URL="https://localhost:${BACKEND_PORT}"
-FRONTEND_BASE_URL="${FRONTEND_ORIGIN:-https://localhost:${FRONTEND_PORT}}"
+BACKEND_BASE_URL="${APP_PROTOCOL}://localhost:${BACKEND_PORT}"
+FRONTEND_BASE_URL="${FRONTEND_ORIGIN:-${APP_PROTOCOL}://localhost:${FRONTEND_PORT}}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ft_transcendance_smoke.XXXXXX")"
 MKCERT_CA_FILE="${ROOT_DIR}/certs/mkcert-rootCA.pem"
 COOKIE_JAR="${TMP_DIR}/cookies.txt"
@@ -237,7 +250,7 @@ cleanup_user() {
 }
 
 cleanup_smoke_users() {
-	run_database_query "DELETE FROM \\\"User\\\" WHERE email LIKE 'smoke-%@test.com' OR email LIKE 'ws-smoke-%@test.com';" \
+	run_database_query "DELETE FROM \\\"User\\\" WHERE email LIKE 'smoke-%@test.com' OR email LIKE 'ws-smoke-%@test.com' OR email LIKE 'qa-smoke-%@test.com';" \
 		>/dev/null 2>&1 || true
 }
 
@@ -265,7 +278,9 @@ section "test dev op"
 check_command docker
 check_command curl
 check_command bash
-[ -s "$MKCERT_CA_FILE" ] || fail "CA mkcert absente: $MKCERT_CA_FILE. Lance 'make tls-cert' et 'make tls-trust'."
+if [ "$APP_PROTOCOL" = "https" ]; then
+	[ -s "$MKCERT_CA_FILE" ] || fail "CA mkcert absente: $MKCERT_CA_FILE. Lance 'make tls-cert' et 'make tls-trust'."
+fi
 bash ./scripts/check-env.sh .env >/dev/null 2>&1 || fail "Configuration .env invalide. Lance 'make env-check' pour le diagnostic complet."
 pass "Configuration .env valide"
 compose ps >/dev/null 2>&1 || fail "Docker Compose indisponible ou stack non accessible"
@@ -287,10 +302,10 @@ check_database_query "Connexion PostgreSQL OK" "SELECT 1;" "1"
 check_database_query "Table User presente" "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'User';" "1"
 
 section "test front end"
-if check_http_with_curl "${FRONTEND_BASE_URL}" '<title>ft_transcendance starter</title>'; then
+if check_http_with_curl "${FRONTEND_BASE_URL}" '<title>Quiz Arena | ft_transcendance</title>'; then
 	:
 else
-	check_http_inside_container quiz_frontend "${FRONTEND_BASE_URL}" '<title>ft_transcendance starter</title>'
+	check_http_inside_container quiz_frontend "${FRONTEND_BASE_URL}" '<title>Quiz Arena | ft_transcendance</title>'
 fi
 
 if check_http_with_curl "${FRONTEND_BASE_URL}/health" '"database":{"configured":true,"ok":true}'; then
@@ -309,17 +324,21 @@ section "test authentifcation"
 
 TEST_EMAIL="smoke-$(date +%s)@test.com"
 TEST_PASSWORD="longsecuredpassword123!"
+TEST_USERNAME="smoke-$(date +%s)"
 GHOST_EMAIL="smoke-ghost-$(date +%s)@test.com"
 GHOST_PASSWORD="longsecuredpassword123!"
+GHOST_USERNAME="ghost-$(date +%s)"
 GHOST_COOKIE_JAR="${TMP_DIR}/ghost-cookies.txt"
 
-REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"smoke"}' "$TEST_EMAIL" "$TEST_PASSWORD")
+REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"%s"}' "$TEST_EMAIL" "$TEST_PASSWORD" "$TEST_USERNAME")
 LOGIN_PAYLOAD=$(printf '{"email":"%s","password":"%s"}' "$TEST_EMAIL" "$TEST_PASSWORD")
 INVALID_REGISTER_PAYLOAD='{"email":"not-an-email","password":"short","username":"x"}'
 DUPLICATE_REGISTER_PAYLOAD="$REGISTER_PAYLOAD"
+EMAIL_DUPLICATE_REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"%s"}' "$TEST_EMAIL" "$TEST_PASSWORD" "smoke-email-duplicate-$(date +%s)")
+USERNAME_DUPLICATE_REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"%s"}' "smoke-username-duplicate-$(date +%s)@test.com" "$TEST_PASSWORD" "$TEST_USERNAME")
 INVALID_LOGIN_PAYLOAD='{"email":"not-an-email","password":"short"}'
 WRONG_PASSWORD_PAYLOAD=$(printf '{"email":"%s","password":"wrongpassword123!"}' "$TEST_EMAIL")
-GHOST_REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"ghost"}' "$GHOST_EMAIL" "$GHOST_PASSWORD")
+GHOST_REGISTER_PAYLOAD=$(printf '{"email":"%s","password":"%s","username":"%s"}' "$GHOST_EMAIL" "$GHOST_PASSWORD" "$GHOST_USERNAME")
 GHOST_LOGIN_PAYLOAD=$(printf '{"email":"%s","password":"%s"}' "$GHOST_EMAIL" "$GHOST_PASSWORD")
 QUIZ_PAYLOAD='{"title":"Smoke quiz","questions":[{"questionText":"Capital of France?","answers":["Paris","Rome"],"correctAnswerIndex":0,"points":2}]}'
 
@@ -329,11 +348,11 @@ cleanup_smoke_users
 CLEANUP_NEEDED=1
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$COOKIE_JAR"
-assert_status 401
-assert_body_contains '"success":false'
-assert_body_contains '"code":"UNAUTHORIZED"'
-assert_body_contains '"message":"Authentication required"'
-pass "Session refusee sans cookie"
+assert_status 200
+assert_body_contains '"success":true'
+assert_body_contains '"authenticated":false'
+assert_body_contains '"user":null'
+pass "Session anonyme renvoyee sans erreur"
 
 request_with_curl GET "${BACKEND_BASE_URL}/users/me" "" "$COOKIE_JAR"
 assert_status 401
@@ -350,11 +369,11 @@ assert_body_contains '"message":"Authentication required"'
 pass "/quizzes refuse sans cookie"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "" "Cookie: access_token=invalid-token"
-assert_status 401
-assert_body_contains '"success":false'
-assert_body_contains '"code":"UNAUTHORIZED"'
-assert_body_contains '"message":"Invalid or expired session"'
-pass "Session refusee avec cookie invalide"
+assert_status 200
+assert_body_contains '"success":true'
+assert_body_contains '"authenticated":false'
+assert_body_contains '"user":null'
+pass "Session invalide nettoyee sans erreur"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$INVALID_REGISTER_PAYLOAD"
 assert_status 400
@@ -366,7 +385,7 @@ request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$REGISTER_PAYLOAD" "
 assert_status 201
 assert_body_contains '"success":true'
 assert_body_contains "\"email\":\"${TEST_EMAIL}\""
-assert_body_contains '"username":"smoke"'
+assert_body_contains "\"username\":\"${TEST_USERNAME}\""
 assert_body_contains '"status":"online"'
 assert_body_not_contains '"password"'
 assert_headers_contains 'Set-Cookie: access_token='
@@ -382,6 +401,7 @@ pass "User cree en base avec status online"
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$COOKIE_JAR"
 assert_status 200
 assert_body_contains '"success":true'
+assert_body_contains '"authenticated":true'
 assert_body_contains "\"email\":\"${TEST_EMAIL}\""
 assert_body_contains "\"id\":${TEST_USER_ID}"
 assert_body_contains '"status":"online"'
@@ -408,17 +428,32 @@ assert_equals "offline" "$TEST_USER_STATUS"
 pass "Status offline apres logout"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$COOKIE_JAR"
-assert_status 401
-assert_body_contains '"success":false'
-assert_body_contains '"code":"UNAUTHORIZED"'
+assert_status 200
+assert_body_contains '"success":true'
+assert_body_contains '"authenticated":false'
+assert_body_contains '"user":null'
 pass "Session invalidee apres logout"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$DUPLICATE_REGISTER_PAYLOAD"
 assert_status 409
 assert_body_contains '"success":false'
 assert_body_contains '"code":"CONFLICT"'
+assert_body_contains '"message":"Username already exists"'
+pass "Register refuse pour username deja pris"
+
+request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$EMAIL_DUPLICATE_REGISTER_PAYLOAD"
+assert_status 409
+assert_body_contains '"success":false'
+assert_body_contains '"code":"CONFLICT"'
 assert_body_contains '"message":"Email already exists"'
-pass "Register en doublon refuse"
+pass "Register refuse pour email deja pris"
+
+request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$USERNAME_DUPLICATE_REGISTER_PAYLOAD"
+assert_status 409
+assert_body_contains '"success":false'
+assert_body_contains '"code":"CONFLICT"'
+assert_body_contains '"message":"Username already exists"'
+pass "Register refuse pour username deja pris avec email distinct"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/login" "$INVALID_LOGIN_PAYLOAD"
 assert_status 400
@@ -437,7 +472,7 @@ request_with_curl POST "${BACKEND_BASE_URL}/auth/login" "$LOGIN_PAYLOAD" "$COOKI
 assert_status_any 200 201
 assert_body_contains '"success":true'
 assert_body_contains "\"email\":\"${TEST_EMAIL}\""
-assert_body_contains '"username":"smoke"'
+assert_body_contains "\"username\":\"${TEST_USERNAME}\""
 assert_body_contains '"status":"online"'
 assert_body_not_contains '"password"'
 assert_headers_contains 'Set-Cookie: access_token='
@@ -451,6 +486,7 @@ pass "Status online apres login"
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$COOKIE_JAR"
 assert_status 200
 assert_body_contains '"success":true'
+assert_body_contains '"authenticated":true'
 assert_body_contains "\"email\":\"${TEST_EMAIL}\""
 assert_body_contains "\"id\":${TEST_USER_ID}"
 assert_body_contains '"status":"online"'
@@ -487,9 +523,10 @@ assert_equals "offline" "$TEST_USER_STATUS"
 pass "Status offline apres logout final"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$COOKIE_JAR"
-assert_status 401
-assert_body_contains '"success":false'
-assert_body_contains '"code":"UNAUTHORIZED"'
+assert_status 200
+assert_body_contains '"success":true'
+assert_body_contains '"authenticated":false'
+assert_body_contains '"user":null'
 pass "Session invalidee apres logout final"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$GHOST_REGISTER_PAYLOAD"
@@ -505,18 +542,18 @@ assert_not_empty "$GHOST_USER_ID" "ghost user id"
 cleanup_user "$GHOST_EMAIL"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "$GHOST_COOKIE_JAR"
-assert_status 404
-assert_body_contains '"success":false'
-assert_body_contains '"code":"NOT_FOUND"'
-assert_body_contains "\"message\":\"User ${GHOST_USER_ID} not found\""
-pass "Session renvoie 404 si le user du token n'existe plus"
+assert_status 200
+assert_body_contains '"success":true'
+assert_body_contains '"authenticated":false'
+assert_body_contains '"user":null'
+pass "Session nettoyee si le user du token n'existe plus"
 
 section "test websocket api"
 bash scripts/ws-smoke-test.sh
 pass "Smoke WebSocket backend OK"
 
 section "test websocket front proxy"
-WS_BASE_URL="https://frontend:3000" bash scripts/ws-smoke-test.sh
+WS_BASE_URL="${APP_PROTOCOL}://frontend:3000" bash scripts/ws-smoke-test.sh
 pass "Smoke WebSocket frontend proxy OK"
 
 pass "Smoke test termine avec succes"

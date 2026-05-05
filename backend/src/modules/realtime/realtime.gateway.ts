@@ -17,11 +17,14 @@ import { RealtimePresenceService } from "./services/realtime-presence.service";
 import { RealtimeNotifierService } from "./services/realtime-notifier.service";
 import { RealtimeResponseService } from "./services/realtime-response.service";
 import { RealtimeRoomEventsService } from "./services/realtime-room-events.service";
+import { isOriginAllowed } from "@/config/runtime";
 
 @WebSocketGateway({
   namespace: "/ws",
   cors: {
-    origin: process.env.FRONTEND_ORIGIN || "https://localhost:3000",
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin));
+    },
     credentials: true,
   },
   transports: ["websocket", "polling"],

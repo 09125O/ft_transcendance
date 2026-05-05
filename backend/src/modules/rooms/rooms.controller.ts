@@ -28,6 +28,7 @@ export class RoomsController {
   }
 
   @Get(":roomId")
+  @UseGuards(AuthGuard)
   async getById(
     @Param("roomId", ParseIntPipe) roomId: number,
   ): Promise<ApiResponse<Omit<Room, "passwordHash">>> {

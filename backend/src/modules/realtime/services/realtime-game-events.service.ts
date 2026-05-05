@@ -45,7 +45,7 @@ export class RealtimeGameEventsService {
     const leaderboard = await this.gameService.getRoomLeaderboard(payload.roomId);
     const channel = this.roomChannel(payload.roomId);
 
-    server.to(channel).emit("game:answer:result", this.response.ok(answer));
+    client.emit("game:answer:result", this.response.ok(answer));
     server.to(channel).emit("game:state", this.response.ok(gameState));
     server.to(channel).emit(
       "game:leaderboard",

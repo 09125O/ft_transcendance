@@ -30,6 +30,37 @@ type AvatarUploadInput = {
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async assertUsernameAvailable(
+    username: string,
+    excludedUserId?: number,
+  ): Promise<void> {
+    const trimmedUsername = username.trim();
+    if (!trimmedUsername) {
+      return;
+    }
+
+    const existingUser = await this.prisma.client.user.findFirst({
+      where: {
+        username: {
+          equals: trimmedUsername,
+          mode: "insensitive",
+        },
+        ...(typeof excludedUserId === "number"
+          ? {
+              id: {
+                not: excludedUserId,
+              },
+            }
+          : {}),
+      },
+      select: { id: true },
+    });
+
+    if (existingUser) {
+      throw new ConflictException("Username already exists");
+    }
+  }
+
   async findUserByIdentifier(identifier: string): Promise<User | null> {
     const normalizedIdentifier = identifier.trim();
     if (!normalizedIdentifier) {
@@ -70,6 +101,7 @@ export class UsersService {
     const data: Prisma.UserUpdateInput = {};
 
     if (typeof dto.username !== "undefined") {
+      await this.assertUsernameAvailable(dto.username, userId);
       data.username = dto.username;
     }
     if (typeof dto.avatar_url !== "undefined") {
@@ -171,6 +203,7 @@ export class UsersService {
   }
 
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
+    await this.assertUsernameAvailable(data.username);
     return this.prisma.client.user.create({
       data,
     });

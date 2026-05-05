@@ -9,15 +9,12 @@ import {
   Query,
   Req,
   Res,
-  UseGuards,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
-import { CurrentUser } from "./decorators/current-user.decorator";
-import { AuthGuard } from "./guards/auth.guard";
 import { AuthService } from "./auth.service";
-import { AuthPayload } from "./types/auth-payload.type";
 import { SafeUser } from "./types/safe-user.type";
+import { getFrontendOrigin } from "@/config/runtime";
 
 @Controller("auth")
 export class AuthController {
@@ -52,7 +49,7 @@ export class AuthController {
 
   @Get("42/start")
   oauth42Start(@Res() res: Response): void {
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://localhost:3000";
+    const frontendOrigin = getFrontendOrigin();
 
     try {
       res.redirect(this.authService.getOauth42StartUrl(res));
@@ -72,7 +69,7 @@ export class AuthController {
     @Query("state") state: string,
     @Res() res: Response,
   ): Promise<void> {
-    const frontendOrigin = process.env.FRONTEND_ORIGIN || "https://localhost:3000";
+    const frontendOrigin = getFrontendOrigin();
 
     if (!code || !state) {
       this.authService.clearOauth42State(res);
@@ -103,10 +100,14 @@ export class AuthController {
   }
 
   @Get("session")
-  @UseGuards(AuthGuard)
   async session(
-    @CurrentUser() auth: AuthPayload,
-  ): Promise<ApiResponse<SafeUser>> {
-    return ok(await this.authService.getSessionUser(auth.sub));
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<{ authenticated: boolean; user: SafeUser | null }>> {
+    const user = await this.authService.getOptionalSessionUser(req, res);
+    return ok({
+      authenticated: user !== null,
+      user,
+    });
   }
 }
