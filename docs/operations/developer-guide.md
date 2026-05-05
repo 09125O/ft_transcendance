@@ -1,4 +1,4 @@
-# Guide Dev
+# Developer Guide
 
 ## Objectif
 
@@ -15,10 +15,11 @@ Il explique :
 ### Infrastructure
 
 - Docker Compose pour orchestrer les services
-- 3 services principaux :
+- 4 services principaux :
   - `frontend`
   - `backend`
   - `db`
+  - `backup`
 - Volumes Docker pour conserver les donnees PostgreSQL
 - Healthchecks sur les 3 services pour verifier qu'ils sont vraiment operationnels
 
@@ -66,9 +67,9 @@ Role actuel :
 
 Le fonctionnement actuel est le suivant :
 
-1. Le navigateur appelle le frontend sur `https://localhost:3000`
+1. Le navigateur appelle le frontend sur `${FRONTEND_ORIGIN}`
 2. Le frontend React TypeScript appelle le backend via des routes proxifiees comme `/health`, `/api`, `/auth/*`, `/users/*`, `/friends/*`, `/notifications/*`, `/quizzes/*` et `/socket.io`
-3. Webpack Dev Server proxifie ces routes vers le backend `https://backend:4000`
+3. Webpack Dev Server proxifie ces routes vers le backend `${APP_PROTOCOL}://backend:4000`
 4. Le backend interroge PostgreSQL via `DATABASE_URL`
 
 ### Schema de communication
@@ -77,14 +78,14 @@ Le fonctionnement actuel est le suivant :
                     Navigateur
                          |
                          v
-         https://localhost:3000
+          ${FRONTEND_ORIGIN}
                   frontend
      React + TypeScript + Webpack Dev Server
                          |
 proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes, /friends, /notifications, /socket.io
                          |
                          v
-         https://backend:4000
+     ${APP_PROTOCOL}://backend:4000
                  backend NestJS
                          |
         DATABASE_URL -> postgresql://db:5432
@@ -95,8 +96,8 @@ proxy /api, /health, /auth, /users, /rooms, /game, /scores, /quizzes, /friends, 
 
 Exposition des ports cote hote :
 
-- frontend -> https://localhost:3000
-- backend  -> https://localhost:4000
+- frontend -> `${FRONTEND_ORIGIN}`
+- backend  -> `${APP_PROTOCOL}://localhost:${BACKEND_PORT}`
 - db       -> localhost:5432
 ```
 
@@ -117,9 +118,16 @@ Un service `nginx` pourra etre ajoute plus tard si on veut :
 - `backend/prisma/` : schema Prisma et migrations SQL
 - `backend/prisma.config.ts` : configuration Prisma CLI pour les migrations et la datasource
 - `frontend/` : application frontend
-- `scripts/smoke-test.sh` : test rapide de la stack
+- `scripts/test/smoke-test.sh` : test rapide de la stack
 - `.env` : variables locales
 - `.env.example` : modele de configuration
+
+## Profils d'execution
+
+Le projet supporte 2 profils sans changement de code :
+
+- `HTTPS local` : developpement mono-poste avec certificat de dev
+- `HTTP/LAN` : test multi-postes sur le meme reseau sans trust store local
 
 ## Variables d'environnement
 
@@ -247,7 +255,7 @@ cd backend && npm run lint
 cd frontend && npm run lint
 cd backend && npm run build
 cd frontend && npm run build
-bash scripts/lint-shell.sh
+bash scripts/test/lint-shell.sh
 make smoke-test
 make smoke-test-ws
 docker exec quiz_backend npm run test:ws-critical
@@ -783,7 +791,7 @@ Regles :
 - si tu modifies `backend/prisma/schema.prisma`, pense a regenerer une migration adaptee
 - avant de pousser, lancer au minimum `make smoke-test`
 - ne pas modifier les ports par defaut sans bonne raison
-- si tu modifies `docker-compose.yml`, documenter l'impact dans ce fichier `dev.md` ou dans le `README.md`
+- si tu modifies `docker-compose.yml`, documenter l'impact dans `docs/operations/developer-guide.md` ou dans le `README.md`
 
 ### 5. Variables d'environnement
 

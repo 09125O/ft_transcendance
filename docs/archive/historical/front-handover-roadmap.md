@@ -55,9 +55,9 @@ Note:
 - Page leaderboard globale + historique recent
 
 References:
-- docs/api-front-contract.md
-- docs/front2-realtime-integration.md
-- docs/ws-event-contract.md
+- docs/contracts/http-api-contract.md
+- docs/integration/frontend-realtime-integration.md
+- docs/contracts/websocket-event-contract.md
 - docs/archive/historical/backend-front-enablement-spec.md
 
 ### Gaps front visibles dans le scope courant
@@ -104,7 +104,7 @@ Statut:
 - suite Playwright ajoutee dans `frontend/tests/browser-compat.spec.ts`
 - config versionnee dans `frontend/playwright.config.ts`
 - commande repo `make browser-test`
-- matrice de preuve `docs/browser-compatibility-matrix.md`
+- matrice de preuve `docs/operations/browser-compatibility-matrix.md`
 - parcours verifies sur `chromium`, `firefox` et `webkit`
 
 Reference sujet:
@@ -144,7 +144,7 @@ Definition of Done:
 - etats visuels `Interface`, `API NestJS`, `PostgreSQL`, `Sauvegarde automatisee`
 - sidecar `backup` versionne dans `docker-compose.yml`
 - commandes `make backup-db`, `make restore-db` et `make logs-backup`
-- runbook `docs/ops-status-backup-recovery.md`
+- runbook `docs/operations/status-backup-recovery-runbook.md`
 
 Reference sujet:
 - "Health check and status page system with automated backups and disaster recovery procedures"
@@ -171,7 +171,7 @@ Statut:
 - Filtrer strictement les payloads par `roomId`
 - Ne jamais faire confiance a `userId` fourni par l'UI
 - Traiter `ws:auth:error` comme une invalidation session
-- Respecter le delai de grace de reconnexion documente dans `docs/front2-realtime-integration.md`
+- Respecter le delai de grace de reconnexion documente dans `docs/integration/frontend-realtime-integration.md`
 
 ### Etats UI minimaux par vue
 
@@ -207,9 +207,9 @@ P2:
 - UX realtime stabilisee (erreurs, etats, feedback)
 - Status page minimale et preuves ops
 - runbook status / backup / restore
-- Checklist QA navigateurs (`docs/browser-compatibility-matrix.md`)
+- Checklist QA navigateurs (`docs/operations/browser-compatibility-matrix.md`)
 - Dossier de demo oriente sujet (preuves fonctionnelles)
-- Checklist de soutenance [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
+- Checklist de soutenance [demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/product/demo-checklist.md)
 
 ## 10) Hygiene documentaire
 
@@ -220,6 +220,6 @@ P2:
 
 ## 11) Quick wins doc
 
-1. Maintenir les 2 PDFs comme source de verite sujet et `docs/sujet-conformite-matrice.md` comme lecture de travail derivee.
+1. Maintenir les 2 PDFs comme source de verite sujet et `docs/product/evaluation-conformity-matrix.md` comme lecture de travail derivee.
 2. Garder une mini checklist de demo executable sans connaissance interne du code.
 3. Verifier que cette roadmap reste descriptive du reel et non du plan passe.

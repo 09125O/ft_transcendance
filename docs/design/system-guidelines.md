@@ -1,6 +1,6 @@
 # Design System Master File
 
-> LOGIC: si un fichier existe dans `docs/design-system/transcendance-web-app/pages/`, il surcharge ce master pour la page cible.
+> LOGIC: les fichiers `docs/design/lobby-page.md` et `docs/design/game-room-page.md` surchargent ce master pour leur page cible.
 
 ---
 

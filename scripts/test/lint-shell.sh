@@ -2,17 +2,22 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 SHELLCHECK_IMAGE="${SHELLCHECK_IMAGE:-koalaman/shellcheck-alpine:stable}"
 
-set -- "$ROOT_DIR"/scripts/*.sh
+SCRIPT_FILES=()
+while IFS= read -r file; do
+  SCRIPT_FILES+=("$file")
+done <<EOF
+$(find "$ROOT_DIR/scripts" -type f -name '*.sh' | sort)
+EOF
 
-if [ ! -e "$1" ]; then
+if [ "${#SCRIPT_FILES[@]}" -eq 0 ]; then
   exit 0
 fi
 
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck "$@"
+  shellcheck "${SCRIPT_FILES[@]}"
   exit 0
 fi
 
@@ -25,4 +30,4 @@ docker run --rm \
   -v "$ROOT_DIR:$ROOT_DIR" \
   -w "$ROOT_DIR" \
   "$SHELLCHECK_IMAGE" \
-  shellcheck "$@"
+  shellcheck "${SCRIPT_FILES[@]}"

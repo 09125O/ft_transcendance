@@ -105,7 +105,7 @@ Surface front:
 
 Ops:
 - sidecar `backup` dans `docker-compose.yml`
-- backup automatise via `scripts/auto-backup.sh`
+- backup automatise via `scripts/ops/auto-backup.sh`
 - backup manuel via `make backup-db`
 - restauration manuelle via `make restore-db file=...`
 
@@ -117,10 +117,10 @@ Notes:
 
 ## Contrats a utiliser
 
-- REST: `docs/api-front-contract.md`
-- WebSocket: `docs/ws-event-contract.md`
-- Integration front realtime: `docs/front2-realtime-integration.md`
-- Flux quiz -> room -> game: `docs/quiz-room-game-integration.md`
+- REST: `docs/contracts/http-api-contract.md`
+- WebSocket: `docs/contracts/websocket-event-contract.md`
+- Integration front realtime: `docs/integration/frontend-realtime-integration.md`
+- Flux quiz -> room -> game: `docs/integration/quiz-room-game-flow.md`
 
 ## Points hors scope ou partiels
 

@@ -72,7 +72,7 @@ services:
       context: ./db
       dockerfile: Dockerfile
     container_name: quiz_db_backup
-    entrypoint: ["/bin/sh", "/scripts/auto-backup.sh"]
+    entrypoint: ["/bin/sh", "/scripts/ops/auto-backup.sh"]
     env_file:
       - .env
     environment:

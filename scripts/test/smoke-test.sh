@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 if [ -f .env ]; then
@@ -282,7 +282,7 @@ check_command bash
 if [ "$APP_PROTOCOL" = "https" ]; then
 	[ -s "$MKCERT_CA_FILE" ] || fail "CA mkcert absente: $MKCERT_CA_FILE. Lance 'make tls-cert' et 'make tls-trust'."
 fi
-bash ./scripts/check-env.sh .env >/dev/null 2>&1 || fail "Configuration .env invalide. Lance 'make env-check' pour le diagnostic complet."
+bash ./scripts/dev/check-env.sh .env >/dev/null 2>&1 || fail "Configuration .env invalide. Lance 'make env-check' pour le diagnostic complet."
 pass "Configuration .env valide"
 compose ps >/dev/null 2>&1 || fail "Docker Compose indisponible ou stack non accessible"
 pass "Docker Compose accessible"
@@ -550,11 +550,11 @@ assert_body_contains '"user":null'
 pass "Session nettoyee si le user du token n'existe plus"
 
 section "test websocket api"
-bash scripts/ws-smoke-test.sh
+bash scripts/test/ws-smoke-test.sh
 pass "Smoke WebSocket backend OK"
 
 section "test websocket front proxy"
-WS_BASE_URL="${APP_PROTOCOL}://frontend:3000" bash scripts/ws-smoke-test.sh
+WS_BASE_URL="${APP_PROTOCOL}://frontend:3000" bash scripts/test/ws-smoke-test.sh
 pass "Smoke WebSocket frontend proxy OK"
 
 pass "Smoke test termine avec succes"

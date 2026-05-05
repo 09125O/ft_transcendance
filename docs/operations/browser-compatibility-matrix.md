@@ -80,5 +80,5 @@ Aucun ecart critique de layout ou de navigation n'a ete observe sur les ecrans t
 
 - `frontend/playwright.config.ts`
 - `frontend/tests/browser-compat.spec.ts`
-- `docs/sujet-conformite-matrice.md`
+- `docs/product/evaluation-conformity-matrix.md`
 - `docs/README.md`

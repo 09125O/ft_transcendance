@@ -5,15 +5,15 @@ Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer 
 ## Non negociable rules
 
 1. Respecter les contrats:
-- docs/api-front-contract.md
-- docs/ws-event-contract.md
-- docs/front2-realtime-integration.md
-- docs/sujet-conformite-matrice.md
+- docs/contracts/http-api-contract.md
+- docs/contracts/websocket-event-contract.md
+- docs/integration/frontend-realtime-integration.md
+- docs/product/evaluation-conformity-matrix.md
 
 2. Respecter le module design UI/UX:
-- docs/design-system/transcendance-web-app/MASTER.md
-- docs/design-system/transcendance-web-app/pages/lobby.md
-- docs/design-system/transcendance-web-app/pages/game-room.md
+- docs/design/system-guidelines.md
+- docs/design/lobby-page.md
+- docs/design/game-room-page.md
 
 3. Ne jamais casser les flux critiques:
 - auth/session
@@ -26,7 +26,7 @@ Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer 
 - decrire l'impact dans le resume PR.
 
 5. Toute PR qui ferme un gap sujet doit mettre a jour:
-- docs/sujet-conformite-matrice.md
+- docs/product/evaluation-conformity-matrix.md
 - statut: Fait / Partiel / A faire
 - preuve technique (endpoint, event, test, ecran)
 

@@ -71,7 +71,7 @@ jobs:
           sudo apt-get install -y shellcheck
 
       - name: Lint shell scripts
-        run: bash scripts/lint-shell.sh
+        run: bash scripts/test/lint-shell.sh
 
   build:
     name: Build ${{ matrix.app }}
@@ -181,13 +181,13 @@ jobs:
         run: mkcert -install
 
       - name: Generate shared dev TLS certificate
-        run: bash scripts/generate-dev-cert.sh
+        run: bash scripts/dev/generate-dev-cert.sh
 
       - name: Build and start stack
         run: docker compose up --build -d --wait
 
       - name: Run smoke test
-        run: bash scripts/smoke-test.sh
+        run: bash scripts/test/smoke-test.sh
 
       - name: Run WS smoke test
         run: docker exec quiz_backend npm run test:ws-smoke

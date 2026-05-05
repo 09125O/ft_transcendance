@@ -23,7 +23,7 @@ BRANCH := $(shell git branch --show-current 2>/dev/null)
 # **************************************************************************** #
 
 all:
-	bash scripts/bootstrap.sh
+	bash scripts/dev/bootstrap.sh
 
 help:
 	@echo "Usage: Docker"
@@ -90,15 +90,15 @@ compose-check:
 	}
 
 bootstrap:
-	bash scripts/bootstrap.sh
+	bash scripts/dev/bootstrap.sh
 
 bootstrap-trust:
-	bash scripts/bootstrap.sh
+	bash scripts/dev/bootstrap.sh
 
 up: env-check compose-check
 	@set -a; . ./.env; set +a; \
 	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
-		bash scripts/generate-dev-cert.sh; \
+		bash scripts/dev/generate-dev-cert.sh; \
 	else \
 		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
 	fi
@@ -120,7 +120,7 @@ re: compose-check
 restart: env-check compose-check
 	@set -a; . ./.env; set +a; \
 	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
-		bash scripts/generate-dev-cert.sh; \
+		bash scripts/dev/generate-dev-cert.sh; \
 	else \
 		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
 	fi
@@ -170,20 +170,20 @@ browser-test: env-check compose-check
 	cd frontend && npm run test:browsers
 
 smoke-test: env-check compose-check
-	bash scripts/smoke-test.sh
+	bash scripts/test/smoke-test.sh
 
 smoke-test-ws: compose-check
-	bash scripts/ws-smoke-test.sh
+	bash scripts/test/ws-smoke-test.sh
 
 backup-db: compose-check
-	bash scripts/backup-db.sh
+	bash scripts/ops/backup-db.sh
 
 restore-db: compose-check
 	@if [ -z "$(file)" ]; then \
 		echo "Usage: make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql"; \
 		exit 1; \
 	fi
-	bash scripts/restore-db.sh "$(file)"
+	bash scripts/ops/restore-db.sh "$(file)"
 
 env-init:
 	@if [ -f .env ]; then \
@@ -194,16 +194,16 @@ env-init:
 	fi
 
 env-check:
-	bash scripts/check-env.sh
+	bash scripts/dev/check-env.sh
 
 tls-cert:
-	bash scripts/generate-dev-cert.sh
+	bash scripts/dev/generate-dev-cert.sh
 
 tls-trust:
-	bash scripts/trust-dev-ca.sh
+	bash scripts/dev/trust-dev-ca.sh
 
 setup-local-deps:
-	bash scripts/setup-local-deps.sh
+	bash scripts/dev/setup-local-deps.sh
 
 setup-local-browsers:
 	cd frontend && npm run test:browsers:install

@@ -63,11 +63,11 @@ Modules implementes en reserve, non necessaires a ce `19`:
 | Exigence sujet | Type | Statut | Preuves techniques | Gap restant | Responsable | PR de reference |
 |---|---|---|---|---|---|---|
 | Framework frontend + backend | Major | Fait | React (`frontend/src`), NestJS (`backend/src`) | - | Fullstack | Historique |
-| Features temps reel | Major | Fait | Socket.IO `/ws`, `frontend/src/hooks/useRoomRealtime.ts`, contrats `docs/ws-event-contract.md` | - | Backend Realtime | Historique + lot audit/remediation 2026-04-18 |
+| Features temps reel | Major | Fait | Socket.IO `/ws`, `frontend/src/hooks/useRoomRealtime.ts`, contrats `docs/contracts/websocket-event-contract.md` | - | Backend Realtime | Historique + lot audit/remediation 2026-04-18 |
 | Interaction utilisateurs (chat, profil, amis) | Major | Fait | chat room WS (`backend/src/modules/realtime`), `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, APIs `friends/users` | - | Frontend + Backend Social | PR #12 + lot audit/remediation 2026-04-18 |
 | ORM | Minor | Fait | Prisma schema + migrations (`backend/prisma`) | - | Backend Data | Historique |
 | Notifications create/update/delete | Minor | Fait | `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `DELETE /notifications/:id`, event `notification:new`, UI dans `frontend/src/pages/FriendsPage.tsx`, test `backend/scripts/social-integration-test.mjs` | - | Frontend | lot notifications 2026-04-18 |
-| Support navigateurs additionnels | Minor | Fait | suite Playwright `frontend/tests/browser-compat.spec.ts`, config `frontend/playwright.config.ts`, commande `make browser-test`, matrice `docs/browser-compatibility-matrix.md` | - | QA Front | lot browsers 2026-04-18 |
+| Support navigateurs additionnels | Minor | Fait | suite Playwright `frontend/tests/browser-compat.spec.ts`, config `frontend/playwright.config.ts`, commande `make browser-test`, matrice `docs/operations/browser-compatibility-matrix.md` | - | QA Front | lot browsers 2026-04-18 |
 | User management (profile/avatar/friends/status) | Major | Fait | `GET/PATCH /users/me`, `POST /users/me/avatar`, service statique `/uploads`, `frontend/src/pages/ProfilePage.tsx`, `frontend/src/pages/FriendsPage.tsx`, status online/offline alimente par auth | - | Frontend | PR #12 + lot user-management 2026-04-19 |
 | Stats + historique | Minor | Fait | `GET /scores/leaderboard`, `GET /scores/users/:userId`, `GET /scores/users/:userId/history`, page `frontend/src/pages/LeaderboardPage.tsx`, historique recent dans `frontend/src/pages/ProfilePage.tsx`, progression/level/achievements visibles | - | Frontend | lot stats-history 2026-04-18 |
 | Remote auth OAuth2 | Minor | Fait | OAuth 42 (`/auth/42/start`, `/auth/42/callback`) | - | Backend Auth | Historique |
@@ -78,7 +78,7 @@ Modules implementes en reserve, non necessaires a ce `19`:
 | Game customization options | Minor | Fait | room privee/publique, rooms liees a un quiz (`quizId`), rounds bornes par quiz, `questionDurationMs` transporte dans `POST /rooms`, creation de room parametree depuis `frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx`, affichage du temps en lobby et pre-match | - | Product + Frontend | lot game-customization 2026-04-18 |
 | Spectator mode | Minor | Non vise | backend WS expose `room:spectate`, `room:spectated`, `room:spectators:update` avec protections metier | pas de parcours UI prevu dans le plan interne courant | Frontend Realtime | Decision produit 2026-04-18 |
 | SSR | Minor | Non vise | - | retire du plan interne courant | Frontend | Decision produit 2026-04-18 |
-| Health check + status page | Minor | Fait | `/health` enrichi avec etat backup, page `frontend/src/pages/StatusPage.tsx`, service `frontend/src/services/health.ts`, sidecar `backup` dans `docker-compose.yml`, script `scripts/auto-backup.sh`, scripts `scripts/backup-db.sh` et `scripts/restore-db.sh`, runbook `docs/ops-status-backup-recovery.md`, `make test-stack`, `make smoke-test` | - | DevOps | lot health-status 2026-04-19 |
+| Health check + status page | Minor | Fait | `/health` enrichi avec etat backup, page `frontend/src/pages/StatusPage.tsx`, service `frontend/src/services/health.ts`, sidecar `backup` dans `docker-compose.yml`, script `scripts/ops/auto-backup.sh`, scripts `scripts/ops/backup-db.sh` et `scripts/ops/restore-db.sh`, runbook `docs/operations/status-backup-recovery-runbook.md`, `make test-stack`, `make smoke-test` | - | DevOps | lot health-status 2026-04-19 |
 
 ## Cible 19 points
 
@@ -90,9 +90,9 @@ Le scope interne cible vers `19 / 14` est ferme sur `dev`.
 2. Exiger une preuve par ligne `Fait` (fichier, endpoint, event, test).
 3. Garder les lignes `Partiel` explicites pour prioriser les lots restants.
 4. Garder les lignes `Non vise` explicites pour eviter de confondre sujet officiel et priorisation interne.
-5. Maintenir `docs/design-system/transcendance-web-app/MASTER.md` synchronise avec l'implementation front.
-6. Maintenir `docs/design-system/transcendance-web-app/pages/lobby.md` synchronise avec la page lobby reelle.
-7. Maintenir `docs/design-system/transcendance-web-app/pages/game-room.md` synchronise avec le flux room reel.
+5. Maintenir `docs/design/system-guidelines.md` synchronise avec l'implementation front.
+6. Maintenir `docs/design/lobby-page.md` synchronise avec la page lobby reelle.
+7. Maintenir `docs/design/game-room-page.md` synchronise avec le flux room reel.
 
 ## Preuves de demo (parcours cible)
 

@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 CERT_DIR="${ROOT_DIR}/certs"
 CERT_FILE="${CERT_DIR}/dev-localhost.crt"
 KEY_FILE="${CERT_DIR}/dev-localhost.key"
@@ -14,8 +14,8 @@ if command -v ifconfig >/dev/null 2>&1; then
 	LOCAL_IPV4="$(ifconfig en0 2>/dev/null | awk '/inet / { print $2; exit }')"
 fi
 
-MKCERT_BIN="$(bash "${ROOT_DIR}/scripts/ensure-mkcert.sh")"
-bash "${ROOT_DIR}/scripts/trust-dev-ca.sh"
+MKCERT_BIN="$(bash "${ROOT_DIR}/scripts/dev/ensure-mkcert.sh")"
+bash "${ROOT_DIR}/scripts/dev/trust-dev-ca.sh"
 
 CAROOT="$("$MKCERT_BIN" -CAROOT)"
 ROOT_CA_SOURCE="${CAROOT}/rootCA.pem"

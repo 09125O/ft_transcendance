@@ -5,9 +5,9 @@
 
 ## Subject compliance
 
-- [ ] This PR is aligned with docs/api-front-contract.md (if API touched)
-- [ ] This PR is aligned with docs/ws-event-contract.md (if WS touched)
-- [ ] docs/sujet-conformite-matrice.md updated (if requirement status changed)
+- [ ] This PR is aligned with docs/contracts/http-api-contract.md (if API touched)
+- [ ] This PR is aligned with docs/contracts/websocket-event-contract.md (if WS touched)
+- [ ] docs/product/evaluation-conformity-matrix.md updated (if requirement status changed)
 - [ ] No critical flow regression (auth, room, game, ws)
 
 ## Evidence

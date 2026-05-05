@@ -79,18 +79,18 @@ Chacun peut modifier backend ou frontend, meme hors scope principal, a condition
 ## 5) Docs a mettre a jour selon impact
 
 Toujours verifier ces fichiers:
-- docs/sujet-conformite-matrice.md
+- docs/product/evaluation-conformity-matrix.md
 - docs/archive/historical/front-handover-roadmap.md
 
 Si HTTP API change:
-- docs/api-front-contract.md
+- docs/contracts/http-api-contract.md
 
 Si WebSocket change:
-- docs/ws-event-contract.md
-- docs/front2-realtime-integration.md
+- docs/contracts/websocket-event-contract.md
+- docs/integration/frontend-realtime-integration.md
 
 Si flux quiz -> room -> game change:
-- docs/quiz-room-game-integration.md
+- docs/integration/quiz-room-game-flow.md
 
 ## 6) Template PR minimum (a copier dans la description)
 
@@ -103,11 +103,11 @@ Cross-scope:
 - Owner ticket: Backend | Frontend
 
 Contracts and docs:
-- [ ] docs/api-front-contract.md updated (if HTTP changed)
-- [ ] docs/ws-event-contract.md updated (if WS changed)
-- [ ] docs/front2-realtime-integration.md updated (if realtime front flow changed)
-- [ ] docs/quiz-room-game-integration.md updated (if quiz-room-game flow changed)
-- [ ] docs/sujet-conformite-matrice.md updated (if status/proof changed)
+- [ ] docs/contracts/http-api-contract.md updated (if HTTP changed)
+- [ ] docs/contracts/websocket-event-contract.md updated (if WS changed)
+- [ ] docs/integration/frontend-realtime-integration.md updated (if realtime front flow changed)
+- [ ] docs/integration/quiz-room-game-flow.md updated (if quiz-room-game flow changed)
+- [ ] docs/product/evaluation-conformity-matrix.md updated (if status/proof changed)
 
 Validation:
 - Automated checks:
@@ -135,9 +135,9 @@ Utiliser ce prompt de base avant chaque ticket:
 
 """
 Travaille avec ces contraintes:
-- Respect strict des contrats docs/api-front-contract.md et docs/ws-event-contract.md.
+- Respect strict des contrats docs/contracts/http-api-contract.md et docs/contracts/websocket-event-contract.md.
 - Si contrat change: update doc dans la meme PR.
-- Update docs/sujet-conformite-matrice.md avec statut + preuve.
+- Update docs/product/evaluation-conformity-matrix.md avec statut + preuve.
 - Tu peux toucher backend et frontend pour debloquer, mais decris clairement l'impact cross-scope.
 - Ne laisse aucun etat UI critique sans feedback: loading/empty/error/ready.
 """

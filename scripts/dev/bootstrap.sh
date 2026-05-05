@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 COMPOSE_CMD=""
@@ -18,7 +18,7 @@ if [ ! -f .env ]; then
   printf "[OK] .env cree depuis .env.example\n"
 fi
 
-bash scripts/check-env.sh
+bash scripts/dev/check-env.sh
 
 set -a
 # shellcheck disable=SC1091
@@ -44,7 +44,7 @@ if [ -n "$COMPOSE_CMD" ]; then
   fi
 
   if [ "$APP_PROTOCOL" = "https" ]; then
-    bash scripts/generate-dev-cert.sh
+    bash scripts/dev/generate-dev-cert.sh
   else
     printf "[OK] Mode HTTP actif: generation TLS ignoree\n"
   fi
@@ -59,7 +59,7 @@ if [ -n "$COMPOSE_CMD" ]; then
 fi
 
 printf "[..] Mode detecte : local\n"
-bash scripts/setup-local-deps.sh
+bash scripts/dev/setup-local-deps.sh
 printf "Demarrage manuel ensuite :\n"
 printf "  1. cd backend && npm run start:dev\n"
 printf "  2. cd frontend && npm run dev\n"

@@ -147,9 +147,9 @@ Preuves techniques :
 - `GET /health`
 - page publique `/status`
 - sidecar `backup` dans [docker-compose.yml](/Users/d9125/Downloads/transcendance-dev/docker-compose.yml)
-- script [scripts/auto-backup.sh](/Users/d9125/Downloads/transcendance-dev/scripts/auto-backup.sh)
-- scripts [scripts/backup-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/backup-db.sh) et [scripts/restore-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/restore-db.sh)
-- runbook [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
+- script [scripts/ops/auto-backup.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/auto-backup.sh)
+- scripts [scripts/ops/backup-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/backup-db.sh) et [scripts/ops/restore-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/restore-db.sh)
+- runbook [status-backup-recovery-runbook.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/status-backup-recovery-runbook.md)
 
 Ce qui est effectivement démontrable :
 
@@ -173,9 +173,9 @@ Preuves techniques :
 
 Points d'entrée utiles :
 
-- [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
-- [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
-- [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)
+- [websocket-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/websocket-event-contract.md)
+- [frontend-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/frontend-realtime-integration.md)
+- [quiz-room-game-flow.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/quiz-room-game-flow.md)
 
 ### 4.4 Stats and match history
 
@@ -199,13 +199,13 @@ Preuves techniques :
 Points d'entrée utiles :
 
 - [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
-- [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
+- [http-api-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/http-api-contract.md)
 
 ## 5. Parcours de démo recommandés
 
 Checklist de démo détaillée :
 
-- [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
+- [demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/product/demo-checklist.md)
 
 Parcours courts à préparer :
 
@@ -335,13 +335,14 @@ Notes d'exploitation :
 Documents de reference a utiliser pour la soutenance :
 
 - [docs/README.md](/Users/d9125/Downloads/transcendance-dev/docs/README.md)
-- [docs/sujet-conformite-matrice.md](/Users/d9125/Downloads/transcendance-dev/docs/sujet-conformite-matrice.md)
-- [docs/soutenance-demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/soutenance-demo-checklist.md)
-- [docs/ops-status-backup-recovery.md](/Users/d9125/Downloads/transcendance-dev/docs/ops-status-backup-recovery.md)
-- [docs/api-front-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/api-front-contract.md)
-- [docs/ws-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/ws-event-contract.md)
-- [docs/front2-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/front2-realtime-integration.md)
-- [docs/quiz-room-game-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/quiz-room-game-integration.md)
+- [evaluation-conformity-matrix.md](/Users/d9125/Downloads/transcendance-dev/docs/product/evaluation-conformity-matrix.md)
+- [demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/product/demo-checklist.md)
+- [status-backup-recovery-runbook.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/status-backup-recovery-runbook.md)
+- [http-api-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/http-api-contract.md)
+- [websocket-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/websocket-event-contract.md)
+- [frontend-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/frontend-realtime-integration.md)
+- [quiz-room-game-flow.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/quiz-room-game-flow.md)
+- [developer-guide.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/developer-guide.md)
 
 ## 9. Elements Intra encore a completer manuellement
 

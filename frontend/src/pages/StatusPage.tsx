@@ -276,7 +276,7 @@ export default function StatusPage() {
                 Si la sauvegarde automatique est en attention, l'application reste utilisable mais le module backup/recovery n'est plus dans un état défendable.
               </p>
               <p className="m-0 rounded-[20px] border border-text/10 bg-background/75 px-4 py-4">
-                La procédure détaillée de sauvegarde et de reprise est documentée dans <code>docs/ops-status-backup-recovery.md</code>.
+                La procédure détaillée de sauvegarde et de reprise est documentée dans <code>docs/operations/status-backup-recovery-runbook.md</code>.
               </p>
             </div>
           </Panel>

@@ -2,13 +2,13 @@
 
 set -eu
 
-ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 INPUT_FILE="${1:-}"
 
 if [ -z "$INPUT_FILE" ]; then
-  printf '[KO] Usage: bash scripts/restore-db.sh backups/your-file.sql\n' >&2
+  printf '[KO] Usage: bash scripts/ops/restore-db.sh backups/your-file.sql\n' >&2
   exit 1
 fi
 
