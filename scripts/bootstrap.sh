@@ -21,11 +21,12 @@ fi
 bash scripts/check-env.sh
 
 set -a
+# shellcheck disable=SC1091
 . ./.env
 set +a
 
 if [ -n "${APP_PROTOCOL:-}" ]; then
-  APP_PROTOCOL="$APP_PROTOCOL"
+  :
 elif printf '%s' "${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then
   APP_PROTOCOL="https"
 else

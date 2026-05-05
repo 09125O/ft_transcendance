@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 
 if [ -f .env ]; then
 	set -a
+	# shellcheck disable=SC1091
 	. ./.env
 	set +a
 fi
@@ -14,7 +15,7 @@ fi
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 BACKEND_PORT="${BACKEND_PORT:-4000}"
 if [ -n "${APP_PROTOCOL:-}" ]; then
-	APP_PROTOCOL="$APP_PROTOCOL"
+	:
 elif printf '%s' "${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; then
 	APP_PROTOCOL="https"
 else
