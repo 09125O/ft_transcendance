@@ -155,7 +155,7 @@ Chemin :
 2. montrer `Interface`, `API NestJS`, `PostgreSQL`, `Sauvegarde automatisee`
 3. lancer `make test-stack`
 4. lancer `make backup-db`
-5. montrer le dump cree dans `backups/`
+5. montrer le dump cree dans `.local/backups/`
 
 Preuves modules :
 

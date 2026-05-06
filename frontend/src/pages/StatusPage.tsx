@@ -254,7 +254,7 @@ export default function StatusPage() {
                 </div>
                 <div className="rounded-[20px] border border-text/10 bg-background/75 px-4 py-4">
                   <p className="m-0 text-sm font-semibold text-text">Restaurer la DB</p>
-                  <code className="mt-3 block text-sm text-text/70">make restore-db file=backups/...</code>
+                  <code className="mt-3 block text-sm text-text/70">make restore-db file=.local/backups/...</code>
                 </div>
               </div>
             </Panel>

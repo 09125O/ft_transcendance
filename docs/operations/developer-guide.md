@@ -117,8 +117,10 @@ Un service `nginx` pourra etre ajoute plus tard si on veut :
 - `backend/` : application backend
 - `backend/prisma/` : schema Prisma et migrations SQL
 - `backend/prisma.config.ts` : configuration Prisma CLI pour les migrations et la datasource
+- `backend/test/scenarios/` : scenarios Node de verification backend et realtime
 - `frontend/` : application frontend
 - `scripts/test/smoke-test.sh` : test rapide de la stack
+- `.local/` : artefacts locaux non versionnes (`certs`, `backups`, runtime backend, resultats Playwright)
 - `.env` : variables locales
 - `.env.example` : modele de configuration
 

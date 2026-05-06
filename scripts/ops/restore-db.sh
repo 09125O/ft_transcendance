@@ -8,7 +8,7 @@ cd "$ROOT_DIR"
 INPUT_FILE="${1:-}"
 
 if [ -z "$INPUT_FILE" ]; then
-  printf '[KO] Usage: bash scripts/ops/restore-db.sh backups/your-file.sql\n' >&2
+  printf '[KO] Usage: bash scripts/ops/restore-db.sh .local/backups/your-file.sql\n' >&2
   exit 1
 fi
 

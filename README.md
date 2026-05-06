@@ -305,7 +305,7 @@ Commandes utiles :
 - `make smoke-test`
 - `make smoke-test-ws`
 - `make backup-db`
-- `make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql`
+- `make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql`
 - `make browser-test`
 
 Verification code :
@@ -327,7 +327,7 @@ URLs utiles :
 
 Notes d'exploitation :
 
-- les certificats de dev dans `certs/` sont generes localement et ne doivent pas etre consideres comme des artefacts de release
+- les certificats de dev dans `.local/certs/` sont generes localement et ne doivent pas etre consideres comme des artefacts de release
 - le mode `HTTP/LAN` sert au test multi-postes ; le mode `HTTPS local` sert au dev local et a la demo sur une machine
 
 ## 8. Cartographie documentaire

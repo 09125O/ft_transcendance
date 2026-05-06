@@ -56,9 +56,9 @@ if [ -n "${WS_BASE_URL:-}" ]; then
 
 	compose exec -T -e WS_BASE_URL="$WS_BASE_URL" backend sh -lc '
 		if [ "'"$EFFECTIVE_PROTOCOL"'" = "https" ] && [ -f /certs/mkcert-rootCA.pem ]; then
-			NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node scripts/ws-smoke-test.mjs
+			NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node test/scenarios/ws-smoke-test.mjs
 		else
-			node scripts/ws-smoke-test.mjs
+			node test/scenarios/ws-smoke-test.mjs
 		fi
 	'
 else

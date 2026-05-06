@@ -1,66 +1,41 @@
 # Repository Copilot Instructions
 
-Objectif: garantir la conformite sujet et la stabilite du produit, sans bloquer la creativite front.
+But: garder `.github/` concentre sur la contribution et l'automatisation GitHub, pas sur la documentation projet.
 
-## Non negociable rules
+## Source de verite
 
-1. Respecter les contrats:
-- docs/contracts/http-api-contract.md
-- docs/contracts/websocket-event-contract.md
-- docs/integration/frontend-realtime-integration.md
-- docs/product/evaluation-conformity-matrix.md
+Avant de modifier le code, lire les docs suivantes selon le scope touche :
 
-2. Respecter le module design UI/UX:
-- docs/design/system-guidelines.md
-- docs/design/lobby-page.md
-- docs/design/game-room-page.md
+- `docs/README.md`
+- `docs/contracts/http-api-contract.md`
+- `docs/contracts/websocket-event-contract.md`
+- `docs/integration/frontend-realtime-integration.md`
+- `docs/product/evaluation-conformity-matrix.md`
 
-3. Ne jamais casser les flux critiques:
-- auth/session
-- room join/start
-- game answer loop
-- websocket auth
+Si le changement touche l'UI :
 
-4. Si un changement modifie un contrat API/WS:
-- mettre a jour la documentation dans la meme PR.
-- decrire l'impact dans le resume PR.
+- `docs/design/system-guidelines.md`
+- `docs/design/lobby-page.md`
+- `docs/design/game-room-page.md`
 
-5. Toute PR qui ferme un gap sujet doit mettre a jour:
-- docs/product/evaluation-conformity-matrix.md
-- statut: Fait / Partiel / A faire
-- preuve technique (endpoint, event, test, ecran)
+## Regles non negociables
 
-## Creativity zone (allowed and encouraged)
+1. Ne jamais casser les flux critiques :
+- `auth/session`
+- `room join/start`
+- `game answer loop`
+- `websocket auth`
 
-1. Liberté sur:
-- architecture de composants
-- organisation hooks/services
-- design system, UI layout, animations
-- micro-interactions UX
+2. Si un payload HTTP ou WebSocket change :
+- mettre a jour le contrat correspondant dans la meme PR
+- mentionner l'impact dans le resume PR
 
-2. Garder la compatibilite:
-- ne pas changer les payloads API/WS sans mise a jour contrat
-- ne pas introduire de comportement opaque pour l'utilisateur
+3. Si un changement modifie un claim sujet :
+- mettre a jour `docs/product/evaluation-conformity-matrix.md`
+- garder une preuve concrete : endpoint, event, test ou ecran
 
-3. Pour chaque ticket front:
-- proposer au moins 1 amelioration UX creative non bloquante
-- expliciter le compromis (simplicite, performance, lisibilite)
-
-4. Skill UI/UX Pro Max (Copilot prompt):
-- sur les demandes UI/UX, utiliser le workflow de `.github/prompts/ui-ux-pro-max/PROMPT.md`
-- utiliser les commandes Python du prompt avec le chemin workspace `.github/prompts/ui-ux-pro-max/scripts/search.py`
-
-## Definition of Done
-
-Une tache est terminee si:
-- code compile et tests pertinents passent
-- comportement conforme aux docs
-- matrice sujet mise a jour si impact
-- etats UI minimum couverts: loading, empty, error, ready
-
-## Collaboration mode
-
-1. Revue 1: conformite fonctionnelle (bloquante)
-2. Revue 2: qualite UX/code (discussion, bloquante seulement si risque reel)
-
-Ce cadre fixe le minimum qualite, mais laisse la solution technique et le style visuel libres.
+4. Toute tache n'est terminee que si :
+- le code compile
+- les checks pertinents passent
+- la documentation impactee est alignee
+- les etats UI minimum restent couverts : `loading`, `empty`, `error`, `ready`

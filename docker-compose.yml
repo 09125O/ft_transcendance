@@ -9,7 +9,7 @@ services:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app
-      - ./certs:/certs:ro
+      - ./.local/certs:/certs:ro
       - /app/node_modules
     env_file:
       - .env
@@ -42,13 +42,15 @@ services:
       - "${BACKEND_PORT:-4000}:4000"
     volumes:
       - ./backend:/app
-      - ./certs:/certs:ro
+      - ./.local/certs:/certs:ro
+      - ./.local/backend-runtime:/runtime
       - /app/node_modules
     env_file:
       - .env
     environment:
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
-      BACKUP_STATUS_FILE: /app/.runtime/backup-status.json
+      BACKUP_STATUS_FILE: /runtime/backup-status.json
+      BACKEND_RUNTIME_DIR: /runtime
     depends_on:
       db:
         condition: service_healthy
@@ -80,8 +82,8 @@ services:
       BACKUP_DIR: /backups
       BACKUP_STATUS_FILE: /runtime/backup-status.json
     volumes:
-      - ./backups:/backups
-      - ./backend/.runtime:/runtime
+      - ./.local/backups:/backups
+      - ./.local/backend-runtime:/runtime
       - ./scripts:/scripts:ro
     depends_on:
       db:

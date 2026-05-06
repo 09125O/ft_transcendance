@@ -1,5 +1,7 @@
 # Backend test quickstart
 
+Les scenarios Node utilises par les commandes de verification backend sont ranges dans `backend/test/scenarios/`.
+
 ## Run tests locally
 
 ```bash

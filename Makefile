@@ -47,8 +47,8 @@ help:
 	@echo "  make browser-test        -> Run the cross-browser Playwright smoke suite (requires running stack)"
 	@echo "  make smoke-test          -> Run the general smoke test (dev env, db, websocket api, authentication, frontend)"
 	@echo "  make smoke-test-ws       -> Run only the backend WebSocket smoke test"
-	@echo "  make backup-db           -> Create a local PostgreSQL backup in backups/"
-	@echo "  make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql"
+	@echo "  make backup-db           -> Create a local PostgreSQL backup in .local/backups/"
+	@echo "  make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql"
 	@echo "                           -> Restore a PostgreSQL backup into the local db container"
 	@echo "  make env-init            -> Create .env from .env.example if missing"
 	@echo "  make env-check           -> Check required variables in .env"
@@ -180,7 +180,7 @@ backup-db: compose-check
 
 restore-db: compose-check
 	@if [ -z "$(file)" ]; then \
-		echo "Usage: make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql"; \
+		echo "Usage: make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql"; \
 		exit 1; \
 	fi
 	bash scripts/ops/restore-db.sh "$(file)"

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
 
 const appProtocol =
   process.env.APP_PROTOCOL === "https" ||
@@ -10,6 +11,7 @@ const baseURL =
 
 export default defineConfig({
   testDir: "./tests",
+  outputDir: resolve(__dirname, "../.local/playwright/test-results"),
   fullyParallel: false,
   workers: 1,
   timeout: 90_000,

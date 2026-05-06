@@ -5,8 +5,9 @@ frontend/dist/
 .env
 .env.*
 !.env.example
-certs/
-backend/.runtime/
+.local/
+.local
+.runtime/
 .gstack/
 test-results/
 visual-pass/

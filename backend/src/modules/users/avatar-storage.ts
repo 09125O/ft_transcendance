@@ -1,8 +1,11 @@
-import { basename, join } from "path";
+import { basename, join, resolve } from "path";
 
 export const PUBLIC_UPLOADS_PREFIX = "/uploads";
 export const AVATAR_PUBLIC_PREFIX = `${PUBLIC_UPLOADS_PREFIX}/avatars`;
-export const UPLOADS_ROOT_DIR = join(process.cwd(), ".runtime", "uploads");
+const backendRuntimeDir = process.env.BACKEND_RUNTIME_DIR
+  ? resolve(process.env.BACKEND_RUNTIME_DIR)
+  : join(process.cwd(), ".runtime");
+export const UPLOADS_ROOT_DIR = join(backendRuntimeDir, "uploads");
 export const AVATAR_UPLOADS_DIR = join(UPLOADS_ROOT_DIR, "avatars");
 
 export const MAX_AVATAR_FILE_SIZE_BYTES = 2 * 1024 * 1024;

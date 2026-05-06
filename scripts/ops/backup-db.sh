@@ -5,7 +5,7 @@ set -eu
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-BACKUP_DIR="${BACKUP_DIR:-${ROOT_DIR}/backups}"
+BACKUP_DIR="${BACKUP_DIR:-${ROOT_DIR}/.local/backups}"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 OUTPUT_FILE="${1:-${BACKUP_DIR}/quiz_db-${TIMESTAMP}.sql}"
 

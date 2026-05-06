@@ -48,7 +48,8 @@ export class AppService {
   constructor(private readonly prismaService: PrismaService) {}
 
   private readonly backupStatusFile =
-    process.env.BACKUP_STATUS_FILE ?? "/app/.runtime/backup-status.json";
+    process.env.BACKUP_STATUS_FILE ??
+    `${process.env.BACKEND_RUNTIME_DIR ?? "/app/.runtime"}/backup-status.json`;
 
   async getHealth(): Promise<HealthStatus> {
     const backupConfigured =

@@ -3,7 +3,7 @@
 set -eu
 
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
-CERT_DIR="${ROOT_DIR}/certs"
+CERT_DIR="${ROOT_DIR}/.local/certs"
 CERT_FILE="${CERT_DIR}/dev-localhost.crt"
 KEY_FILE="${CERT_DIR}/dev-localhost.key"
 CA_FILE="${CERT_DIR}/mkcert-rootCA.pem"

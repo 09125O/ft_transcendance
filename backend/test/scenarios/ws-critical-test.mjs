@@ -29,7 +29,7 @@ const REQUIRED_MARKER_GROUPS = [
 
 function runSmokeAndCapture() {
   return new Promise((resolve, reject) => {
-    const scriptArgs = ["scripts/ws-smoke-test.mjs"];
+    const scriptArgs = ["test/scenarios/ws-smoke-test.mjs"];
     const child = spawn(process.execPath, scriptArgs, {
       stdio: ["ignore", "pipe", "pipe"],
       env: process.env,

@@ -30,7 +30,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["scripts/**/*.mjs"],
+    files: ["test/scenarios/**/*.mjs"],
     extends: [js.configs.recommended],
     languageOptions: {
       globals: {

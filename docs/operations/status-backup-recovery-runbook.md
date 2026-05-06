@@ -13,10 +13,10 @@ Important :
 
 La stack locale embarque 2 niveaux de sauvegarde :
 
-- un sidecar `backup` qui cree automatiquement des dumps PostgreSQL dans `backups/`
+- un sidecar `backup` qui cree automatiquement des dumps PostgreSQL dans `.local/backups/`
 - des commandes manuelles `make backup-db` et `make restore-db` pour provoquer une sauvegarde ou restaurer un dump choisi
 
-Le backend lit l'etat de l'automatisation depuis `backend/.runtime/backup-status.json` et l'expose dans `/health`. La page `${FRONTEND_ORIGIN}/status` affiche ce meme etat.
+Le backend lit l'etat de l'automatisation depuis `.local/backend-runtime/backup-status.json` et l'expose dans `/health`. La page `${FRONTEND_ORIGIN}/status` affiche ce meme etat.
 
 Le runbook vaut pour les 2 profils supportes :
 
@@ -48,7 +48,7 @@ Lecture attendue de `/status` :
 Variables de pilotage :
 
 - `BACKUP_INTERVAL_SECONDS` : frequence des dumps automatiques
-- `BACKUP_RETENTION_COUNT` : nombre de dumps gardes dans `backups/`
+- `BACKUP_RETENTION_COUNT` : nombre de dumps gardes dans `.local/backups/`
 
 ## 2. Sauvegarder la base locale
 
@@ -60,7 +60,7 @@ Automatique :
 
 Manuel :
 
-Creer un dump SQL dans `backups/` :
+Creer un dump SQL dans `.local/backups/` :
 
 ```bash
 make backup-db
@@ -68,8 +68,8 @@ make backup-db
 
 Resultat attendu :
 
-- un fichier du type `backups/quiz_db-YYYYMMDD-HHMMSS.sql`
-- le sidecar `backup` met a jour `backend/.runtime/backup-status.json`
+- un fichier du type `.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql`
+- le sidecar `backup` met a jour `.local/backend-runtime/backup-status.json`
 - la page `/status` affiche `Dernier succes` et `Dernier dump`
 
 Le dump contient des `DROP` / `CREATE` pour permettre une restauration complete de la base locale.
@@ -79,7 +79,7 @@ Le dump contient des `DROP` / `CREATE` pour permettre une restauration complete 
 Restaurer un dump :
 
 ```bash
-make restore-db file=backups/quiz_db-YYYYMMDD-HHMMSS.sql
+make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql
 ```
 
 Notes :
@@ -134,6 +134,6 @@ Parcours court :
 4. lancer `make smoke-test`
 5. montrer l'etat `Sauvegarde automatisee` dans `/status`
 6. lancer `make backup-db`
-7. montrer le fichier cree dans `backups/`
+7. montrer le fichier cree dans `.local/backups/`
 
 Ce runbook documente une procedure locale simple et executable, avec sauvegarde automatisee locale et reprise manuelle.
