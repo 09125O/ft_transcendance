@@ -239,6 +239,264 @@ Conclusion :
 - GitHub Actions peut utiliser des secrets sans les ecrire dans le repo
 - chaque machine locale doit avoir son propre `.env`
 
+## Tutoriel de lancement
+
+### 1. Choisir le bon contexte de travail
+
+Avant de lancer le projet, il faut choisir entre 3 cas :
+
+1. `Poste avec Docker deja operationnel`
+   C'est le mode recommande pour travailler normalement sur le projet.
+2. `Poste du meme reseau sans Docker`
+   Ce poste ne doit pas lancer la stack. Il doit seulement ouvrir le frontend servi par une machine hote via `HTTP/LAN`.
+3. `Poste sans Docker mais avec Node, npm et PostgreSQL deja installes`
+   Ce mode est reserve au debug local ou a un usage contraint. Il est moins simple que la stack Docker.
+
+### 2. Preparer le fichier `.env`
+
+Si `.env` n'existe pas encore :
+
+```bash
+cp .env.example .env
+```
+
+Puis choisir le profil voulu.
+
+Pour `HTTPS local` sur une machine de dev :
+
+```env
+APP_PROTOCOL=https
+FRONTEND_ORIGIN=https://localhost:3000
+AUTH_COOKIE_SECURE=true
+FT_REDIRECT_URI=https://localhost:4000/auth/42/callback
+```
+
+Pour `HTTP/LAN` sur une machine hote partagee :
+
+```env
+APP_PROTOCOL=http
+FRONTEND_ORIGIN=http://localhost:3000
+AUTH_COOKIE_SECURE=auto
+FT_REDIRECT_URI=http://localhost:4000/auth/42/callback
+```
+
+Verification rapide :
+
+```bash
+make env-check
+```
+
+### 3. Premier lancement sur une machine avec Docker
+
+Commande de base :
+
+```bash
+make
+```
+
+Ce que fait `make` :
+
+1. cree `.env` depuis `.env.example` si besoin
+2. verifie la configuration
+3. en mode `https`, installe ou retrouve `mkcert` localement si `go` est disponible
+4. genere les certificats de dev sous `.local/certs/`
+5. lance `docker compose up --build -d --wait`
+
+Quand le lancement reussit, verifier ensuite :
+
+```bash
+make test-stack
+make smoke-test
+```
+
+URLs a ouvrir :
+
+- `https://localhost:3000` ou `http://localhost:3000` selon le profil
+- `${APP_PROTOCOL}://localhost:4000/health`
+
+### 4. Redemarrer la stack apres un changement de profil
+
+Si tu modifies `.env` ou si tu veux reconstruire proprement :
+
+```bash
+make restart
+```
+
+Cas typiques :
+
+- passage `HTTPS local` -> `HTTP/LAN`
+- changement de ports
+- changement d'options de cookies ou d'OAuth
+- besoin de regénérer les certifs de dev
+
+### 5. Lancer le projet en `HTTP/LAN` pour plusieurs postes
+
+La bonne logique est :
+
+1. une seule machine hote lance la stack
+2. les autres machines du meme reseau n'executent pas `make`
+3. elles ouvrent seulement le frontend de la machine hote
+
+Sur la machine hote :
+
+```bash
+make restart
+```
+
+Puis recuperer son IP locale, par exemple `192.168.1.42`.
+
+Depuis les autres postes :
+
+```text
+http://192.168.1.42:3000
+```
+
+Important :
+
+- les clients n'ont pas besoin d'acceder directement au port `4000`
+- le frontend proxy relaie deja l'API et Socket.IO
+- pour ce mode, privilegier auth locale ou guest
+- l'auth OAuth 42 n'est pas le meilleur choix en LAN via IP privee
+
+### 6. Lancement hors Docker
+
+Ce mode n'est valable que si le poste a deja :
+
+- `node`
+- `npm`
+- `postgresql`
+
+Installation des dependances projet :
+
+```bash
+make setup-local-deps
+```
+
+Demarrage manuel :
+
+```bash
+cd backend && npm run start:dev
+cd frontend && npm run dev
+```
+
+Si `make` affiche `node est requis pour l'installation locale`, cela signifie :
+
+- Docker n'est pas exploitable sur le poste
+- et le runtime Node local n'est pas disponible non plus
+
+Dans ce cas, il faut soit :
+
+- utiliser une machine Docker deja preparee
+- utiliser un serveur distant
+- ou installer les pre-requis systeme hors de ce repo
+
+## Tutoriel de manipulation
+
+### 1. Routine quotidienne minimale
+
+Au debut d'une session :
+
+```bash
+git pull
+make
+make test-stack
+```
+
+Pendant le dev :
+
+```bash
+make logs
+```
+
+Ou par service :
+
+```bash
+make logs-back
+make logs-front
+make logs-db
+make logs-backup
+```
+
+### 2. Verifier que tout fonctionne apres une modif
+
+Verification rapide recommandee :
+
+```bash
+make test-stack
+make smoke-test
+```
+
+Si tu touches surtout le realtime :
+
+```bash
+make smoke-test-ws
+docker exec quiz_backend npm run test:ws-critical
+```
+
+Si tu touches surtout le front :
+
+```bash
+make browser-test
+```
+
+### 3. Manipuler la base de donnees
+
+Entrer dans `psql` :
+
+```bash
+make shell-db
+```
+
+Faire un backup manuel :
+
+```bash
+make backup-db
+```
+
+Restaurer un backup :
+
+```bash
+make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql
+```
+
+### 4. Nettoyer ou reconstruire
+
+Arret simple :
+
+```bash
+make down
+```
+
+Suppression containers + images :
+
+```bash
+make clean
+```
+
+Reinitialisation complete avec volumes :
+
+```bash
+make fclean
+```
+
+Attention :
+
+- `make clean` garde les volumes PostgreSQL
+- `make fclean` supprime aussi les volumes, donc les donnees locales
+
+### 5. Parcours de verification manuelle utile avant une demo
+
+Ordre conseille :
+
+1. ouvrir `/login` ou utiliser une session guest
+2. verifier `/profile`
+3. verifier `/friends`
+4. creer ou rejoindre une room
+5. lancer une partie
+6. verifier le leaderboard et l'historique
+7. ouvrir `/status`
+8. lancer `make smoke-test`
+
 ## Commandes utiles
 
 ### Lancer le projet
