@@ -14,7 +14,7 @@ import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { SafeUser } from "./types/safe-user.type";
-import { getFrontendOrigin } from "@/config/runtime";
+import { resolveFrontendOriginFromRequest } from "@/config/runtime";
 
 @Controller("auth")
 export class AuthController {
@@ -48,8 +48,8 @@ export class AuthController {
   }
 
   @Get("42/start")
-  oauth42Start(@Res() res: Response): void {
-    const frontendOrigin = getFrontendOrigin();
+  oauth42Start(@Req() req: Request, @Res() res: Response): void {
+    const frontendOrigin = resolveFrontendOriginFromRequest(req.headers);
 
     try {
       res.redirect(this.authService.getOauth42StartUrl(res));
@@ -69,7 +69,7 @@ export class AuthController {
     @Query("state") state: string,
     @Res() res: Response,
   ): Promise<void> {
-    const frontendOrigin = getFrontendOrigin();
+    const frontendOrigin = resolveFrontendOriginFromRequest(req.headers);
 
     if (!code || !state) {
       this.authService.clearOauth42State(res);

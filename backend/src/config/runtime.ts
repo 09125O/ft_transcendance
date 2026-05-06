@@ -5,6 +5,28 @@ function normalizeProtocol(value: string | undefined): "http" | "https" {
   return value?.toLowerCase() === "https" ? "https" : "http";
 }
 
+function trimTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function normalizeOriginValue(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = trimTrailingSlashes(value.trim());
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return null;
+  }
+}
+
 export function getAppProtocol(): "http" | "https" {
   const inferredProtocol = process.env.FRONTEND_ORIGIN?.startsWith("https://")
     ? "https"
@@ -18,7 +40,7 @@ export function getFrontendPort(): number {
 
 export function getFrontendOrigin(): string {
   return (
-    process.env.FRONTEND_ORIGIN ||
+    normalizeOriginValue(process.env.FRONTEND_ORIGIN) ||
     `${getAppProtocol()}://localhost:${getFrontendPort()}`
   );
 }
@@ -26,7 +48,7 @@ export function getFrontendOrigin(): string {
 function getConfiguredCorsOrigins(): string[] {
   return (process.env.CORS_ALLOWED_ORIGINS || "")
     .split(",")
-    .map((value) => value.trim())
+    .map((value) => normalizeOriginValue(value))
     .filter(Boolean);
 }
 
@@ -52,16 +74,18 @@ function getOriginPort(url: URL): string {
 }
 
 export function isOriginAllowed(origin: string | undefined): boolean {
-  if (!origin) {
+  const normalizedOrigin = normalizeOriginValue(origin);
+
+  if (!normalizedOrigin) {
     return true;
   }
 
   const explicitOrigins = getConfiguredCorsOrigins();
-  if (explicitOrigins.includes(origin)) {
+  if (explicitOrigins.includes(normalizedOrigin)) {
     return true;
   }
 
-  if (origin === getFrontendOrigin()) {
+  if (normalizedOrigin === getFrontendOrigin()) {
     return true;
   }
 
@@ -70,7 +94,7 @@ export function isOriginAllowed(origin: string | undefined): boolean {
   }
 
   try {
-    const url = new URL(origin);
+    const url = new URL(normalizedOrigin);
     if (url.protocol !== "http:") {
       return false;
     }
@@ -79,4 +103,34 @@ export function isOriginAllowed(origin: string | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+function getHeaderValue(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+export function resolveFrontendOriginFromRequest(headers: {
+  origin?: string | string[];
+  referer?: string | string[];
+  referrer?: string | string[];
+}): string {
+  const origin = normalizeOriginValue(getHeaderValue(headers.origin));
+  if (origin && isOriginAllowed(origin)) {
+    return origin;
+  }
+
+  const referer =
+    getHeaderValue(headers.referer) || getHeaderValue(headers.referrer);
+  const refererOrigin = normalizeOriginValue(referer);
+  if (refererOrigin && isOriginAllowed(refererOrigin)) {
+    return refererOrigin;
+  }
+
+  return getFrontendOrigin();
 }
