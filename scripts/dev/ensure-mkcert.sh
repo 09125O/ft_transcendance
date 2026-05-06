@@ -3,8 +3,10 @@
 set -eu
 
 ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
-TOOL_DIR="${ROOT_DIR}/.gstack/bin"
+TOOL_DIR="${ROOT_DIR}/.local/bin"
 MKCERT_BIN="${TOOL_DIR}/mkcert"
+GO_DIR="${ROOT_DIR}/.local/go"
+GOMOD_DIR="${ROOT_DIR}/.local/gomod"
 
 if [ -n "${MKCERT:-}" ] && [ -x "$MKCERT" ]; then
 	printf '%s\n' "$MKCERT"
@@ -27,12 +29,12 @@ command -v go >/dev/null 2>&1 || {
 	exit 1
 }
 
-mkdir -p "$TOOL_DIR" "${ROOT_DIR}/.gstack/go" "${ROOT_DIR}/.gstack/gomod"
+mkdir -p "$TOOL_DIR" "$GO_DIR" "$GOMOD_DIR"
 
 printf '[..] mkcert absent: installation locale dans %s\n' "$MKCERT_BIN" >&2
 GOBIN="$TOOL_DIR" \
-GOPATH="${ROOT_DIR}/.gstack/go" \
-GOMODCACHE="${ROOT_DIR}/.gstack/gomod" \
+GOPATH="$GO_DIR" \
+GOMODCACHE="$GOMOD_DIR" \
 	go install filippo.io/mkcert@v1.4.4
 
 [ -x "$MKCERT_BIN" ] || {

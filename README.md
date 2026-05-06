@@ -274,8 +274,9 @@ make
 
 La commande utilise le mode courant de `.env` :
 
-- Docker disponible : creation de `.env` si besoin, installation locale de `mkcert` si besoin, generation TLS locale en mode `https`, build et demarrage de la stack complete
-- Docker absent : installation locale des dépendances `frontend` et `backend`
+- Docker operationnel : creation de `.env` si besoin, installation locale de `mkcert` si besoin, generation TLS locale en mode `https`, build et demarrage de la stack complete
+- Docker detecte mais non exploitable : `make` s'arrete avec un message clair
+- Docker absent : `make` bascule en mode local seulement si `node` et `npm` sont deja presents sur le poste
 
 Si vous changez de profil dans `.env`, relancer :
 
@@ -294,6 +295,14 @@ Installation locale hors Docker :
 make setup-local-deps
 make setup-local-browsers
 ```
+
+Notes :
+
+- ce repo n'installe pas `docker`, `node` ou `npm` au niveau systeme
+- sur un poste d'ecole sans `sudo`, la voie recommandee reste :
+  - une machine hote deja preparee avec Docker pour les tests `HTTP/LAN`
+  - ou un serveur distant partage
+- hors Docker, `node`, `npm` et PostgreSQL doivent deja etre disponibles localement
 
 Commandes utiles :
 

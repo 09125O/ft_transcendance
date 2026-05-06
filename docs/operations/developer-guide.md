@@ -216,9 +216,22 @@ Pour faire fonctionner le projet apres un clone :
 - remplir les vraies valeurs dans `.env`
 - lancer `make`
 
-Sur Fedora 42, `make` installe automatiquement `mkcert` dans `.gstack/bin`
-si le binaire est absent, puis installe la CA locale dans le trust store
-navigateur utilisateur sans demander `sudo`.
+`make` ne tente pas d'installer `docker`, `node` ou `npm` au niveau systeme.
+Sur un nouveau poste, il distingue simplement trois cas :
+
+- `Docker` + `Docker Compose` deja operationnels : lancement de la stack
+- `Docker` detecte mais non exploitable : arret avec message explicite
+- `Docker` absent mais `node` + `npm` presents : bascule en mode local manuel
+
+Quand le profil `HTTPS local` est actif, `make` peut en revanche installer
+`mkcert` localement sans `sudo` dans `.local/bin` si `go` est deja disponible,
+puis tenter d'installer la CA locale dans le trust store navigateur utilisateur.
+
+Pour un poste d'ecole sans droits `sudo`, il faut donc raisonner ainsi :
+
+- soit utiliser une machine hote deja preparee avec Docker
+- soit utiliser un serveur distant partage
+- soit lancer hors Docker uniquement si `node`, `npm` et PostgreSQL existent deja localement
 
 Conclusion :
 

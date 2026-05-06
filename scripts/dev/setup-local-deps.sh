@@ -7,11 +7,15 @@ cd "$ROOT_DIR"
 
 command -v node >/dev/null 2>&1 || {
   printf "[KO] node est requis pour l'installation locale.\n" >&2
+  printf "[WARN] Le mode local n'est possible que si Node.js, npm et PostgreSQL sont deja installes sur le poste.\n" >&2
+  printf "[WARN] Sans cela, utilise une machine hote Docker deja preparee ou un serveur distant.\n" >&2
   exit 1
 }
 
 command -v npm >/dev/null 2>&1 || {
   printf "[KO] npm est requis pour l'installation locale.\n" >&2
+  printf "[WARN] Le mode local n'est possible que si Node.js, npm et PostgreSQL sont deja installes sur le poste.\n" >&2
+  printf "[WARN] Sans cela, utilise une machine hote Docker deja preparee ou un serveur distant.\n" >&2
   exit 1
 }
 
