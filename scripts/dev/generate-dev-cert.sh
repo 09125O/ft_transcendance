@@ -48,4 +48,4 @@ fi
 	>/dev/null 2>&1
 
 chmod 600 "$KEY_FILE"
-printf '[OK] Certificat TLS de dev genere: %s\n' "$CERT_FILE"
+printf '[OK] Certificat TLS de dev genere .local/certs/dev-localhost.crt\n'

@@ -95,14 +95,8 @@ bootstrap:
 bootstrap-trust:
 	bash scripts/dev/bootstrap.sh
 
-up: env-check compose-check
-	@set -a; . ./.env; set +a; \
-	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
-		bash scripts/dev/generate-dev-cert.sh; \
-	else \
-		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
-	fi
-	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
+up: compose-check
+	bash scripts/dev/stack-control.sh up
 
 down: compose-check
 	$(COMPOSE) down
@@ -117,15 +111,8 @@ re: compose-check
 	$(COMPOSE) down -v --remove-orphans
 	@$(MAKE) up
 
-restart: env-check compose-check
-	@set -a; . ./.env; set +a; \
-	if { [ -n "$${APP_PROTOCOL:-}" ] && [ "$$APP_PROTOCOL" = "https" ]; } || { [ -z "$${APP_PROTOCOL:-}" ] && printf '%s' "$${FRONTEND_ORIGIN:-}" | grep -Eq '^https://'; }; then \
-		bash scripts/dev/generate-dev-cert.sh; \
-	else \
-		echo "[OK] Mode HTTP actif: generation TLS ignoree"; \
-	fi
-	$(COMPOSE) down
-	$(COMPOSE) up --build -d $(COMPOSE_UP_WAIT)
+restart: compose-check
+	bash scripts/dev/stack-control.sh restart
 
 logs: compose-check
 	$(COMPOSE) logs -f

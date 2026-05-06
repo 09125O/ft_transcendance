@@ -6,6 +6,27 @@ ROOT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 ENV_FILE="${1:-.env}"
+VALIDATED_COUNT=0
+CHECK_ENV_MODE="${CHECK_ENV_MODE:-verbose}"
+
+section() {
+  if [ "$CHECK_ENV_MODE" = "compact" ]; then
+    return
+  fi
+  printf '\n== %s ==\n' "$1"
+}
+
+ok() {
+  printf '[OK] %s\n' "$1"
+}
+
+warn() {
+  printf '[WARN] %s\n' "$1"
+}
+
+ko() {
+  printf '[KO] %s\n' "$1" >&2
+}
 
 required_vars="
 POSTGRES_USER
@@ -28,18 +49,19 @@ get_env_value() {
 }
 
 if [ ! -f "$ENV_FILE" ]; then
-  printf '[KO] Fichier absent: %s\n' "$ENV_FILE" >&2
+  ko "Fichier absent: ${ENV_FILE}"
   printf 'Cree-le avec: make env-init\n' >&2
   exit 1
 fi
 
 invalid=0
+section "Validation ${ENV_FILE}"
 
 for var_name in $required_vars; do
   if grep -Eq "^${var_name}=.+$" "$ENV_FILE"; then
-    printf '[OK] %s\n' "$var_name"
+    VALIDATED_COUNT=$((VALIDATED_COUNT + 1))
   else
-    printf '[KO] %s manquant ou vide\n' "$var_name" >&2
+    ko "${var_name} manquant ou vide"
     invalid=1
   fi
 done
@@ -66,7 +88,7 @@ check_not_placeholder() {
 
   case "$value" in
     your_user|your_password|your_db|change_me)
-      printf '[KO] %s utilise encore une valeur d''exemple non exploitable: %s\n' "$var_name" "$value" >&2
+      ko "${var_name} utilise encore une valeur d'exemple non exploitable: ${value}"
       invalid=1
       ;;
   esac
@@ -83,23 +105,23 @@ case "$DATABASE_URL_VALUE" in
     :
     ;;
   *)
-    printf '[KO] DATABASE_URL doit commencer par postgresql://\n' >&2
+    ko "DATABASE_URL doit commencer par postgresql://"
     invalid=1
     ;;
 esac
 
 if ! printf '%s' "$DATABASE_URL_VALUE" | grep -F -q "${POSTGRES_USER_VALUE}:"; then
-  printf '[KO] DATABASE_URL ne reference pas POSTGRES_USER=%s\n' "$POSTGRES_USER_VALUE" >&2
+  ko "DATABASE_URL ne reference pas POSTGRES_USER=${POSTGRES_USER_VALUE}"
   invalid=1
 fi
 
 if ! printf '%s' "$DATABASE_URL_VALUE" | grep -F -q ":${POSTGRES_PASSWORD_VALUE}@"; then
-  printf '[KO] DATABASE_URL ne reference pas POSTGRES_PASSWORD courant\n' >&2
+  ko "DATABASE_URL ne reference pas POSTGRES_PASSWORD courant"
   invalid=1
 fi
 
 if ! printf '%s' "$DATABASE_URL_VALUE" | grep -F -q "/${POSTGRES_DB_VALUE}"; then
-  printf '[KO] DATABASE_URL ne reference pas POSTGRES_DB=%s\n' "$POSTGRES_DB_VALUE" >&2
+  ko "DATABASE_URL ne reference pas POSTGRES_DB=${POSTGRES_DB_VALUE}"
   invalid=1
 fi
 
@@ -119,7 +141,7 @@ case "$APP_PROTOCOL_VALUE" in
     :
     ;;
   *)
-    printf '[KO] APP_PROTOCOL doit etre "http" ou "https"\n' >&2
+    ko 'APP_PROTOCOL doit etre "http" ou "https"'
     invalid=1
     ;;
 esac
@@ -129,45 +151,45 @@ case "$FRONTEND_ORIGIN_VALUE" in
     :
     ;;
   *)
-    printf '[KO] FRONTEND_ORIGIN doit commencer par %s://\n' "$APP_PROTOCOL_VALUE" >&2
+    ko "FRONTEND_ORIGIN doit commencer par ${APP_PROTOCOL_VALUE}://"
     invalid=1
     ;;
 esac
 
 if ! printf '%s' "$FRONTEND_ORIGIN_VALUE" | grep -F -q ":${FRONTEND_PORT_VALUE}"; then
-  printf '[KO] FRONTEND_ORIGIN ne reference pas FRONTEND_PORT=%s\n' "$FRONTEND_PORT_VALUE" >&2
+  ko "FRONTEND_ORIGIN ne reference pas FRONTEND_PORT=${FRONTEND_PORT_VALUE}"
   invalid=1
 fi
 
 case "$GAME_QUESTION_DURATION_MS_VALUE" in
   ''|*[!0-9]*)
-    printf '[KO] GAME_QUESTION_DURATION_MS doit etre un entier positif en millisecondes\n' >&2
+    ko "GAME_QUESTION_DURATION_MS doit etre un entier positif en millisecondes"
     invalid=1
     ;;
   0)
-    printf '[KO] GAME_QUESTION_DURATION_MS doit etre strictement positif\n' >&2
+    ko "GAME_QUESTION_DURATION_MS doit etre strictement positif"
     invalid=1
     ;;
 esac
 
 case "$BACKUP_INTERVAL_SECONDS_VALUE" in
   ''|*[!0-9]*)
-    printf '[KO] BACKUP_INTERVAL_SECONDS doit etre un entier positif en secondes\n' >&2
+    ko "BACKUP_INTERVAL_SECONDS doit etre un entier positif en secondes"
     invalid=1
     ;;
   0)
-    printf '[KO] BACKUP_INTERVAL_SECONDS doit etre strictement positif\n' >&2
+    ko "BACKUP_INTERVAL_SECONDS doit etre strictement positif"
     invalid=1
     ;;
 esac
 
 case "$BACKUP_RETENTION_COUNT_VALUE" in
   ''|*[!0-9]*)
-    printf '[KO] BACKUP_RETENTION_COUNT doit etre un entier positif\n' >&2
+    ko "BACKUP_RETENTION_COUNT doit etre un entier positif"
     invalid=1
     ;;
   0)
-    printf '[KO] BACKUP_RETENTION_COUNT doit etre strictement positif\n' >&2
+    ko "BACKUP_RETENTION_COUNT doit etre strictement positif"
     invalid=1
     ;;
 esac
@@ -176,4 +198,25 @@ if [ "$invalid" -ne 0 ]; then
   exit 1
 fi
 
-printf '[OK] Configuration %s complete\n' "$ENV_FILE"
+section "Resume"
+if [ "$CHECK_ENV_MODE" = "compact" ]; then
+  printf '[OK] %s | %s | frontend=%s | question=%sms | backups=%ss/%s\n' \
+    "$ENV_FILE" \
+    "$APP_PROTOCOL_VALUE" \
+    "$FRONTEND_ORIGIN_VALUE" \
+    "$GAME_QUESTION_DURATION_MS_VALUE" \
+    "$BACKUP_INTERVAL_SECONDS_VALUE" \
+    "$BACKUP_RETENTION_COUNT_VALUE"
+else
+  ok "Configuration ${ENV_FILE} valide (${VALIDATED_COUNT} variables requises)"
+  printf 'Mode      : %s\n' "$APP_PROTOCOL_VALUE"
+  printf 'Frontend  : %s\n' "$FRONTEND_ORIGIN_VALUE"
+  printf 'Question  : %sms\n' "$GAME_QUESTION_DURATION_MS_VALUE"
+  printf 'Backups   : every %ss, retention %s\n' "$BACKUP_INTERVAL_SECONDS_VALUE" "$BACKUP_RETENTION_COUNT_VALUE"
+
+  if [ "$APP_PROTOCOL_VALUE" = "https" ]; then
+    warn "Mode HTTPS local: certificat de dev requis"
+  else
+    warn "Mode HTTP/LAN: adapte aux tests multi-postes"
+  fi
+fi
