@@ -92,7 +92,7 @@ export class FriendsController {
     const notification = await this.notificationsService.createNotification({
       userId: request.senderId,
       type: "FRIEND_REQUEST_ACCEPTED",
-      title: "Demande d'ami acceptee",
+      title: "Demande d'ami acceptée",
       payload: {
         actorUserId: auth.sub,
         actorUsername: auth.username ?? request.receiverUsername,

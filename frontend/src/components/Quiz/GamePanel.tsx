@@ -75,7 +75,7 @@ export default function GamePanel({
   const stageHeading = currentQuestion
     ? formatTechnicalQuotes(currentQuestion.text)
     : isFinished
-      ? "Le quiz est termine."
+      ? "Le quiz est terminé."
       : "Le salon est prêt. Lance la partie quand tout le monde est installé.";
   const timerProgress =
     timerDurationMs && timerDurationMs > 0 && typeof timerRemainingMs === "number"
@@ -101,8 +101,8 @@ export default function GamePanel({
   };
 
   return (
-    <div className="grid w-full gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,22rem)]">
-      <div className="xl:hidden">
+    <div className="grid w-full gap-4 md:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)] xl:grid-cols-[minmax(16rem,18rem)_minmax(0,1fr)_minmax(19rem,22rem)]">
+      <div className="md:hidden">
         <div className="grid grid-cols-3 gap-2 rounded-2xl border border-primary/20 bg-background/70 p-2">
           <button
             className={[
@@ -144,15 +144,80 @@ export default function GamePanel({
       </div>
 
       <Panel className={[
-        "order-1 relative overflow-hidden px-5 py-5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_16%,transparent),transparent_42%)] before:content-[''] sm:px-7 sm:py-6 xl:min-h-[80vh]",
-        mobileTab === "stage" ? "block" : "hidden xl:block",
+        "order-1 min-h-[20rem] overflow-hidden px-4 py-4 sm:px-5 sm:py-5 md:h-full md:min-h-0 xl:col-start-1 xl:row-start-1",
+        mobileTab === "chat" ? "block" : "hidden md:block",
+      ].join(" ")}>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+              Conversation
+            </p>
+            <p className="m-0 text-2xl font-semibold text-text">Chat</p>
+          </div>
+          <span className="rounded-full border border-primary/20 bg-background px-3 py-1 text-xs text-text/75">
+            {chatMessages.length} message{chatMessages.length > 1 ? "s" : ""}
+          </span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden md:h-[calc(100%-7.5rem)]">
+          <div
+            className="flex h-full flex-col gap-3 overflow-y-auto pr-2"
+            ref={messagesContainerRef}
+          >
+            {chatMessages.length === 0 ? (
+              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-text/70">
+                La conversation s&apos;ouvrira dès que les joueurs commenceront à échanger.
+              </div>
+            ) : (
+              chatMessages.map((message) => (
+                <div
+                  className={[
+                    "w-fit max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_color-mix(in_srgb,var(--color-background)_80%,transparent)]",
+                    message.isSelf ? "self-end bg-primary text-text" : "self-start bg-background",
+                  ].join(" ")}
+                  key={`${message.userId}-${message.sentAt}-${message.content}`}
+                >
+                  {!message.isSelf ? (
+                    <p className="m-0 text-sm text-text/70">{message.username}</p>
+                  ) : null}
+                  <p className="m-0 whitespace-pre-wrap break-words text-base text-text [overflow-wrap:anywhere]">{message.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <form
+          className="mt-4 flex shrink-0 items-center gap-3 px-1 py-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleSendMessage();
+          }}
+        >
+          <input
+            className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text/50"
+            type="text"
+            placeholder="Écrire un message..."
+            value={messageInput}
+            onChange={(event) => setMessageInput(event.target.value)}
+          />
+          <PrimaryButton className="shrink-0 px-4 py-2 text-sm" type="submit">
+            Envoyer
+          </PrimaryButton>
+        </form>
+        {chatError ? (
+          <p className="mt-3 text-sm text-danger">{chatError}</p>
+        ) : null}
+      </Panel>
+
+      <Panel className={[
+        "order-2 relative overflow-hidden px-5 py-5 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_16%,transparent),transparent_42%)] before:content-[''] sm:px-7 sm:py-6 md:min-h-[80vh] xl:col-start-2 xl:row-start-1 xl:min-h-[80vh]",
+        mobileTab === "stage" ? "block" : "hidden md:block",
       ].join(" ")}>
         <div className="relative flex h-full flex-col">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div className="max-w-3xl space-y-3">
               <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 {isFinished
-                  ? "Partie terminee"
+                  ? "Partie terminée"
                   : hasQuestion
                     ? "Question active"
                     : roomStatus === "playing"
@@ -285,7 +350,7 @@ export default function GamePanel({
             ) : (
               <div className="rounded-[28px] border border-dashed border-primary/25 bg-background/70 px-6 py-10 text-center">
                 <p className="font-kicker uppercase tracking-[0.24em] m-0 text-sm text-text/55">
-                  {isFinished ? "Partie terminee" : "Prêt à jouer"}
+                  {isFinished ? "Partie terminée" : "Prêt à jouer"}
                 </p>
                 <p className="text-text-muted mt-3 text-lg">
                   {isFinished
@@ -298,11 +363,10 @@ export default function GamePanel({
         </div>
       </Panel>
 
-      <div className="order-2 grid gap-4 xl:h-[80vh] xl:grid-rows-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <Panel className={[
-          "px-4 py-4 sm:px-5 sm:py-5 xl:h-full xl:min-h-0",
-          mobileTab === "score" ? "block" : "hidden xl:block",
-        ].join(" ")}>
+      <Panel className={[
+        "order-3 px-4 py-4 sm:px-5 sm:py-5 md:col-span-2 xl:col-span-1 xl:col-start-3 xl:row-start-1 xl:h-[80vh]",
+        mobileTab === "score" ? "block" : "hidden md:block",
+      ].join(" ")}>
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
               <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
@@ -383,73 +447,7 @@ export default function GamePanel({
               ))
             )}
           </div>
-        </Panel>
-
-        <Panel className={[
-          "min-h-[20rem] overflow-hidden px-4 py-4 sm:px-5 sm:py-5 xl:h-full xl:min-h-0",
-          mobileTab === "chat" ? "block" : "hidden xl:block",
-        ].join(" ")}>
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
-                Conversation
-              </p>
-              <p className="m-0 text-2xl font-semibold text-text">Chat</p>
-            </div>
-            <span className="rounded-full border border-primary/20 bg-background px-3 py-1 text-xs text-text/75">
-              {chatMessages.length} message{chatMessages.length > 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <div
-              className="flex h-full flex-col gap-3 overflow-y-auto pr-2"
-              ref={messagesContainerRef}
-            >
-              {chatMessages.length === 0 ? (
-                <div className="flex h-full items-center justify-center rounded-[22px] border border-dashed border-primary/25 bg-background/70 px-6 text-center text-sm text-text/70">
-                  La conversation s&apos;ouvrira dès que les joueurs commenceront à échanger.
-                </div>
-              ) : (
-                chatMessages.map((message) => (
-                  <div
-                    className={[
-                      "w-fit max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_18px_45px_-34px_color-mix(in_srgb,var(--color-background)_80%,transparent)]",
-                      message.isSelf ? "self-end bg-primary text-text" : "self-start bg-background",
-                    ].join(" ")}
-                    key={`${message.userId}-${message.sentAt}-${message.content}`}
-                  >
-                    {!message.isSelf ? (
-                      <p className="m-0 text-sm text-text/70">{message.username}</p>
-                    ) : null}
-                    <p className="m-0 whitespace-pre-wrap break-words text-base text-text [overflow-wrap:anywhere]">{message.content}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-          <form
-            className="mt-4 flex shrink-0 items-center gap-3 rounded-2xl bg-background px-4 py-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleSendMessage();
-            }}
-          >
-            <input
-              className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text/50"
-              type="text"
-              placeholder="Écrire un message..."
-              value={messageInput}
-              onChange={(event) => setMessageInput(event.target.value)}
-            />
-            <PrimaryButton className="shrink-0 px-4 py-2 text-sm" type="submit">
-              Envoyer
-            </PrimaryButton>
-          </form>
-          {chatError ? (
-            <p className="mt-3 text-sm text-danger">{chatError}</p>
-          ) : null}
-        </Panel>
-      </div>
+      </Panel>
     </div>
   );
 }
