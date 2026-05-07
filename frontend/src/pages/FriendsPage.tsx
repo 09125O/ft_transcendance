@@ -151,42 +151,48 @@ export default function FriendsPage() {
 
   async function handleSend() {
     const normalizedIdentifier = addUserId.trim();
+    setFeedback(null);
+    setError(null);
+
     if (!normalizedIdentifier) {
       setError("Identifiant utilisateur invalide");
       return;
     }
 
-    let receiverUserId: number;
+    try {
+      let receiverUserId: number;
 
-    if (/^\d+$/.test(normalizedIdentifier)) {
-      const parsed = Number(normalizedIdentifier);
-      if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > MAX_SIGNED_INT_32) {
+      if (/^\d+$/.test(normalizedIdentifier)) {
+        const parsed = Number(normalizedIdentifier);
+        if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > MAX_SIGNED_INT_32) {
+          setError("Identifiant utilisateur invalide");
+          return;
+        }
+        receiverUserId = parsed;
+      } else {
+        if (!/^[a-zA-Z0-9._-]+$/.test(normalizedIdentifier)) {
+          setError("Identifiant alphanumérique invalide");
+          return;
+        }
+
+        const resolvedUser = await getUserByIdentifier(normalizedIdentifier);
+        receiverUserId = resolvedUser.id;
+      }
+
+      if (!Number.isSafeInteger(receiverUserId) || receiverUserId <= 0) {
         setError("Identifiant utilisateur invalide");
         return;
       }
-      receiverUserId = parsed;
-    } else {
-      if (!/^[a-zA-Z0-9._-]+$/.test(normalizedIdentifier)) {
-        setError("Identifiant alphanumérique invalide");
-        return;
-      }
 
-      const resolvedUser = await getUserByIdentifier(normalizedIdentifier);
-      receiverUserId = resolvedUser.id;
-    }
-
-    if (!Number.isSafeInteger(receiverUserId) || receiverUserId <= 0) {
-      setError("Identifiant utilisateur invalide");
-      return;
-    }
-
-    try {
       await sendFriendRequest(receiverUserId);
       setAddUserId("");
       setFeedback("Demande envoyée");
       await refresh();
     } catch (exception) {
-      setError(exception instanceof Error ? exception.message : "Erreur");
+      const message = exception instanceof Error ? exception.message : "Erreur";
+      setError(
+        message === "Request failed (404)" ? "Utilisateur introuvable" : message,
+      );
     }
   }
 

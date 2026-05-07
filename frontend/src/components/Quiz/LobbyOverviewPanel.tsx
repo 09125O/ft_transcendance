@@ -175,6 +175,7 @@ export default function LobbyOverviewPanel({
 
   return (
     <div className="flex w-full flex-col gap-6">
+		
       <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_26%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
         <div className="relative space-y-5">
           <div className="space-y-5">
