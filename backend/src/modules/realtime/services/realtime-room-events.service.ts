@@ -7,6 +7,7 @@ import { RoomLeaveDto } from "@/modules/realtime/dto/room-leave.dto";
 import { RoomSpectateDto } from "@/modules/realtime/dto/room-spectate.dto";
 import { RoomStartDto } from "@/modules/realtime/dto/room-start.dto";
 import { GameService } from "@/modules/game/game.service";
+import { Prisma } from "@generated/prisma/client";
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
 import { RealtimeGameRuntimeService } from "./realtime-game-runtime.service";
@@ -308,15 +309,38 @@ export class RealtimeRoomEventsService {
         if (this.presence.hasActiveSockets(userId)) {
           return;
         }
-        await this.usersService.updateUser({
-          where: { id: userId },
-          data: { status: "offline" },
-        });
+        try {
+          await this.usersService.updateUser({
+            where: { id: userId },
+            data: { status: "offline" },
+          });
+        } catch (error: unknown) {
+          if (!this.isMissingRecordError(error)) {
+            throw error;
+          }
+
+          this.logger.warn(
+            `Skipped offline status update for missing user ${userId}`,
+          );
+        }
         await this.removeUserFromRooms(userId, server);
-      })();
+      })().catch((exception: unknown) => {
+        const message =
+          exception instanceof Error
+            ? exception.message
+            : "Unknown delayed disconnect error";
+        this.logger.error(`Failed to finalize socket disconnect: ${message}`);
+      });
     }, this.disconnectGraceMs);
 
     this.pendingDisconnects.set(userId, timeout);
+  }
+
+  private isMissingRecordError(error: unknown): boolean {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    );
   }
 
   private cancelPendingDisconnect(userId: number): void {

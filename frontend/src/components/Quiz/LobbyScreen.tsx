@@ -94,9 +94,13 @@ export default function LobbyScreen() {
         onClose={closeJoinModal}
         onConfirm={() => {
           void (async () => {
-            const room = await confirmJoinRoom();
-            if (room) {
-              navigate(`/room/${room.id}`);
+            try {
+              const room = await confirmJoinRoom();
+              if (room) {
+                navigate(`/room/${room.id}`);
+              }
+            } catch {
+              // The hook keeps the modal open and exposes the join error.
             }
           })();
         }}

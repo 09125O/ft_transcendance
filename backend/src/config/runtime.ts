@@ -49,7 +49,7 @@ function getConfiguredCorsOrigins(): string[] {
   return (process.env.CORS_ALLOWED_ORIGINS || "")
     .split(",")
     .map((value) => normalizeOriginValue(value))
-    .filter(Boolean);
+    .filter((value): value is string => Boolean(value));
 }
 
 function allowLanOrigins(): boolean {

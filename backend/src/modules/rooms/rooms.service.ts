@@ -59,7 +59,6 @@ export class RoomsService {
 
   async listVisible(): Promise<Array<Omit<Room, "passwordHash">>> {
     return this.findRooms({
-      isPrivate: false,
       players: {
         some: {},
       },
