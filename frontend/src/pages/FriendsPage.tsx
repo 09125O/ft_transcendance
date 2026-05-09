@@ -278,18 +278,18 @@ export default function FriendsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
+              <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(6.75rem,1fr))] gap-2 sm:max-w-md sm:gap-3 lg:w-auto lg:min-w-[23rem]">
+                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{friends.length}</p>
-                  <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Amis</p>
+                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Amis</p>
                 </div>
-                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
+                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{requests.incoming.length}</p>
-                  <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Reçues</p>
+                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Reçues</p>
                 </div>
-                <div className="rounded-[22px] border border-text/10 bg-background/80 px-4 py-3 text-center">
+                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{unreadNotificationsCount}</p>
-                  <p className="m-0 text-xs uppercase tracking-[0.2em] text-text/50">Non lues</p>
+                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Non lues</p>
                 </div>
               </div>
             </div>

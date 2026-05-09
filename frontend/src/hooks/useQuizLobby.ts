@@ -51,6 +51,11 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
     setJoinError(null);
   }, []);
 
+  const updateJoinPassword = useCallback((value: string) => {
+    setJoinPassword(value);
+    setJoinError(null);
+  }, []);
+
   const joinTargetRoom = useCallback(
     async (room: Room, password?: string) => {
       if (userId === null) {
@@ -69,9 +74,12 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
         await loadRooms();
         return joinedRoom;
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Impossible de rejoindre la room";
-        setJoinError(message);
+        const message = error instanceof Error ? error.message : "";
+        const normalizedMessage =
+          message === "Invalid room password" || message === "Request failed (401)"
+            ? "Mot de passe incorrect."
+            : message || "Impossible de rejoindre la room";
+        setJoinError(normalizedMessage);
         throw error;
       } finally {
         setIsJoining(false);
@@ -100,7 +108,14 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
       return;
     }
 
-    return joinTargetRoom(roomToJoin, joinPassword);
+    const password = joinPassword.trim();
+
+    if (!password) {
+      setJoinError("Entre le mot de passe de la room.");
+      return;
+    }
+
+    return joinTargetRoom(roomToJoin, password);
   }, [joinPassword, joinTargetRoom, roomToJoin]);
 
   const createRoomAndJoin = useCallback(
@@ -161,7 +176,7 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
     joinPassword,
     joinError,
     isJoining,
-    setJoinPassword,
+    setJoinPassword: updateJoinPassword,
     closeJoinModal,
     requestJoinRoom,
     confirmJoinRoom,

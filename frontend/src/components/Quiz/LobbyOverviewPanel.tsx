@@ -502,8 +502,15 @@ export default function LobbyOverviewPanel({
                   key={room.id}
                 >
                   <div className="min-w-0">
-                    <p className="m-0 text-base font-semibold text-text sm:text-lg">
-                      {stripGeneratedTimeSuffix(room.name)}
+                    <p className="m-0 flex flex-wrap items-center gap-2 text-base font-semibold text-text sm:text-lg">
+                      <span className="min-w-0 truncate">
+                        {stripGeneratedTimeSuffix(room.name)}
+                      </span>
+                      {room.isPrivate ? (
+                        <span className="shrink-0 rounded-full border border-urgency/30 bg-urgency/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-urgency">
+                          Privée
+                        </span>
+                      ) : null}
                     </p>
                     <p className="text-text-muted mt-1 text-xs sm:text-sm">
                       {room.players.length} joueur{room.players.length > 1 ? "s" : ""} • {room.rounds} manches • {Math.round(room.questionDurationMs / 1000)}s/question
@@ -513,7 +520,7 @@ export default function LobbyOverviewPanel({
                     className="shrink-0 px-4 py-2 text-sm"
                     onClick={() => handleJoinRoom(room)}
                   >
-                    Rejoindre
+                    {room.isPrivate ? "Mot de passe" : "Rejoindre"}
                   </PrimaryButton>
                 </div>
               ))}

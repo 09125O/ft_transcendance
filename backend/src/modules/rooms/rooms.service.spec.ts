@@ -32,6 +32,76 @@ describe("RoomsService", () => {
     await expect(service.join(7, 42)).rejects.toBeInstanceOf(ConflictException);
   });
 
+  it("lists active private rooms without exposing password hashes", async () => {
+    const prisma = {
+      client: {
+        room: {
+          findMany: jest.fn().mockResolvedValue([
+            {
+              id: 10,
+              name: "Private waiting room",
+              ownerId: 1,
+              quizId: null,
+              rounds: 5,
+              questionDurationMs: 10000,
+              isPrivate: true,
+              status: "waiting",
+              createdAt: new Date("2026-01-01T00:00:00.000Z"),
+              startedAt: null,
+              finishedAt: null,
+              passwordHash: "hashed-room-password",
+              players: [
+                {
+                  userId: 1,
+                  roomId: 10,
+                  joinedAt: new Date("2026-01-01T00:00:00.000Z"),
+                },
+              ],
+            },
+          ]),
+        },
+      },
+    };
+    const service = new RoomsService(prisma as any);
+
+    await expect(service.listVisible()).resolves.toEqual([
+      {
+        id: 10,
+        name: "Private waiting room",
+        ownerUserId: 1,
+        rounds: 5,
+        questionDurationMs: 10000,
+        isPrivate: true,
+        status: "waiting",
+        players: [
+          {
+            userId: 1,
+            joinedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+        createdAt: "2026-01-01T00:00:00.000Z",
+        startedAt: null,
+        finishedAt: null,
+      },
+    ]);
+    expect(prisma.client.room.findMany).toHaveBeenCalledWith({
+      where: {
+        players: {
+          some: {},
+        },
+        status: {
+          in: ["waiting", "playing"],
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        players: {
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
+  });
+
   it("uses the configured question duration when creating a room", async () => {
     const prisma = {
       client: {

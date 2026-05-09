@@ -364,7 +364,7 @@ export default function GamePanel({
       </Panel>
 
       <Panel className={[
-        "order-3 px-4 py-4 sm:px-5 sm:py-5 md:col-span-2 xl:col-span-1 xl:col-start-3 xl:row-start-1 xl:h-[80vh]",
+        "order-3 px-4 py-4 sm:px-5 sm:py-5 md:col-span-2 xl:col-span-1 xl:col-start-3 xl:row-start-1 xl:h-full xl:min-h-[80vh]",
         mobileTab === "score" ? "block" : "hidden md:block",
       ].join(" ")}>
           <div className="mb-5 flex items-start justify-between gap-3">
