@@ -57,7 +57,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException("Username already exists");
+      throw new ConflictException("Ce nom d'utilisateur existe déjà");
     }
   }
 
@@ -95,7 +95,7 @@ export class UsersService {
   async updateProfile(userId: number, dto: UpdateProfileDto): Promise<User> {
     const currentUser = await this.findUser({ id: userId });
     if (!currentUser) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilisateur ${userId} introuvable`);
     }
 
     const data: Prisma.UserUpdateInput = {};
@@ -112,7 +112,7 @@ export class UsersService {
     }
 
     if (Object.keys(data).length === 0) {
-      throw new BadRequestException("At least one profile field must be provided");
+      throw new BadRequestException("Au moins un champ du profil doit être fourni");
     }
 
     try {
@@ -130,7 +130,7 @@ export class UsersService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictException("Username already exists");
+        throw new ConflictException("Ce nom d'utilisateur existe déjà");
       }
 
       throw error;
@@ -140,7 +140,7 @@ export class UsersService {
   async uploadAvatar(userId: number, file: AvatarUploadInput): Promise<User> {
     const currentUser = await this.findUser({ id: userId });
     if (!currentUser) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilisateur ${userId} introuvable`);
     }
 
     this.validateAvatarFile(file);
@@ -229,15 +229,15 @@ export class UsersService {
 
   private validateAvatarFile(file: AvatarUploadInput): void {
     if (!file || !Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
-      throw new BadRequestException("Avatar file is required");
+      throw new BadRequestException("Le fichier d'avatar est requis");
     }
 
     if (!ALLOWED_AVATAR_MIME_TYPES.has(file.mimetype)) {
-      throw new BadRequestException("Avatar format must be JPEG, PNG, WebP or GIF");
+      throw new BadRequestException("Le format de l'avatar doit être JPEG, PNG, WebP ou GIF");
     }
 
     if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
-      throw new BadRequestException("Avatar file must be 2 MB or smaller");
+      throw new BadRequestException("Le fichier d'avatar doit faire 2 Mo maximum");
     }
   }
 

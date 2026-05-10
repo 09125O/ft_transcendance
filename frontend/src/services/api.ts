@@ -32,11 +32,11 @@ export async function apiRequest<T>(
   }
 
   if (!response.ok) {
-    throw new Error(json?.error?.message ?? `Request failed (${response.status})`);
+    throw new Error(json?.error?.message ?? `Requête échouée (${response.status})`);
   }
 
   if (!json || !json.success || json.data === null) {
-    throw new Error("Invalid server response");
+    throw new Error("Réponse serveur invalide");
   }
 
   return json.data;

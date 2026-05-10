@@ -191,7 +191,7 @@ export default function FriendsPage() {
     } catch (exception) {
       const message = exception instanceof Error ? exception.message : "Erreur";
       setError(
-        message === "Request failed (404)" ? "Utilisateur introuvable" : message,
+        message === "Requête échouée (404)" ? "Utilisateur introuvable" : message,
       );
     }
   }

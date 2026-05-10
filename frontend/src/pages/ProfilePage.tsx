@@ -324,9 +324,9 @@ export default function ProfilePage() {
           </div>
 
           {history.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-text/10 bg-text/5 p-4 text-sm text-text/60">
+            <p className="m-0 flex min-h-[10rem] items-center justify-center text-center text-lg font-semibold text-text/60 sm:text-xl">
               Aucune partie terminée pour le moment.
-            </div>
+            </p>
           ) : (
             <div className="flex flex-col gap-3">
               {history.map((entry) => (

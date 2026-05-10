@@ -40,22 +40,22 @@ export class RealtimeGameRuntimeService {
     const runtime = this.activeTimers.get(roomId);
     if (runtime) {
       if (runtime.questionId !== questionId) {
-        throw new ConflictException("Question is not active");
+        throw new ConflictException("La question n'est pas active");
       }
       return;
     }
 
     const state = await this.gameService.getRoomState(roomId);
     if (state.currentQuestionId === null || state.currentQuestionId !== questionId) {
-      throw new ConflictException("Question is not active");
+      throw new ConflictException("La question n'est pas active");
     }
     if (!state.questionEndsAt) {
-      throw new ConflictException("Question has no active deadline");
+      throw new ConflictException("La question n'a pas de limite de temps active");
     }
 
     const graceDeadlineMs = new Date(state.questionEndsAt).getTime() + this.answerGraceMs;
     if (Date.now() > graceDeadlineMs) {
-      throw new ConflictException("Question is not active");
+      throw new ConflictException("La question n'est pas active");
     }
   }
 
@@ -65,7 +65,7 @@ export class RealtimeGameRuntimeService {
   ): Promise<void> {
     const questionOrder = await this.gameService.getQuestionOrder(room.id);
     if (questionOrder.length === 0) {
-      throw new ConflictException("No questions configured");
+      throw new ConflictException("Aucune question configurée");
     }
     const questionDurationMs =
       room.questionDurationMs > 0

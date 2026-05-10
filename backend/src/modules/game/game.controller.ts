@@ -36,7 +36,7 @@ export class GameController {
     const isRoomMember = room.players.some((player) => player.userId === auth.sub);
 
     if (!isRoomMember) {
-      throw new UnauthorizedException("User is not in this room");
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
     }
 
     return ok(await this.gameService.getRoomState(roomId));

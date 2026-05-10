@@ -36,7 +36,6 @@ export class RealtimeValidationService {
     };
 
     collect(errors);
-    return messages.length > 0 ? messages.join(", ") : "Invalid payload";
+    return messages.length > 0 ? messages.join(", ") : "Payload invalide";
   }
 }
-

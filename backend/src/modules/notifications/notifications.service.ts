@@ -149,7 +149,7 @@ export class NotificationsService {
       });
 
       if (removed.count === 0) {
-        throw new NotFoundException(`Notification ${notificationId} not found`);
+        throw new NotFoundException(`Notification ${notificationId} introuvable`);
       }
 
       return { removed: true };
@@ -193,7 +193,7 @@ export class NotificationsService {
     });
 
     if (!request) {
-      throw new NotFoundException(`Notification ${notificationId} not found`);
+      throw new NotFoundException(`Notification ${notificationId} introuvable`);
     }
   }
 
@@ -210,7 +210,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException(`Notification ${notificationId} not found`);
+      throw new NotFoundException(`Notification ${notificationId} introuvable`);
     }
   }
 

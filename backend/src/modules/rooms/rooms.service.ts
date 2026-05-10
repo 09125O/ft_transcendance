@@ -79,7 +79,7 @@ export class RoomsService {
     },
   ): Promise<Omit<Room, "passwordHash">> {
     if (typeof dto.ownerUserId !== "number") {
-      throw new UnauthorizedException("Authentication required to create a room");
+      throw new UnauthorizedException("Authentification requise pour créer une room");
     }
 
     const shouldStorePasswordHash =
@@ -103,10 +103,10 @@ export class RoomsService {
         },
       });
       if (!quiz) {
-        throw new NotFoundException(`Quiz ${dto.quizId} not found`);
+        throw new NotFoundException(`Quiz ${dto.quizId} introuvable`);
       }
       if (quiz.questions.length < 1) {
-        throw new ConflictException("Cannot create a room with an empty quiz");
+        throw new ConflictException("Impossible de créer une room avec un quiz vide");
       }
       rounds = Math.min(dto.rounds, quiz.questions.length);
     }
@@ -144,20 +144,20 @@ export class RoomsService {
   ): Promise<Omit<Room, "passwordHash">> {
     const room = await this.findRoomOrThrow(roomId);
 
-    if (room.status !== "waiting") {
-      throw new ConflictException("Room is not joinable");
+    if (room.status === "finished") {
+      throw new ConflictException("Cette room ne peut pas être rejointe");
     }
 
     if (room.isPrivate) {
       await this.assertPrivateRoomFriendAccess(room, userId);
 
       if (!room.passwordHash || typeof password !== "string") {
-        throw new UnauthorizedException("Invalid room password");
+        throw new UnauthorizedException("Mot de passe de room invalide");
       }
 
       const isValidPassword = await bcrypt.compare(password, room.passwordHash);
       if (!isValidPassword) {
-        throw new UnauthorizedException("Invalid room password");
+        throw new UnauthorizedException("Mot de passe de room invalide");
       }
     }
 
@@ -197,7 +197,7 @@ export class RoomsService {
     }
 
     if (typeof room.ownerId !== "number") {
-      throw new UnauthorizedException("Private room is not joinable");
+      throw new UnauthorizedException("Cette room privée ne peut pas être rejointe");
     }
 
     const friendship = await this.prisma.client.friendRequests.findFirst({
@@ -218,7 +218,7 @@ export class RoomsService {
     });
 
     if (!friendship) {
-      throw new UnauthorizedException("Private room is restricted to host friends");
+      throw new UnauthorizedException("Cette room privée est réservée aux amis de l'hôte");
     }
   }
 
@@ -226,7 +226,7 @@ export class RoomsService {
     const room = await this.findRoomOrThrow(roomId);
     const isMember = room.players.some((player) => player.userId === userId);
     if (!isMember) {
-      throw new ConflictException("User is not in this room");
+      throw new ConflictException("L'utilisateur n'est pas dans cette room");
     }
 
     const updated = await this.prisma.client.$transaction(async (tx) => {
@@ -248,7 +248,7 @@ export class RoomsService {
         },
       });
       if (!nextRoom) {
-        throw new NotFoundException(`Room ${roomId} not found`);
+        throw new NotFoundException(`Room ${roomId} introuvable`);
       }
 
       if (nextRoom.players.length === 0 && nextRoom.ownerId !== null) {
@@ -289,15 +289,15 @@ export class RoomsService {
     const room = await this.findRoomOrThrow(roomId);
 
     if (room.status !== "waiting") {
-      throw new ConflictException("Room is not in waiting state");
+      throw new ConflictException("La room n'est pas en attente");
     }
 
     if (!room.players.some((player) => player.userId === requesterUserId)) {
-      throw new UnauthorizedException("User is not in this room");
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
     }
 
     if (typeof room.ownerId === "number" && room.ownerId !== requesterUserId) {
-      throw new UnauthorizedException("Only room owner can start the game");
+      throw new UnauthorizedException("Seul le propriétaire de la room peut lancer la partie");
     }
 
     const minimumPlayers =
@@ -307,7 +307,7 @@ export class RoomsService {
 
     if (room.players.length < minimumPlayers) {
       throw new ConflictException(
-        `Cannot start a room with fewer than ${minimumPlayers} players`,
+        `Impossible de lancer une room avec moins de ${minimumPlayers} joueur${minimumPlayers > 1 ? "s" : ""}`,
       );
     }
 
@@ -332,7 +332,7 @@ export class RoomsService {
     const room = await this.findRoomOrThrow(roomId);
 
     if (room.status !== "playing") {
-      throw new ConflictException("Room is not in playing state");
+      throw new ConflictException("La room n'est pas en cours de partie");
     }
 
     const updated = await this.prisma.client.room.update({
@@ -354,7 +354,7 @@ export class RoomsService {
   async close(roomId: number): Promise<{ roomId: number }> {
     const room = await this.findRoomOrThrow(roomId);
     if (room.status === "playing") {
-      throw new ConflictException("Cannot close a room while game is playing");
+      throw new ConflictException("Impossible de fermer une room pendant une partie");
     }
 
     const persistedGamesCount = await this.prisma.client.game.count({
@@ -402,7 +402,7 @@ export class RoomsService {
     });
 
     if (!room) {
-      throw new NotFoundException(`Room ${roomId} not found`);
+      throw new NotFoundException(`Room ${roomId} introuvable`);
     }
 
     return room;
