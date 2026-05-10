@@ -162,7 +162,7 @@ export class ScoresService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilisateur ${userId} introuvable`);
     }
 
     const row = await this.prisma.client.userAggregateScore.findUnique({
@@ -206,7 +206,7 @@ export class ScoresService {
       select: { id: true },
     });
     if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilisateur ${userId} introuvable`);
     }
 
     const rows: MatchHistoryRow[] = await this.prisma.client.leaderboard.findMany({

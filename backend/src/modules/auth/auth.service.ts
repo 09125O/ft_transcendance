@@ -57,12 +57,12 @@ export class AuthService {
   async validateUser(dto: LoginDto): Promise<User> {
     const user = await this.usersService.findUserByEmail(dto.email);
     if (!user) {
-      throw new UnauthorizedException("Invalid email or password");
+      throw new UnauthorizedException("Email ou mot de passe invalide");
     }
 
     const isValidPassword = await bcrypt.compare(dto.password, user.password);
     if (!isValidPassword) {
-      throw new UnauthorizedException("Invalid email or password");
+      throw new UnauthorizedException("Email ou mot de passe invalide");
     }
 
     return user;
@@ -224,7 +224,7 @@ export class AuthService {
     const scope = process.env.FT_SCOPE || "public";
 
     if (!clientId || !clientSecret || !redirectUri) {
-      throw new InternalServerErrorException("42 OAuth is not configured");
+      throw new InternalServerErrorException("OAuth 42 n'est pas configuré");
     }
 
     return {
@@ -263,7 +263,7 @@ export class AuthService {
       return (await response.json()) as T;
     } catch (error: unknown) {
       if (this.isAbortError(error)) {
-        throw new BadGatewayException(`${errorMessage} (timeout)`);
+        throw new BadGatewayException(`${errorMessage} (délai dépassé)`);
       }
 
       if (error instanceof BadGatewayException) {
@@ -338,7 +338,7 @@ export class AuthService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new ConflictException("Email already exists");
+        throw new ConflictException("Cet email existe déjà");
       }
 
       throw error;
@@ -366,7 +366,7 @@ export class AuthService {
     const expectedState = req.cookies?.[AuthService.OAUTH_42_STATE_COOKIE];
 
     if (!expectedState || expectedState !== state) {
-      throw new UnauthorizedException("Invalid OAuth state");
+      throw new UnauthorizedException("État OAuth invalide");
     }
 
     const config = this.getOauth42Config();
@@ -388,11 +388,11 @@ export class AuthService {
         },
         body: tokenPayload.toString(),
       },
-      "Failed to exchange 42 authorization code",
+      "Impossible d'échanger le code d'autorisation 42",
     );
 
     if (!tokenJson.access_token) {
-      throw new BadGatewayException("42 token response is invalid");
+      throw new BadGatewayException("La réponse de jeton 42 est invalide");
     }
 
     const profile = await this.fetchJsonOrThrow<FortyTwoMeResponse>(
@@ -402,11 +402,11 @@ export class AuthService {
           Authorization: `Bearer ${tokenJson.access_token}`,
         },
       },
-      "Failed to fetch 42 profile",
+      "Impossible de récupérer le profil 42",
     );
 
     if (!profile.login) {
-      throw new BadGatewayException("42 profile is invalid");
+      throw new BadGatewayException("Le profil 42 est invalide");
     }
 
     const providerEmail = `42-${profile.id}@oauth.local`;
@@ -451,7 +451,7 @@ export class AuthService {
     const user = await this.usersService.findUser({ id: userId });
 
     if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilisateur ${userId} introuvable`);
     }
 
     return this.sanitizeUser(user);

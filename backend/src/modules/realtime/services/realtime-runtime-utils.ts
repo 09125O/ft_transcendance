@@ -15,7 +15,7 @@ export async function getQuestionIdForTurn(
 ): Promise<number> {
   const questionOrder = await gameService.getQuestionOrder(roomId);
   if (questionOrder.length === 0) {
-    throw new ConflictException("No questions configured");
+    throw new ConflictException("Aucune question configurée");
   }
   return questionOrder[(turnNumber - 1) % questionOrder.length];
 }

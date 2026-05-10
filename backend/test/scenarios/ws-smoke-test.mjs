@@ -296,7 +296,7 @@ async function ensurePrivateRoomFriendship(
 
   if (createResponse.status === 409) {
     const payload = await safeJson(createResponse);
-    if (payload?.error?.message === "Users are already friends") {
+    if (payload?.error?.message === "Ces utilisateurs sont déjà amis") {
       pass("Precondition friends deja satisfaite pour room privee");
       return;
     }

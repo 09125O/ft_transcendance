@@ -157,7 +157,7 @@ export class FriendsService {
 
   async sendRequest(userId: number, receiverUserId: number): Promise<FriendRequestCreated> {
     if (userId === receiverUserId) {
-      throw new ConflictException("Cannot send friend request to yourself");
+      throw new ConflictException("Impossible de s'ajouter soi-même en ami");
     }
 
     const leftUserId = Math.min(userId, receiverUserId);
@@ -179,11 +179,11 @@ export class FriendsService {
       ]);
 
       if (!sender) {
-        throw new NotFoundException(`User ${userId} not found`);
+        throw new NotFoundException(`Utilisateur ${userId} introuvable`);
       }
 
       if (!receiver) {
-        throw new NotFoundException(`User ${receiverUserId} not found`);
+        throw new NotFoundException(`Utilisateur ${receiverUserId} introuvable`);
       }
 
       const existing = await tx.friendRequests.findFirst({
@@ -204,10 +204,10 @@ export class FriendsService {
 
       if (existing) {
         if (existing.status === "accepted") {
-          throw new ConflictException("Users are already friends");
+          throw new ConflictException("Ces utilisateurs sont déjà amis");
         }
         if (existing.status === "pending") {
-          throw new ConflictException("A friend request is already pending");
+          throw new ConflictException("Une demande d'ami est déjà en attente");
         }
       }
 
@@ -235,10 +235,10 @@ export class FriendsService {
     const request = await this.findRequestOrThrow(requestId);
 
     if (request.receiverId !== userId) {
-      throw new UnauthorizedException("Only the request receiver can accept this request");
+      throw new UnauthorizedException("Seul le destinataire peut accepter cette demande");
     }
     if (request.status !== "pending") {
-      throw new ConflictException("Friend request is not pending");
+      throw new ConflictException("La demande d'ami n'est pas en attente");
     }
 
     return this.updateRequestStatus(requestId, "accepted");
@@ -248,10 +248,10 @@ export class FriendsService {
     const request = await this.findRequestOrThrow(requestId);
 
     if (request.receiverId !== userId) {
-      throw new UnauthorizedException("Only the request receiver can decline this request");
+      throw new UnauthorizedException("Seul le destinataire peut refuser cette demande");
     }
     if (request.status !== "pending") {
-      throw new ConflictException("Friend request is not pending");
+      throw new ConflictException("La demande d'ami n'est pas en attente");
     }
 
     return this.updateRequestStatus(requestId, "declined");
@@ -275,7 +275,7 @@ export class FriendsService {
     });
 
     if (!friendRelation) {
-      throw new NotFoundException("Friend relation not found");
+      throw new NotFoundException("Relation d'ami introuvable");
     }
 
     await this.prisma.client.friendRequests.deleteMany({
@@ -345,7 +345,7 @@ export class FriendsService {
     });
 
     if (!request) {
-      throw new NotFoundException(`Friend request ${requestId} not found`);
+      throw new NotFoundException(`Demande d'ami ${requestId} introuvable`);
     }
 
     return request;
@@ -370,7 +370,7 @@ export class FriendsService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2025"
       ) {
-        throw new NotFoundException(`Friend request ${requestId} not found`);
+        throw new NotFoundException(`Demande d'ami ${requestId} introuvable`);
       }
 
       throw error;

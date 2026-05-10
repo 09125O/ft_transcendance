@@ -78,7 +78,7 @@ export class GameService {
     });
     if (!quiz) {
       throw new ConflictException(
-        `Default quiz "${DEFAULT_QUIZ_TITLE}" is missing. Run prisma:seed.`,
+        `Le quiz par défaut "${DEFAULT_QUIZ_TITLE}" est manquant. Lance prisma:seed.`,
       );
     }
     return quiz.id;
@@ -158,7 +158,7 @@ export class GameService {
       typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
     const questionIds = await this.getQuizQuestionIds(quizId);
     if (questionIds.length === 0) {
-      throw new ConflictException(`Quiz ${quizId} has no questions`);
+      throw new ConflictException(`Le quiz ${quizId} ne contient aucune question`);
     }
 
     const selectedQuestionIds = this.pickRandomQuestionIds(
@@ -278,29 +278,29 @@ export class GameService {
   ): Promise<SubmitAnswerResult> {
     const room = await this.roomsService.getById(dto.roomId);
     if (room.status !== "playing") {
-      throw new ConflictException("Game is not running for this room");
+      throw new ConflictException("La partie n'est pas en cours pour cette room");
     }
 
     if (!room.players.some((player) => player.userId === userId)) {
-      throw new UnauthorizedException("User is not in this room");
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
     }
 
     await this.getRoomState(dto.roomId);
     const state = await this.findStateOrThrow(dto.roomId);
     if (state.currentQuestionId === null || state.currentQuestionId !== dto.questionId) {
-      throw new ConflictException("Question is not active");
+      throw new ConflictException("La question n'est pas active");
     }
 
     const runtime = this.deserializeRuntime(state);
     const question = await this.getQuestionEntry(dto.questionId);
     if (dto.answerIndex >= question.options.length) {
-      throw new BadRequestException("Answer index is out of range");
+      throw new BadRequestException("L'indice de réponse est hors limites");
     }
 
     const answeredUsers =
       runtime.answeredByQuestion.get(dto.questionId) || new Set<number>();
     if (answeredUsers.has(userId)) {
-      throw new ConflictException("User already answered this question");
+      throw new ConflictException("L'utilisateur a déjà répondu à cette question");
     }
 
     answeredUsers.add(userId);
@@ -445,7 +445,7 @@ export class GameService {
       typeof room.quizId === "number" ? room.quizId : await this.getDefaultQuizId();
     const questionIds = await this.getQuizQuestionIds(quizId);
     if (questionIds.length === 0) {
-      throw new ConflictException(`Quiz ${quizId} has no questions`);
+      throw new ConflictException(`Le quiz ${quizId} ne contient aucune question`);
     }
     return questionIds;
   }
@@ -522,7 +522,7 @@ export class GameService {
       where: { id: questionId },
     });
     if (!quizQuestion) {
-      throw new ConflictException(`Question ${questionId} not configured`);
+      throw new ConflictException(`Question ${questionId} non configurée`);
     }
     const options = this.parseAnswers(quizQuestion.answers);
     const correctAnswerIndex = options.findIndex(
@@ -530,7 +530,7 @@ export class GameService {
     );
     if (correctAnswerIndex < 0) {
       throw new ConflictException(
-        `Question ${questionId} has no matching correct answer`,
+        `La question ${questionId} n'a aucune bonne réponse correspondante`,
       );
     }
     return {
@@ -550,7 +550,7 @@ export class GameService {
       return [...value];
     }
 
-    throw new ConflictException("Quiz answers are not stored in the expected format");
+    throw new ConflictException("Les réponses du quiz ne sont pas stockées au format attendu");
   }
 
   private async findStateOrThrow(roomId: number): Promise<RoomGameState> {
@@ -558,7 +558,7 @@ export class GameService {
       where: { roomId },
     });
     if (!state) {
-      throw new ConflictException(`Game state for room ${roomId} not found`);
+      throw new ConflictException(`État de partie introuvable pour la room ${roomId}`);
     }
     return state;
   }

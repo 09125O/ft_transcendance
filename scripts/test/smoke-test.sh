@@ -359,14 +359,14 @@ request_with_curl GET "${BACKEND_BASE_URL}/users/me" "" "$COOKIE_JAR"
 assert_status 401
 assert_body_contains '"success":false'
 assert_body_contains '"code":"UNAUTHORIZED"'
-assert_body_contains '"message":"Authentication required"'
+assert_body_contains '"message":"Authentification requise"'
 pass "/users/me refuse sans cookie"
 
 request_with_curl POST "${BACKEND_BASE_URL}/quizzes" "$QUIZ_PAYLOAD" "$COOKIE_JAR"
 assert_status 401
 assert_body_contains '"success":false'
 assert_body_contains '"code":"UNAUTHORIZED"'
-assert_body_contains '"message":"Authentication required"'
+assert_body_contains '"message":"Authentification requise"'
 pass "/quizzes refuse sans cookie"
 
 request_with_curl GET "${BACKEND_BASE_URL}/auth/session" "" "" "Cookie: access_token=invalid-token"
@@ -439,21 +439,21 @@ request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$DUPLICATE_REGISTER_
 assert_status 409
 assert_body_contains '"success":false'
 assert_body_contains '"code":"CONFLICT"'
-assert_body_contains '"message":"Username already exists"'
+assert_body_contains '"message":"Ce nom d'\''utilisateur existe déjà"'
 pass "Register refuse pour username deja pris"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$EMAIL_DUPLICATE_REGISTER_PAYLOAD"
 assert_status 409
 assert_body_contains '"success":false'
 assert_body_contains '"code":"CONFLICT"'
-assert_body_contains '"message":"Email already exists"'
+assert_body_contains '"message":"Cet email existe déjà"'
 pass "Register refuse pour email deja pris"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/register" "$USERNAME_DUPLICATE_REGISTER_PAYLOAD"
 assert_status 409
 assert_body_contains '"success":false'
 assert_body_contains '"code":"CONFLICT"'
-assert_body_contains '"message":"Username already exists"'
+assert_body_contains '"message":"Ce nom d'\''utilisateur existe déjà"'
 pass "Register refuse pour username deja pris avec email distinct"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/login" "$INVALID_LOGIN_PAYLOAD"
@@ -466,7 +466,7 @@ request_with_curl POST "${BACKEND_BASE_URL}/auth/login" "$WRONG_PASSWORD_PAYLOAD
 assert_status 401
 assert_body_contains '"success":false'
 assert_body_contains '"code":"UNAUTHORIZED"'
-assert_body_contains '"message":"Invalid email or password"'
+assert_body_contains '"message":"Email ou mot de passe invalide"'
 pass "Login avec mauvais mot de passe refuse"
 
 request_with_curl POST "${BACKEND_BASE_URL}/auth/login" "$LOGIN_PAYLOAD" "$COOKIE_JAR"

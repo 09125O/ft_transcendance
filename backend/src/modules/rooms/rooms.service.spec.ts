@@ -20,16 +20,68 @@ describe("RoomsService", () => {
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
-  it("rejects join when room is not in waiting state", async () => {
+  it("rejects join when room is finished", async () => {
     const service = new RoomsService({} as any);
     jest.spyOn(service as any, "findRoomOrThrow").mockResolvedValue({
       id: 7,
-      status: "playing",
+      status: "finished",
       isPrivate: false,
       players: [],
     });
 
     await expect(service.join(7, 42)).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it("allows joining a room already in playing state", async () => {
+    const prisma = {
+      client: {
+        $transaction: jest.fn().mockImplementation(async (callback) =>
+          callback({
+            roomPlayer: {
+              create: jest.fn(),
+            },
+            room: {
+              update: jest.fn(),
+            },
+          }),
+        ),
+      },
+    };
+    const service = new RoomsService(prisma as any);
+    jest
+      .spyOn(service as any, "findRoomOrThrow")
+      .mockResolvedValueOnce({
+        id: 7,
+        ownerId: 1,
+        status: "playing",
+        isPrivate: false,
+        players: [{ userId: 1, joinedAt: new Date("2026-01-01T00:00:00.000Z") }],
+      })
+      .mockResolvedValueOnce({
+        id: 7,
+        name: "Running room",
+        ownerId: 1,
+        quizId: null,
+        rounds: 5,
+        questionDurationMs: 10000,
+        isPrivate: false,
+        status: "playing",
+        createdAt: new Date("2026-01-01T00:00:00.000Z"),
+        startedAt: new Date("2026-01-01T00:01:00.000Z"),
+        finishedAt: null,
+        passwordHash: null,
+        players: [
+          { userId: 1, joinedAt: new Date("2026-01-01T00:00:00.000Z") },
+          { userId: 42, joinedAt: new Date("2026-01-01T00:02:00.000Z") },
+        ],
+      });
+
+    await expect(service.join(7, 42)).resolves.toMatchObject({
+      id: 7,
+      status: "playing",
+      players: [{ userId: 1 }, { userId: 42 }],
+    });
+    expect(prisma.client.$transaction).toHaveBeenCalled();
   });
 
   it("lists active private rooms without exposing password hashes", async () => {
@@ -172,7 +224,7 @@ describe("RoomsService", () => {
     });
 
     await expect(service.join(8, 42)).rejects.toThrow(
-      "Private room is restricted to host friends",
+      "Cette room privée est réservée aux amis de l'hôte",
     );
     expect(prisma.client.friendRequests.findFirst).toHaveBeenCalled();
   });
@@ -195,7 +247,7 @@ describe("RoomsService", () => {
       players: [],
     });
 
-    await expect(service.join(9, 42)).rejects.toThrow("Invalid room password");
+    await expect(service.join(9, 42)).rejects.toThrow("Mot de passe de room invalide");
     expect(prisma.client.friendRequests.findFirst).not.toHaveBeenCalled();
   });
 
@@ -267,7 +319,7 @@ describe("RoomsService", () => {
     });
 
     await expect(service.start(21, 7)).rejects.toThrow(
-      "Cannot start a room with fewer than 3 players",
+      "Impossible de lancer une room avec moins de 3 joueurs",
     );
   });
 });

@@ -76,7 +76,7 @@ export function useQuizLobby({ userId }: UseQuizLobbyOptions) {
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
         const normalizedMessage =
-          message === "Invalid room password" || message === "Request failed (401)"
+          message === "Mot de passe de room invalide" || message === "Requête échouée (401)"
             ? "Mot de passe incorrect."
             : message || "Impossible de rejoindre la room";
         setJoinError(normalizedMessage);

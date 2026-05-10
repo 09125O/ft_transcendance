@@ -12,14 +12,14 @@ export class AuthGuard implements CanActivate {
     const token = request.cookies?.access_token;
 
     if (!token) {
-      throw new UnauthorizedException("Authentication required");
+      throw new UnauthorizedException("Authentification requise");
     }
 
     try {
       request.user = await this.jwtService.verifyAsync<AuthPayload>(token);
       return true;
     } catch {
-      throw new UnauthorizedException("Invalid or expired session");
+      throw new UnauthorizedException("Session invalide ou expirée");
     }
   }
 }

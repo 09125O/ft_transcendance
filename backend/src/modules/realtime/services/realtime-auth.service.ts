@@ -10,12 +10,12 @@ export class RealtimeAuthService {
   async authenticateSocket(client: Socket): Promise<number> {
     const token = this.extractAccessToken(client);
     if (!token) {
-      throw new UnauthorizedException("Authentication required");
+      throw new UnauthorizedException("Authentification requise");
     }
 
     const payload = await this.jwtService.verifyAsync<AuthPayload>(token);
     if (typeof payload.sub !== "number" || payload.sub < 1) {
-      throw new UnauthorizedException("Invalid session payload");
+      throw new UnauthorizedException("Session invalide");
     }
 
     return payload.sub;
@@ -41,4 +41,3 @@ export class RealtimeAuthService {
     return value.length > 0 ? decodeURIComponent(value) : null;
   }
 }
-

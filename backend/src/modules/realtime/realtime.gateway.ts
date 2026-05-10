@@ -81,7 +81,7 @@ export class RealtimeGateway
       );
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Authentication required";
+        error instanceof Error ? error.message : "Authentification requise";
 
       client.emit(
         "ws:auth:error",

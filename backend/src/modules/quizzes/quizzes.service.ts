@@ -102,7 +102,7 @@ export class QuizzesService {
     })) as QuizWithCounts | null;
 
     if (!quiz) {
-      throw new NotFoundException(`Quiz ${quizId} not found`);
+      throw new NotFoundException(`Quiz ${quizId} introuvable`);
     }
 
     return this.toQuizResponse(quiz);
@@ -112,7 +112,7 @@ export class QuizzesService {
     dto.questions.forEach((question, index) => {
       if (question.correctAnswerIndex >= question.answers.length) {
         throw new BadRequestException(
-          `Question ${index + 1} has an invalid correctAnswerIndex`,
+          `La question ${index + 1} a une bonne réponse invalide`,
         );
       }
     });

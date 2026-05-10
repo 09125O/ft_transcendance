@@ -38,7 +38,7 @@ export class UsersController {
     const user = await this.usersService.findUser({ id: auth.sub });
 
     if (!user) {
-      throw new NotFoundException(`User ${auth.sub} not found`);
+      throw new NotFoundException(`Utilisateur ${auth.sub} introuvable`);
     }
 
     return ok(this.sanitizeUser(user));
@@ -69,7 +69,7 @@ export class UsersController {
       | undefined,
   ): Promise<ApiResponse<SafeUser>> {
     if (!file) {
-      throw new BadRequestException("Avatar file is required");
+      throw new BadRequestException("Le fichier d'avatar est requis");
     }
 
     return ok(this.sanitizeUser(await this.usersService.uploadAvatar(auth.sub, file)));
@@ -83,7 +83,7 @@ export class UsersController {
     const user = await this.usersService.findUser({ id });
 
     if (!user) {
-      throw new NotFoundException(`User ${id} not found`);
+      throw new NotFoundException(`Utilisateur ${id} introuvable`);
     }
 
     return ok(this.sanitizePublicUser(user));
@@ -96,13 +96,13 @@ export class UsersController {
   ): Promise<ApiResponse<PublicUser>> {
     const normalizedIdentifier = identifier.trim();
     if (!normalizedIdentifier) {
-      throw new BadRequestException("identifier must not be empty");
+      throw new BadRequestException("L'identifiant ne doit pas être vide");
     }
 
     const user = await this.usersService.findUserByIdentifier(normalizedIdentifier);
 
     if (!user) {
-      throw new NotFoundException(`User ${normalizedIdentifier} not found`);
+      throw new NotFoundException(`Utilisateur ${normalizedIdentifier} introuvable`);
     }
 
     return ok(this.sanitizePublicUser(user));

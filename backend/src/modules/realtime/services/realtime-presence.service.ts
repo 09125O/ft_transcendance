@@ -18,7 +18,7 @@ export class RealtimePresenceService {
   resolveSocketUser(
     socketId: string,
     payloadUserId?: number,
-    missingUserMessage = "Missing userId for this socket",
+    missingUserMessage = "Utilisateur manquant pour cette connexion",
   ): number {
     const boundUserId = this.socketToUser.get(socketId);
 
@@ -27,7 +27,7 @@ export class RealtimePresenceService {
     }
 
     if (typeof payloadUserId === "number" && boundUserId !== payloadUserId) {
-      throw new UnauthorizedException("Socket user mismatch");
+      throw new UnauthorizedException("L'utilisateur de la connexion ne correspond pas");
     }
 
     return boundUserId;

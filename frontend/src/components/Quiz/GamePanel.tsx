@@ -251,10 +251,10 @@ export default function GamePanel({
                   ].join(" ")}
                 >
                   {answerFeedback === "correct"
-                    ? "Bonne reponse"
+                    ? "Bonne réponse"
                     : answerFeedback === "incorrect"
-                      ? `Mauvaise reponse${correctAnswerIndex !== null ? ` - la bonne etait la reponse ${correctAnswerIndex + 1}` : ""}`
-                      : "Reponse envoyee..."}
+                      ? `Mauvaise réponse${correctAnswerIndex !== null ? ` - la bonne était la réponse ${correctAnswerIndex + 1}` : ""}`
+                      : "Réponse envoyée..."}
                 </p>
               ) : null}
               {hasQuestion && timerProgress !== null ? (

@@ -26,16 +26,16 @@ export class RealtimeGameEventsService {
   ): Promise<void> {
     const payload = this.validation.validatePayload(GameAnswerEventDto, rawPayload);
     if (this.presence.isSpectator(client.id, payload.roomId)) {
-      throw new UnauthorizedException("Spectator cannot submit an answer");
+      throw new UnauthorizedException("Un spectateur ne peut pas répondre");
     }
     const userId = this.presence.resolveSocketUser(client.id, payload.userId);
 
     const room = await this.roomsService.getById(payload.roomId);
     if (room.status !== "playing") {
-      throw new ConflictException("Game is not running for this room");
+      throw new ConflictException("La partie n'est pas en cours pour cette room");
     }
     if (!room.players.some((player) => player.userId === userId)) {
-      throw new UnauthorizedException("User is not in this room");
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
     }
 
     await this.gameRuntime.ensureActiveQuestion(payload.roomId, payload.questionId);

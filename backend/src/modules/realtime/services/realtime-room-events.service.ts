@@ -191,12 +191,12 @@ export class RealtimeRoomEventsService {
   ): Promise<void> {
     const payload = this.validation.validatePayload(RoomStartDto, rawPayload);
     if (this.presence.isSpectator(client.id, payload.roomId)) {
-      throw new UnauthorizedException("Spectator cannot start a game");
+      throw new UnauthorizedException("Un spectateur ne peut pas lancer une partie");
     }
     const requesterUserId = this.presence.resolveSocketUser(
       client.id,
       payload.userId,
-      "room:start requires a bound userId on this socket",
+      "room:start nécessite un utilisateur lié à cette connexion",
     );
     await this.assertUserInRoom(payload.roomId, requesterUserId);
 
@@ -219,7 +219,7 @@ export class RealtimeRoomEventsService {
     if (!content) {
       client.emit(
         "chat:message:error",
-        this.response.fail("BAD_REQUEST", "Message content is required"),
+        this.response.fail("BAD_REQUEST", "Le contenu du message est requis"),
       );
       return;
     }
@@ -246,7 +246,7 @@ export class RealtimeRoomEventsService {
     const isMember = room.players.some((player) => player.userId === userId);
 
     if (room.isPrivate && !isMember) {
-      throw new UnauthorizedException("Private room cannot be spectated");
+      throw new UnauthorizedException("Une room privée ne peut pas être observée");
     }
 
     client.join(this.roomChannel(payload.roomId));
@@ -368,7 +368,7 @@ export class RealtimeRoomEventsService {
   private async assertUserInRoom(roomId: number, userId: number) {
     const room = await this.roomsService.getById(roomId);
     if (!room.players.some((player) => player.userId === userId)) {
-      throw new UnauthorizedException("User is not in this room");
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
     }
     return room;
   }

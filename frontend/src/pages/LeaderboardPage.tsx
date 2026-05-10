@@ -183,9 +183,9 @@ export default function LeaderboardPage() {
             ) : null}
 
             {!isLoading && leaderboard.length === 0 ? (
-              <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/70">
+              <p className="m-0 flex min-h-[12rem] items-center justify-center text-center text-lg font-semibold text-text/70 sm:text-xl">
                 Aucune partie terminée pour le moment.
-              </div>
+              </p>
             ) : null}
 
             <div className="space-y-3">
@@ -367,7 +367,7 @@ export default function LeaderboardPage() {
                             : "border border-urgency/25 bg-urgency/10 text-urgency",
                         ].join(" ")}
                       >
-                        {entry.isWinner ? "Victoire" : "Defaite"}
+                        {entry.isWinner ? "Victoire" : "Défaite"}
                       </span>
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-3">
