@@ -42,6 +42,12 @@ detect_compose() {
   if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--wait'; then
     COMPOSE_WAIT_FLAG="--wait"
   fi
+
+  if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--quiet-build'; then
+    COMPOSE_QUIET_FLAGS="--quiet-build --quiet-pull"
+  else
+    COMPOSE_QUIET_FLAGS=""
+  fi
 }
 
 run_compose_quiet() {
@@ -151,11 +157,11 @@ fi
 if [ "$STACK_OUTPUT_MODE" = "quiet" ]; then
   run_compose_quiet \
     "${COMPOSE_DISPLAY_CMD} up --build -d ${COMPOSE_WAIT_FLAG}" \
-    up --build --quiet-build --quiet-pull -d ${COMPOSE_WAIT_FLAG}
+    up --build ${COMPOSE_QUIET_FLAGS} -d ${COMPOSE_WAIT_FLAG}
 else
   run_compose_with_status \
     "${COMPOSE_DISPLAY_CMD} up --build -d ${COMPOSE_WAIT_FLAG}" \
-    up --build --quiet-build -d ${COMPOSE_WAIT_FLAG}
+    up --build ${COMPOSE_QUIET_FLAGS} -d ${COMPOSE_WAIT_FLAG}
 fi
 
 print_summary
