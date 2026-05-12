@@ -39,7 +39,7 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
 
       <div className="relative flex items-center justify-between gap-4">
         <div>
-          <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-primary">
+          <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-primary">
             Mode quiz live
           </p>
           <h1 className="m-0 mt-2 text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -55,7 +55,7 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
         <div className="space-y-4">
           {ruleSteps.map((step) => (
             <div
-              className="grid gap-4 rounded-[24px] border border-primary/20 bg-background/78 px-5 py-5 shadow-[0_22px_54px_-42px_color-mix(in_srgb,var(--color-primary)_80%,transparent)] sm:grid-cols-[3.5rem_minmax(0,1fr)]"
+              className="grid gap-4 rounded-3xl border border-primary/20 bg-background/78 px-5 py-5 shadow-[0_22px_54px_-42px_color-mix(in_srgb,var(--color-primary)_80%,transparent)] sm:grid-cols-[3.5rem_minmax(0,1fr)]"
               key={step.label}
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-primary/15 text-lg font-semibold text-primary">
@@ -73,8 +73,8 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
           ))}
         </div>
 
-        <div className="rounded-[26px] border border-urgency/25 bg-background/82 px-6 py-10 shadow-[0_28px_70px_-46px_color-mix(in_srgb,var(--color-urgency)_70%,transparent)]">
-          <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-urgency">
+        <div className="rounded-3xl border border-urgency/25 bg-background/82 px-6 py-10 shadow-[0_28px_70px_-46px_color-mix(in_srgb,var(--color-urgency)_70%,transparent)]">
+          <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-urgency">
             À retenir
           </p>
           <div className="mt-5 space-y-4">
@@ -87,7 +87,7 @@ export default function RulesPanel({ onClose }: RulesPanelProps) {
               </div>
             ))}
           </div>
-          <div className="mt-6 rounded-[22px] border border-success/25 bg-success/10 px-4 py-4">
+          <div className="mt-6 rounded-3xl border border-success/25 bg-success/10 px-4 py-4">
             <p className="m-0 text-lg font-semibold text-success">
               Objectif
             </p>

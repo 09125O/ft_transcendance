@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Panel from "../Panel";
 import DangerButton from "../DangerButton";
+import EmptyState from "../EmptyState";
 import PrimaryButton from "../PrimaryButton";
 import SecondaryButton from "../SecondaryButton";
 import type { PublicQuestion } from "../../types/game";
@@ -76,7 +77,7 @@ export default function GamePanel({
     ? formatTechnicalQuotes(currentQuestion.text)
     : isFinished
       ? "Le quiz est terminé."
-      : "Le salon est prêt. Lance la partie quand tout le monde est installé.";
+      : "Question suivante...";
   const timerProgress =
     timerDurationMs && timerDurationMs > 0 && typeof timerRemainingMs === "number"
       ? Math.max(0, Math.min(100, (timerRemainingMs / timerDurationMs) * 100))
@@ -144,12 +145,12 @@ export default function GamePanel({
       </div>
 
       <Panel className={[
-        "order-1 min-h-[20rem] overflow-hidden px-4 py-4 sm:px-5 sm:py-5 md:h-full md:min-h-0 xl:col-start-1 xl:row-start-1",
+        "order-1 min-h-80 overflow-hidden px-4 py-4 sm:px-5 sm:py-5 md:h-full md:min-h-0 xl:col-start-1 xl:row-start-1",
         mobileTab === "chat" ? "block" : "hidden md:block",
       ].join(" ")}>
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+            <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
               Conversation
             </p>
             <p className="m-0 text-2xl font-semibold text-text">Chat</p>
@@ -215,7 +216,7 @@ export default function GamePanel({
         <div className="relative flex h-full flex-col">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div className="max-w-3xl space-y-3">
-              <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 {isFinished
                   ? "Partie terminée"
                   : hasQuestion
@@ -225,20 +226,13 @@ export default function GamePanel({
                       : "Salon en attente"}
               </span>
               <div className="space-y-2">
-                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-sm text-text/55">
+                <p className="font-kicker uppercase tracking-widest m-0 text-sm text-text/55">
                   Table de jeu
                 </p>
                 <p className="m-0 text-balance text-3xl font-semibold leading-tight text-text sm:text-4xl">
                   {stageHeading}
                 </p>
               </div>
-              {!hasQuestion ? (
-                <p className="text-text-muted m-0 max-w-2xl text-sm sm:text-base">
-                  {isFinished
-                    ? "La partie est finie. Consulte le classement final ou quitte la room."
-                    : "Le panneau principal sert maintenant d’espace focal. Dès qu’une question démarre, les propositions prennent tout le premier rôle."}
-                </p>
-              ) : null}
               {selectedAnswer !== null ? (
                 <p
                   className={[
@@ -306,7 +300,7 @@ export default function GamePanel({
                   return (
                     <button
                       className={[
-                        "group flex min-h-28 flex-col justify-between rounded-[24px] border px-5 py-4 text-left transition duration-200",
+                        "group flex min-h-28 flex-col justify-between rounded-3xl border px-5 py-4 text-left transition duration-200",
                         showAnswerState && isCorrectOption
                           ? "border-success/75 bg-success/22 shadow-[0_28px_48px_-32px_color-mix(in_srgb,var(--color-success)_88%,transparent)]"
                           : showAnswerState && isSelected && answerFeedback === "incorrect"
@@ -320,7 +314,7 @@ export default function GamePanel({
                       disabled={selectedAnswer !== null}
                       onClick={() => onSelectAnswer(index)}
                     >
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-text/55">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-text/55">
                         Réponse {index + 1}
                       </span>
                       <span className="text-lg font-medium">
@@ -348,16 +342,7 @@ export default function GamePanel({
                 })}
               </div>
             ) : (
-              <div className="rounded-[28px] border border-dashed border-primary/25 bg-background/70 px-6 py-10 text-center">
-                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-sm text-text/55">
-                  {isFinished ? "Partie terminée" : "Prêt à jouer"}
-                </p>
-                <p className="text-text-muted mt-3 text-lg">
-                  {isFinished
-                    ? "Le quiz est terminé. Le classement final reste visible dans le panneau de droite."
-                    : "Le chat et le classement restent disponibles, mais l’espace central attend le top départ."}
-                </p>
-              </div>
+              <EmptyState fill title={isFinished ? "Partie terminée." : "Question suivante..."} />
             )}
           </div>
         </div>
@@ -369,7 +354,7 @@ export default function GamePanel({
       ].join(" ")}>
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+              <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
                 Classement
               </p>
               <p className="m-0 text-2xl font-semibold text-text">Points</p>
@@ -382,8 +367,8 @@ export default function GamePanel({
             </DangerButton>
           </div>
 
-          <div className="mb-4 rounded-[22px] border border-primary/20 bg-background/80 px-4 py-4">
-            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+          <div className="mb-4 rounded-3xl border border-primary/20 bg-background/80 px-4 py-4">
+            <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
               Leader actuel
             </p>
             <p className="mt-2 text-lg font-semibold text-text">
@@ -398,13 +383,11 @@ export default function GamePanel({
 
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             {scoreEntries.length === 0 ? (
-              <div className="rounded-[22px] border border-dashed border-primary/25 bg-background/70 px-5 py-6 text-sm text-text/70">
-                Aucun score à afficher pour l’instant.
-              </div>
+              <EmptyState fill title="Aucun score à afficher pour l’instant." />
             ) : (
               scoreEntries.map((entry, index) => (
                 <div
-                  className="flex items-center justify-between gap-3 rounded-[22px] border border-primary/20 bg-background/80 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-3xl border border-primary/20 bg-background/80 px-4 py-3"
                   key={entry.userId}
                 >
                   <div className="flex min-w-0 items-center gap-3">

@@ -13,8 +13,8 @@ export default function HomePage() {
       className={[
         "flex flex-1",
         isRoomRoute
-          ? "px-4 py-4 sm:px-6 lg:px-[6%]"
-          : "px-4 py-6 sm:px-6 lg:px-[8%]",
+          ? "px-4 py-4 sm:px-6 lg:px-10 xl:px-12"
+          : "px-4 py-6 sm:px-6 lg:px-10 xl:px-16",
       ].join(" ")}
     >
       {isRoomRoute ? (

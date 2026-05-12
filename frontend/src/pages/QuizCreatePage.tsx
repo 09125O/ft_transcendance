@@ -10,7 +10,7 @@ export default function QuizCreatePage() {
   const actionsDisabled = isSessionLoading || sessionUser === null;
 
   return (
-    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
+    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-10 xl:px-16">
       <QuizCreatePanel
         isCreatingQuiz={isCreatingQuiz}
         actionsDisabled={actionsDisabled}

@@ -43,7 +43,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center px-[10%] py-6">
+    <main className="flex flex-1 items-center justify-center px-4 sm:px-6 lg:px-10 py-6">
       <Card className="w-full px-8 py-8">
         <h1 className="mb-6 text-3xl font-semibold text-text">S'inscrire</h1>
         <form aria-busy={isSubmitting} onSubmit={(event) => void handleSubmit(event)}>
