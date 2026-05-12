@@ -1,5 +1,6 @@
 import Panel from "../Panel";
 import DangerButton from "../DangerButton";
+import EmptyState from "../EmptyState";
 import PrimaryButton from "../PrimaryButton";
 import SecondaryButton from "../SecondaryButton";
 
@@ -42,7 +43,7 @@ export default function PreMatchPanel({
       <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 xl:min-h-[80vh]">
         <div className="relative flex h-full flex-col justify-between gap-8">
           <div className="space-y-4">
-            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Pré-match
             </span>
             <h1 className="m-0 text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -54,22 +55,22 @@ export default function PreMatchPanel({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Joueurs</p>
+            <div className="rounded-2xl border border-primary/20 bg-background/75 px-4 py-4">
+              <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Joueurs</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{scoreEntries.length}</p>
             </div>
-            <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Manches</p>
+            <div className="rounded-2xl border border-primary/20 bg-background/75 px-4 py-4">
+              <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Manches</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">{rounds}</p>
             </div>
-            <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Temps</p>
+            <div className="rounded-2xl border border-primary/20 bg-background/75 px-4 py-4">
+              <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Temps</p>
               <p className="m-0 mt-2 text-2xl font-semibold text-text">
                 {Math.round(questionDurationMs / 1000)}s
               </p>
             </div>
-            <div className="rounded-[20px] border border-primary/20 bg-background/75 px-4 py-4">
-              <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Etat</p>
+            <div className="rounded-2xl border border-primary/20 bg-background/75 px-4 py-4">
+              <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Etat</p>
               <p className="m-0 mt-2 text-base font-semibold text-text">En attente du départ</p>
             </div>
           </div>
@@ -99,7 +100,7 @@ export default function PreMatchPanel({
       <Panel className="px-5 py-5 sm:px-6 sm:py-6 xl:min-h-[80vh]">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">Participants</p>
+            <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">Participants</p>
             <p className="m-0 text-2xl font-semibold text-text">Salle d&apos;attente</p>
           </div>
           <span className="rounded-full border border-primary/20 bg-background px-3 py-1 text-xs text-text/75">
@@ -109,13 +110,11 @@ export default function PreMatchPanel({
 
         <div className="space-y-3">
           {scoreEntries.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-primary/25 bg-background/70 px-5 py-6 text-sm text-text/70">
-              En attente de joueurs...
-            </div>
+            <EmptyState fill title="En attente de joueurs..." />
           ) : (
             scoreEntries.map((entry) => (
               <div
-                className="flex items-center justify-between gap-3 rounded-[22px] border border-primary/20 bg-background/80 px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-3xl border border-primary/20 bg-background/80 px-4 py-3"
                 key={entry.userId}
               >
                 <div className="flex min-w-0 items-center gap-3">

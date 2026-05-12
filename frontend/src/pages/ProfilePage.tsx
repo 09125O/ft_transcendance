@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 import Panel from "../components/Panel";
 import { secondaryButtonClassName } from "../components/SecondaryButton";
 import PrimaryButton from "../components/PrimaryButton";
@@ -249,7 +250,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <main className="flex flex-1 items-center justify-center px-[10%] py-10">
+      <main className="flex flex-1 items-center justify-center px-4 sm:px-6 lg:px-10 py-10">
         <Panel className="p-8 text-center">
           <p>Chargement…</p>
           {error && <p className="mt-3 text-danger">{error}</p>}
@@ -259,7 +260,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="flex flex-1 justify-center px-[10%] py-10">
+    <main className="flex flex-1 justify-center px-4 sm:px-6 lg:px-10 py-10">
       <Panel className="w-full max-w-2xl gap-6 p-8">
         <header className="flex items-center gap-4">
           <div className="h-16 w-16 overflow-hidden rounded-full border border-text/10 bg-text/5">
@@ -324,9 +325,7 @@ export default function ProfilePage() {
           </div>
 
           {history.length === 0 ? (
-            <p className="m-0 flex min-h-[10rem] items-center justify-center text-center text-lg font-semibold text-text/60 sm:text-xl">
-              Aucune partie terminée pour le moment.
-            </p>
+            <EmptyState fill title="Aucune partie terminée pour le moment." />
           ) : (
             <div className="flex flex-col gap-3">
               {history.map((entry) => (
@@ -343,7 +342,7 @@ export default function ProfilePage() {
                     </div>
                     <span
                       className={[
-                        "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]",
+                        "rounded-full px-2 py-1 text-xs font-semibold uppercase tracking-widest",
                         entry.isWinner
                           ? "border border-success/25 bg-success/10 text-success"
                           : "border border-urgency/25 bg-urgency/10 text-urgency",

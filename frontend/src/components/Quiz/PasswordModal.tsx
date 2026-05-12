@@ -52,7 +52,7 @@ export default function PasswordModal({
     <div
       aria-labelledby="private-room-title"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-[10%] py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-4 sm:px-6 lg:px-10 py-6"
       role="dialog"
     >
       <Card className="max-w-xl px-8 py-6">

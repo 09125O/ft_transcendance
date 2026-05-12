@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 import Panel from "../components/Panel";
 import { useAuth } from "../providers/AuthProvider";
 import {
@@ -138,11 +139,11 @@ export default function LeaderboardPage() {
   );
 
   return (
-    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
+    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-10 xl:px-16">
       <div className="flex w-full flex-col gap-6">
         <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-urgency)_22%,transparent),transparent_56%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-accent)_24%,transparent),transparent_48%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
           <div className="relative space-y-4">
-            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Stats & historique
             </span>
             <h1 className="m-0 max-w-4xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -164,7 +165,7 @@ export default function LeaderboardPage() {
           <Panel className="px-6 py-6 sm:px-8">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
-                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+                <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
                   Classement
                 </p>
                 <h2 className="m-0 text-2xl font-semibold text-text">
@@ -177,21 +178,19 @@ export default function LeaderboardPage() {
             </div>
 
             {isLoading ? (
-              <p className="m-0 rounded-[22px] border border-text/10 bg-background/70 px-4 py-4 text-sm text-text/70">
+              <p className="m-0 rounded-3xl border border-text/10 bg-background/70 px-4 py-4 text-sm text-text/70">
                 Chargement du leaderboard...
               </p>
             ) : null}
 
             {!isLoading && leaderboard.length === 0 ? (
-              <p className="m-0 flex min-h-[12rem] items-center justify-center text-center text-lg font-semibold text-text/70 sm:text-xl">
-                Aucune partie terminée pour le moment.
-              </p>
+              <EmptyState fill title="Aucune partie terminée pour le moment." />
             ) : null}
 
             <div className="space-y-3">
               {leaderboard.map((entry) => (
                 <div
-                  className="grid gap-3 rounded-[22px] border border-text/10 bg-background/75 px-4 py-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_repeat(4,minmax(0,6rem))]"
+                  className="grid gap-3 rounded-3xl border border-text/10 bg-background/75 px-4 py-4 sm:grid-cols-[4.5rem_minmax(0,1fr)_repeat(4,minmax(0,6rem))]"
                   key={entry.userId}
                 >
                   <div className="flex items-center gap-3">
@@ -214,19 +213,19 @@ export default function LeaderboardPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Score</p>
+                    <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Score</p>
                     <p className="m-0 mt-1 text-base font-semibold text-text">{entry.score}</p>
                   </div>
                   <div>
-                    <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Wins</p>
+                    <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Wins</p>
                     <p className="m-0 mt-1 text-base font-semibold text-text">{entry.wins}</p>
                   </div>
                   <div>
-                    <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Losses</p>
+                    <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Losses</p>
                     <p className="m-0 mt-1 text-base font-semibold text-text">{entry.losses}</p>
                   </div>
                   <div>
-                    <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Parties</p>
+                    <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Parties</p>
                     <p className="m-0 mt-1 text-base font-semibold text-text">
                       {entry.gamesPlayed}
                     </p>
@@ -239,7 +238,7 @@ export default function LeaderboardPage() {
           <div className="space-y-6">
             <Panel className="px-5 py-5 sm:px-6">
               <div className="mb-4">
-                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+                <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
                   Progression
                 </p>
                 <h2 className="m-0 text-2xl font-semibold text-text">
@@ -250,21 +249,21 @@ export default function LeaderboardPage() {
               {currentUser && currentUserStats ? (
                 <div className="space-y-4">
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[20px] border border-text/10 bg-background/70 px-4 py-4">
-                      <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Rang</p>
+                    <div className="rounded-2xl border border-text/10 bg-background/70 px-4 py-4">
+                      <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Rang</p>
                       <p className="m-0 mt-2 text-2xl font-semibold text-text">
                         {currentUserStats.rank ? `#${currentUserStats.rank}` : "-"}
                       </p>
                     </div>
-                    <div className="rounded-[20px] border border-text/10 bg-background/70 px-4 py-4">
-                      <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Niveau</p>
+                    <div className="rounded-2xl border border-text/10 bg-background/70 px-4 py-4">
+                      <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Niveau</p>
                       <p className="m-0 mt-2 text-2xl font-semibold text-text">
                         Lv.{currentUserStats.level}
                       </p>
                     </div>
                   </div>
 
-                  <div className="rounded-[20px] border border-text/10 bg-background/70 px-4 py-4">
+                  <div className="rounded-2xl border border-text/10 bg-background/70 px-4 py-4">
                     <div className="flex items-center justify-between gap-3">
                       <p className="m-0 text-sm font-semibold text-text">
                         Progression vers le niveau suivant
@@ -287,12 +286,12 @@ export default function LeaderboardPage() {
                   <div className="space-y-3">
                     {achievements.map((achievement) => (
                       <div
-                        className="rounded-[20px] border px-4 py-4 text-sm"
+                        className="rounded-2xl border px-4 py-4 text-sm"
                         key={achievement.label}
                       >
                         <div
                           className={[
-                            "flex items-start justify-between gap-3 rounded-[14px] px-1",
+                            "flex items-start justify-between gap-3 rounded-xl px-1",
                             achievement.unlocked ? "text-text" : "text-text/55",
                           ].join(" ")}
                         >
@@ -302,7 +301,7 @@ export default function LeaderboardPage() {
                           </div>
                           <span
                             className={[
-                              "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]",
+                              "rounded-full px-2 py-1 text-xs font-semibold uppercase tracking-widest",
                               achievement.unlocked
                                 ? "border border-success/25 bg-success/10 text-success"
                                 : "border border-text/10 bg-background text-text/50",
@@ -326,7 +325,7 @@ export default function LeaderboardPage() {
 
             <Panel className="px-5 py-5 sm:px-6">
               <div className="mb-4">
-                <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">
+                <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">
                   Historique
                 </p>
                 <h2 className="m-0 text-2xl font-semibold text-text">
@@ -341,15 +340,13 @@ export default function LeaderboardPage() {
               ) : null}
 
               {currentUser && currentUserHistory.length === 0 ? (
-                <p className="m-0 text-sm text-text/70">
-                  Aucune partie terminée pour le moment.
-                </p>
+                <EmptyState fill title="Aucune partie terminée pour le moment." />
               ) : null}
 
               <div className="space-y-3">
                 {currentUserHistory.map((entry) => (
                   <div
-                    className="rounded-[20px] border border-text/10 bg-background/70 px-4 py-4"
+                    className="rounded-2xl border border-text/10 bg-background/70 px-4 py-4"
                     key={`${entry.gameId}-${entry.playedAt}`}
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -361,7 +358,7 @@ export default function LeaderboardPage() {
                       </div>
                       <span
                         className={[
-                          "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]",
+                          "rounded-full px-2 py-1 text-xs font-semibold uppercase tracking-widest",
                           entry.isWinner
                             ? "border border-success/25 bg-success/10 text-success"
                             : "border border-urgency/25 bg-urgency/10 text-urgency",
@@ -372,17 +369,17 @@ export default function LeaderboardPage() {
                     </div>
                     <div className="mt-3 grid gap-3 sm:grid-cols-3">
                       <div>
-                        <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Score</p>
+                        <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Score</p>
                         <p className="m-0 mt-1 text-base font-semibold text-text">{entry.finalScore}</p>
                       </div>
                       <div>
-                        <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Classement</p>
+                        <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Classement</p>
                         <p className="m-0 mt-1 text-base font-semibold text-text">
                           {entry.rank ? `${entry.rank}/${entry.totalPlayers}` : `-/${entry.totalPlayers}`}
                         </p>
                       </div>
                       <div>
-                        <p className="font-kicker uppercase tracking-[0.24em] m-0 text-[11px] text-text/50">Opposants</p>
+                        <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/50">Opposants</p>
                         <p className="m-0 mt-1 text-sm text-text/80">
                           {formatOpponents(entry)}
                         </p>

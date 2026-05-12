@@ -60,7 +60,7 @@ export default function QuizReadyPage() {
 
     return (
       <article
-        className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[22px] border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-300"
+        className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-3xl border border-primary/20 bg-background/78 p-4 text-left shadow-[0_24px_56px_-40px_color-mix(in_srgb,var(--color-background)_90%,transparent)] transition duration-300"
         key={quiz.id}
       >
         {decoratedQuiz.cardImageUrl ? (
@@ -90,10 +90,10 @@ export default function QuizReadyPage() {
         />
 
         <div className="relative mb-3 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
+          <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
             {decoratedQuiz.category.title}
           </span>
-          <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-text/70">
+          <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-widest text-text/70">
             {decoratedQuiz.level}
           </span>
         </div>
@@ -130,7 +130,7 @@ export default function QuizReadyPage() {
 
   if (selectedQuiz) {
     return (
-      <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
+      <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-10 xl:px-16">
         <RoomCreateFromQuizPanel
           quiz={selectedQuiz}
           onBack={() => setSelectedQuiz(null)}
@@ -141,11 +141,11 @@ export default function QuizReadyPage() {
   }
 
   return (
-    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-[8%]">
+    <main className="flex flex-1 px-4 py-6 sm:px-6 lg:px-10 xl:px-16">
       <div className="flex w-full flex-col gap-6">
         <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_26%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
           <div className="relative space-y-4">
-            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Quiz prêts à lancer
             </span>
             <h1 className="m-0 max-w-4xl text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -175,19 +175,19 @@ export default function QuizReadyPage() {
 
         <Panel className="px-6 py-6 sm:px-8">
           {quizzesLoading ? (
-            <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
+            <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
               Chargement des quiz...
             </p>
           ) : null}
 
           {quizzesError ? (
-            <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
+            <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
               {quizzesError}
             </p>
           ) : null}
 
           {!quizzesLoading && !quizzesError && launchQuizzes.length === 0 && communityQuizzes.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-primary/30 bg-background/70 px-6 py-8 text-center">
+            <div className="rounded-3xl border border-dashed border-primary/30 bg-background/70 px-6 py-8 text-center">
               <p className="m-0 text-xl font-semibold text-text">
                 Aucun quiz n&apos;est encore disponible.
               </p>
@@ -200,7 +200,7 @@ export default function QuizReadyPage() {
           {launchQuizzes.length > 0 ? (
             <section className="space-y-4">
               <div className="space-y-2">
-                <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   Sélection officielle
                 </span>
                 <h2 className="m-0 text-2xl font-semibold leading-tight text-text sm:text-3xl">
@@ -219,7 +219,7 @@ export default function QuizReadyPage() {
               id="community-quizzes"
             >
               <div className="space-y-2">
-                <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-urgency/30 bg-urgency/15 px-3 py-1 text-xs font-semibold text-urgency">
+                <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-urgency/30 bg-urgency/15 px-3 py-1 text-xs font-semibold text-urgency">
                   Sélection des joueurs
                 </span>
                 <h2 className="m-0 text-2xl font-semibold leading-tight text-text sm:text-3xl">

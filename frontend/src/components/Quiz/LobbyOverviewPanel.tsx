@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import EmptyState from "../EmptyState";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
 import SecondaryButton from "../SecondaryButton";
@@ -179,7 +180,7 @@ export default function LobbyOverviewPanel({
       <Panel className="relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-accent)_26%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-urgency)_18%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 lg:px-10">
         <div className="relative space-y-5">
           <div className="space-y-5">
-            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Univers 42
             </span>
             <div className="space-y-3">
@@ -223,12 +224,12 @@ export default function LobbyOverviewPanel({
           <SectionHeader title="Quiz prêts à lancer" />
           <div className="flex h-full flex-col gap-4">
             {quizzesLoading ? (
-              <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
+              <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
                 Chargement des quiz...
               </p>
             ) : null}
             {quizzesError ? (
-              <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
+              <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
                 {quizzesError}
               </p>
             ) : null}
@@ -254,7 +255,7 @@ export default function LobbyOverviewPanel({
                 <div className="pointer-events-none absolute left-[12%] top-0 h-full w-16 bg-gradient-to-r from-surface via-surface/55 to-transparent" />
                 <div className="pointer-events-none absolute right-[12%] top-0 h-full w-16 bg-gradient-to-l from-surface via-surface/55 to-transparent" />
 
-                <div className="relative h-[22rem] overflow-hidden px-10 [perspective:1200px] sm:h-[24rem] sm:px-12 lg:h-[25rem]">
+                <div className="relative h-[22rem] overflow-hidden px-10 [perspective:1200px] sm:h-96 sm:px-12 lg:h-[25rem]">
                   <button
                     aria-label="Voir la carte précédente"
                     className="absolute left-1 top-1/2 z-30 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/25 bg-background/84 text-xl text-text shadow-[0_20px_36px_-28px_color-mix(in_srgb,var(--color-primary)_55%,transparent)] transition hover:-translate-y-[52%] hover:border-primary/40 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 sm:left-2"
@@ -330,7 +331,7 @@ export default function LobbyOverviewPanel({
                         }}
                       >
                         <article
-                          className={`relative flex h-full flex-col justify-between overflow-hidden rounded-[24px] border p-4 shadow-[0_38px_90px_-48px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] transition duration-500 sm:p-5 ${
+                          className={`relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border p-4 shadow-[0_38px_90px_-48px_color-mix(in_srgb,var(--color-primary)_60%,transparent)] transition duration-500 sm:p-5 ${
                             slide.accent === "urgency"
                               ? "border-urgency/35 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_98%,white_2%),color-mix(in_srgb,var(--color-urgency)_10%,var(--color-background)_90%))]"
                               : "border-primary/30 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-background)_98%,white_2%),color-mix(in_srgb,var(--color-primary)_10%,var(--color-background)_90%))]"
@@ -367,7 +368,7 @@ export default function LobbyOverviewPanel({
 
                             <div className="flex flex-wrap items-center gap-2">
                               <span
-                                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${
+                                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest ${
                                   slide.accent === "urgency"
                                     ? "border border-urgency/30 bg-urgency/15 text-urgency"
                                     : "border border-primary/20 bg-primary/10 text-primary"
@@ -375,7 +376,7 @@ export default function LobbyOverviewPanel({
                               >
                                 {slide.badge}
                               </span>
-                              <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-text/70">
+                              <span className="rounded-full border border-text/10 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-widest text-text/70">
                                 {slide.level}
                               </span>
                             </div>
@@ -431,10 +432,10 @@ export default function LobbyOverviewPanel({
                 </div>
 
                 {activeSlide ? (
-                  <div className="relative mx-auto mt-6 max-w-3xl rounded-[24px] border border-primary/20 bg-background/72 px-5 py-5 shadow-[0_24px_64px_-44px_color-mix(in_srgb,var(--color-primary)_62%,transparent)] backdrop-blur-xl sm:px-6">
+                  <div className="relative mx-auto mt-6 max-w-3xl rounded-3xl border border-primary/20 bg-background/72 px-5 py-5 shadow-[0_24px_64px_-44px_color-mix(in_srgb,var(--color-primary)_62%,transparent)] backdrop-blur-xl sm:px-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                       <div className="space-y-2">
-                        <p className="font-kicker m-0 text-xs uppercase tracking-[0.24em] text-text/55">
+                        <p className="font-kicker m-0 text-xs uppercase tracking-widest text-text/55">
                           Carte {activeSlideIndex + 1} / {slides.length}
                         </p>
                         <h3 className="m-0 text-2xl font-semibold text-text">
@@ -480,25 +481,23 @@ export default function LobbyOverviewPanel({
           />
           <div className="space-y-4">
             {roomsMessage ? (
-              <p className="m-0 rounded-[22px] border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
+              <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
                 {roomsMessage}
               </p>
             ) : null}
             {!roomsLoading && !roomsError && !hasRooms ? (
-              <div className="rounded-[24px] border border-dashed border-primary/30 bg-background/70 px-6 py-8 text-center">
-                <p className="m-0 text-xl font-semibold text-text">
-                  Aucune partie en attente pour le moment.
-                </p>
-                <p className="text-text-muted mt-3 text-sm">
-                  Crée une room depuis un quiz pour lancer la prochaine partie.
-                </p>
-              </div>
+              <EmptyState
+                fill
+                className="rounded-3xl px-6 py-8"
+                title="Aucune partie en attente pour le moment."
+                description="Crée une room depuis un quiz pour lancer la prochaine partie."
+              />
             ) : null}
 
-            <div className="max-h-[24rem] space-y-3 overflow-y-auto pr-1">
+            <div className="max-h-96 space-y-3 overflow-y-auto pr-1">
               {visibleRooms.map((room) => (
                 <div
-                  className="flex items-center justify-between gap-4 rounded-[22px] border border-primary/20 bg-background/78 px-4 py-4"
+                  className="flex items-center justify-between gap-4 rounded-3xl border border-primary/20 bg-background/78 px-4 py-4"
                   key={room.id}
                 >
                   <div className="min-w-0">
@@ -507,7 +506,7 @@ export default function LobbyOverviewPanel({
                         {stripGeneratedTimeSuffix(room.name)}
                       </span>
                       {room.isPrivate ? (
-                        <span className="shrink-0 rounded-full border border-urgency/30 bg-urgency/12 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-urgency">
+                        <span className="shrink-0 rounded-full border border-urgency/30 bg-urgency/12 px-2.5 py-1 text-xs font-semibold uppercase tracking-widest text-urgency">
                           Privée
                         </span>
                       ) : null}
@@ -532,7 +531,7 @@ export default function LobbyOverviewPanel({
               </p>
             ) : null}
 
-            <div className="rounded-[22px] border border-primary/20 bg-background/75 px-5 py-5">
+            <div className="rounded-3xl border border-primary/20 bg-background/75 px-5 py-5">
               <h3 className="m-0 text-xl font-semibold text-text">Créer ton propre quiz</h3>
               <p className="text-text-muted mt-2 text-sm sm:text-base">
                 Prépare un quiz sur ton sujet, challenge ton cluster ou lance une room entre pote.

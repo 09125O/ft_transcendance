@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import EmptyState from "../components/EmptyState";
 import Panel from "../components/Panel";
 import { secondaryButtonClassName } from "../components/SecondaryButton";
 import PrimaryButton from "../components/PrimaryButton";
@@ -259,13 +260,13 @@ export default function FriendsPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-[8%] lg:py-10">
+    <main className="flex flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-10 xl:px-16 lg:py-10">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.85fr)]">
         <Panel className="relative overflow-hidden p-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-primary)_24%,transparent),transparent_55%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-accent)_14%,transparent),transparent_40%)] before:content-[''] sm:p-7">
           <div className="relative flex flex-col gap-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl space-y-3">
-                <span className="inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+                <span className="inline-flex w-fit rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-primary">
                   Réseau
                 </span>
                 <div>
@@ -279,22 +280,22 @@ export default function FriendsPage() {
               </div>
 
               <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(6.75rem,1fr))] gap-2 sm:max-w-md sm:gap-3 lg:w-auto lg:min-w-[23rem]">
-                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
+                <div className="min-w-0 rounded-3xl border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{friends.length}</p>
-                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Amis</p>
+                  <p className="m-0 whitespace-nowrap text-xs uppercase tracking-widest text-text/50 sm:text-xs">Amis</p>
                 </div>
-                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
+                <div className="min-w-0 rounded-3xl border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{requests.incoming.length}</p>
-                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Reçues</p>
+                  <p className="m-0 whitespace-nowrap text-xs uppercase tracking-widest text-text/50 sm:text-xs">Reçues</p>
                 </div>
-                <div className="min-w-0 rounded-[22px] border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
+                <div className="min-w-0 rounded-3xl border border-text/10 bg-background/80 px-3 py-3 text-center sm:px-4">
                   <p className="m-0 text-2xl font-semibold text-text">{unreadNotificationsCount}</p>
-                  <p className="m-0 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.14em] text-text/50 sm:text-xs sm:tracking-[0.2em]">Non lues</p>
+                  <p className="m-0 whitespace-nowrap text-xs uppercase tracking-widest text-text/50 sm:text-xs">Non lues</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-text/10 bg-background/78 p-4 sm:p-5">
+            <div className="rounded-3xl border border-text/10 bg-background/78 p-4 sm:p-5">
               <div className="mb-4">
                 <h2 className="m-0 text-lg font-semibold text-text">Ajouter un ami</h2>
               </div>
@@ -334,7 +335,7 @@ export default function FriendsPage() {
         <Panel className="p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
+              <p className="m-0 text-xs font-semibold uppercase tracking-widest text-text/45">
                 Journal 42
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">Activité récente</h2>
@@ -351,14 +352,12 @@ export default function FriendsPage() {
           </div>
 
           {notifications.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
-              Aucune activité pour le moment.
-            </div>
+            <EmptyState fill title="Aucune activité pour le moment." />
           ) : (
             <ul className="flex flex-col gap-3 text-sm">
               {notifications.slice(0, 8).map((notification) => (
                 <li
-                  className={`rounded-[22px] border p-4 ${
+                  className={`rounded-3xl border p-4 ${
                     notification.read
                       ? "border-text/10 bg-background/60 opacity-70"
                       : "border-primary/20 bg-primary/8"
@@ -409,7 +408,7 @@ export default function FriendsPage() {
         <Panel className="p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
+              <p className="m-0 text-xs font-semibold uppercase tracking-widest text-text/45">
                 Action requise
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">
@@ -422,14 +421,12 @@ export default function FriendsPage() {
           </div>
 
           {requests.incoming.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
-              Aucune invitation en attente.
-            </div>
+            <EmptyState fill title="Aucune invitation en attente." />
           ) : (
             <ul className="flex flex-col gap-3">
               {requests.incoming.map((request) => (
                 <li
-                  className="rounded-[22px] border border-text/10 bg-background/75 p-4"
+                  className="rounded-3xl border border-text/10 bg-background/75 p-4"
                   key={request.id}
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -479,7 +476,7 @@ export default function FriendsPage() {
         <Panel className="p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
+              <p className="m-0 text-xs font-semibold uppercase tracking-widest text-text/45">
                 Cercle actif
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">Mes amis</h2>
@@ -490,14 +487,12 @@ export default function FriendsPage() {
           </div>
 
           {friends.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-text/10 bg-background/70 px-5 py-6 text-sm text-text/60">
-              Aucun ami pour le moment.
-            </div>
+            <EmptyState fill title="Aucun ami pour le moment." />
           ) : (
             <ul className="flex flex-col gap-3">
               {friends.map((friend) => (
                 <li
-                  className="rounded-[22px] border border-text/10 bg-background/75 p-4"
+                  className="rounded-3xl border border-text/10 bg-background/75 p-4"
                   key={friend.friendshipId}
                 >
                   {(() => {
@@ -563,7 +558,7 @@ export default function FriendsPage() {
         <Panel className="p-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-text/45">
+              <p className="m-0 text-xs font-semibold uppercase tracking-widest text-text/45">
                 Suivi
               </p>
               <h2 className="m-0 text-2xl font-semibold text-text">
@@ -577,7 +572,7 @@ export default function FriendsPage() {
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {requests.outgoing.map((request) => (
               <li
-                className="rounded-[22px] border border-text/10 bg-background/75 p-4"
+                className="rounded-3xl border border-text/10 bg-background/75 p-4"
                 key={request.id}
               >
                 <div className="flex items-center gap-3">
@@ -596,7 +591,7 @@ export default function FriendsPage() {
                     <p className="m-0 truncate font-medium text-text">
                       {request.counterpartUsername}
                     </p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.2em] text-text/55">
+                    <p className="mt-2 text-xs uppercase tracking-widest text-text/55">
                       {request.status === "pending" ? "En attente" : request.status}
                     </p>
                   </div>

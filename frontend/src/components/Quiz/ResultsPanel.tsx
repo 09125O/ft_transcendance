@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import EmptyState from "../EmptyState";
 import Panel from "../Panel";
 import PrimaryButton from "../PrimaryButton";
 import SecondaryButton from "../SecondaryButton";
@@ -115,7 +116,7 @@ export default function ResultsPanel({
           >
             Chat
             {unreadChatCount > 0 && mobileTab !== "chat" ? (
-              <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
+              <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
                 {unreadChatCount > 99 ? "99+" : unreadChatCount}
               </span>
             ) : null}
@@ -124,14 +125,14 @@ export default function ResultsPanel({
       </div>
 
       <Panel className={[
-        "order-1 min-h-[20rem] overflow-hidden px-4 py-4 sm:px-5 sm:py-5 md:h-full md:min-h-0 xl:col-start-1 xl:row-start-1",
+        "order-1 min-h-80 overflow-hidden px-4 py-4 sm:px-5 sm:py-5 md:h-full md:min-h-0 xl:col-start-1 xl:row-start-1",
         mobileTab === "chat" ? "block" : "hidden md:block",
       ].join(" ")}>
         <div className="mb-3 flex items-center justify-between gap-2">
           <p className="m-0 inline-flex items-center gap-2 text-sm font-semibold text-text/80">
             <span>Chat de fin de partie</span>
             {unreadChatCount > 0 && mobileTab !== "chat" ? (
-              <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
+              <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-bold leading-none text-text shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-danger)_95%,transparent)]">
                 {unreadChatCount > 99 ? "99+" : unreadChatCount}
               </span>
             ) : null}
@@ -195,7 +196,7 @@ export default function ResultsPanel({
       <Panel className="order-2 relative overflow-hidden px-6 py-6 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--color-urgency)_24%,transparent),transparent_58%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-accent)_20%,transparent),transparent_42%)] before:content-[''] sm:px-8 sm:py-8 md:min-h-[80vh] xl:col-start-2 xl:row-start-1 xl:min-h-[80vh]">
         <div className="relative flex h-full flex-col justify-between gap-8">
           <div className="space-y-4">
-            <span className="font-kicker uppercase tracking-[0.24em] inline-flex w-fit rounded-full border border-urgency/25 bg-urgency/10 px-3 py-1 text-xs font-semibold text-urgency">
+            <span className="font-kicker uppercase tracking-widest inline-flex w-fit rounded-full border border-urgency/25 bg-urgency/10 px-3 py-1 text-xs font-semibold text-urgency">
               Fin de partie
             </span>
             <h1 className="m-0 text-3xl font-semibold leading-tight text-text sm:text-4xl">
@@ -203,8 +204,8 @@ export default function ResultsPanel({
             </h1>
           </div>
 
-          <div className="rounded-[24px] border border-primary/20 bg-background/75 px-5 py-5">
-            <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs text-text/55">Vainqueur</p>
+          <div className="rounded-3xl border border-primary/20 bg-background/75 px-5 py-5">
+            <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Vainqueur</p>
             <p className="m-0 mt-2 text-2xl font-semibold text-text">
               {winner?.username ?? "Aucun joueur"}
             </p>
@@ -234,22 +235,20 @@ export default function ResultsPanel({
         mobileTab === "podium" ? "block" : "hidden md:block",
       ].join(" ")}>
         <div className="mb-5">
-          <p className="font-kicker uppercase tracking-[0.24em] m-0 text-xs font-semibold text-text/55">Classement final</p>
+          <p className="font-kicker uppercase tracking-widest m-0 text-xs font-semibold text-text/55">Classement final</p>
           <p className="m-0 text-2xl font-semibold text-text">Podium</p>
         </div>
 
         <div className="mb-5 space-y-3">
           {scoreEntries.length === 0 ? (
-            <div className="rounded-[22px] border border-dashed border-primary/25 bg-background/70 px-5 py-6 text-sm text-text/70">
-              Aucun score à afficher.
-            </div>
+            <EmptyState fill title="Aucun score à afficher." />
           ) : (
             scoreEntries.map((entry, index) => {
               const colorRank = getPodiumColorRank(index);
 
               return (
                 <div
-                  className="flex items-center justify-between gap-3 rounded-[22px] border border-primary/20 bg-background/80 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-3xl border border-primary/20 bg-background/80 px-4 py-3"
                   key={entry.userId}
                 >
                   <div className="flex min-w-0 items-center gap-3">
