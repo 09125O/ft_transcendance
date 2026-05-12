@@ -16,7 +16,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { SubmitAnswerDto } from "./dto/submit-answer.dto";
-import { GameService, GameState, SubmitAnswerResult } from "./game.service";
+import {
+  ActiveQuestionSnapshot,
+  GameService,
+  GameState,
+  SubmitAnswerResult,
+} from "./game.service";
 
 @Controller("game")
 @UseFilters(ApiExceptionFilter)
@@ -40,6 +45,22 @@ export class GameController {
     }
 
     return ok(await this.gameService.getRoomState(roomId));
+  }
+
+  @Get(":roomId/active-question")
+  @UseGuards(AuthGuard)
+  async getActiveQuestion(
+    @Param("roomId", ParseIntPipe) roomId: number,
+    @CurrentUser() auth: AuthPayload,
+  ): Promise<ApiResponse<ActiveQuestionSnapshot>> {
+    const room = await this.roomsService.getById(roomId);
+    const isRoomMember = room.players.some((player) => player.userId === auth.sub);
+
+    if (!isRoomMember) {
+      throw new UnauthorizedException("L'utilisateur n'est pas dans cette room");
+    }
+
+    return ok(await this.gameService.getActiveQuestionSnapshot(roomId));
   }
 
   @Post("answer")
