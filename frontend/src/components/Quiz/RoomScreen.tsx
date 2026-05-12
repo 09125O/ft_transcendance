@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuizLobby } from "../../hooks/useQuizLobby";
 import { useRoomChat } from "../../hooks/useRoomChat";
@@ -7,6 +7,7 @@ import { useRoomRealtime } from "../../hooks/useRoomRealtime";
 import { useAuth } from "../../providers/AuthProvider";
 import type { PublicQuestion } from "../../types/game";
 import { emitWs } from "../../services/ws";
+import { getActiveQuestionSnapshot } from "../../services/game";
 import GamePanel from "./GamePanel";
 import PreMatchPanel from "./PreMatchPanel";
 import ResultsPanel from "./ResultsPanel";
@@ -40,6 +41,32 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
   });
   const { scoreEntries, applyLeaderboard } = useRoomParticipants(currentRoom);
 
+  const applyActiveQuestionSnapshot = useCallback(
+    ({
+      question,
+      durationMs,
+      endsAt,
+    }: {
+      question: PublicQuestion;
+      durationMs: number;
+      endsAt: string;
+    }) => {
+      setCurrentQuestion(question);
+      setSelectedAnswer(null);
+      setCorrectAnswerIndex(null);
+      setAnswerFeedback(null);
+      setTimerDurationMs(durationMs);
+      const parsedEndsAtMs = Date.parse(endsAt);
+      setTimerEndsAtMs(Number.isNaN(parsedEndsAtMs) ? null : parsedEndsAtMs);
+      setTimerRemainingMs(
+        Number.isNaN(parsedEndsAtMs)
+          ? durationMs
+          : Math.max(0, parsedEndsAtMs - Date.now()),
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     if (requestedRoomId === null || !Number.isInteger(requestedRoomId) || requestedRoomId < 1) {
       navigate("/", { replace: true });
@@ -70,16 +97,8 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
     },
     onRoomJoined: resetChat,
     onLeaderboard: applyLeaderboard,
-    onQuestionStarted: ({ question, durationMs, endsAt }) => {
-      setCurrentQuestion(question);
-      setSelectedAnswer(null);
-      setCorrectAnswerIndex(null);
-      setAnswerFeedback(null);
-      setTimerDurationMs(durationMs);
-      const parsedEndsAtMs = Date.parse(endsAt);
-      setTimerEndsAtMs(Number.isNaN(parsedEndsAtMs) ? null : parsedEndsAtMs);
-      setTimerRemainingMs(durationMs);
-    },
+    onQuestionStarted: ({ question, durationMs, endsAt }) =>
+      applyActiveQuestionSnapshot({ question, durationMs, endsAt }),
     onGameEnded: () => {
       setCurrentQuestion(null);
       setSelectedAnswer(null);
@@ -109,6 +128,54 @@ export default function RoomScreen({ requestedRoomId }: RoomScreenProps) {
       setTimerRemainingMs(payload.remainingMs);
     },
   });
+
+  useEffect(() => {
+    if (
+      currentRoomId === null ||
+      currentRoom?.status !== "playing" ||
+      currentQuestion !== null ||
+      sessionUser === null
+    ) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const restoreActiveQuestion = async () => {
+      try {
+        const snapshot = await getActiveQuestionSnapshot(currentRoomId);
+        if (!isMounted) {
+          return;
+        }
+
+        applyLeaderboard(snapshot.state.leaderboard);
+        if (!snapshot.question || !snapshot.state.questionEndsAt) {
+          return;
+        }
+
+        applyActiveQuestionSnapshot({
+          question: snapshot.question,
+          durationMs: snapshot.state.questionDurationMs ?? currentRoom.questionDurationMs,
+          endsAt: snapshot.state.questionEndsAt,
+        });
+      } catch {
+        // The next realtime question event will resync the screen if the snapshot is unavailable.
+      }
+    };
+
+    void restoreActiveQuestion();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    applyLeaderboard,
+    applyActiveQuestionSnapshot,
+    currentQuestion,
+    currentRoom,
+    currentRoomId,
+    sessionUser,
+  ]);
 
   useEffect(() => {
     if (timerEndsAtMs === null) {

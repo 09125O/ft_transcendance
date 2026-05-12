@@ -50,6 +50,11 @@ export type PublicQuestion = {
   options: string[];
 };
 
+export type ActiveQuestionSnapshot = {
+  state: GameState;
+  question: PublicQuestion | null;
+};
+
 type RoomRuntime = {
   answeredByQuestion: Map<number, Set<number>>;
   scoresByUser: Map<number, number>;
@@ -457,6 +462,19 @@ export class GameService {
       id: question.id,
       text: question.text,
       options: [...question.options],
+    };
+  }
+
+  async getActiveQuestionSnapshot(roomId: number): Promise<ActiveQuestionSnapshot> {
+    const state = await this.getRoomState(roomId);
+    const question =
+      state.currentQuestionId === null
+        ? null
+        : await this.getPublicQuestion(state.currentQuestionId);
+
+    return {
+      state,
+      question,
     };
   }
 
