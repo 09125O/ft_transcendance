@@ -13,6 +13,30 @@ type SeedQuiz = {
   questions: SeedQuestion[];
 };
 
+function withBalancedCorrectAnswerPosition(
+  question: SeedQuestion,
+  questionIndex: number,
+): SeedQuestion {
+  const options = [...question.options];
+  const currentCorrectIndex = options.indexOf(question.correct);
+
+  if (currentCorrectIndex < 0) {
+    throw new Error(
+      `Seed question "${question.text}" does not contain its correct answer in options`,
+    );
+  }
+
+  const targetCorrectIndex = questionIndex % options.length;
+  const targetOption = options[targetCorrectIndex];
+  options[targetCorrectIndex] = question.correct;
+  options[currentCorrectIndex] = targetOption;
+
+  return {
+    ...question,
+    options,
+  };
+}
+
 const LAUNCH_QUIZZES: SeedQuiz[] = [
   {
     title: "C Fundamentals",
@@ -1067,33 +1091,45 @@ async function seedQuiz(prisma: PrismaClient, quiz: SeedQuiz): Promise<void> {
         data: { title: quiz.title },
       });
 
-  const existingQuestions = await prisma.quizQuestion.findMany({
+  const existingQuestionCount = await prisma.quizQuestion.count({
     where: { quizId: persistedQuiz.id },
-    select: { position: true },
   });
-  const existingPositions = new Set(
-    existingQuestions.map((question) => question.position),
-  );
 
-  const missingQuestions = quiz.questions
-    .map((question, index) => ({
+  const questions = quiz.questions.map((question, index) => {
+    const balancedQuestion = withBalancedCorrectAnswerPosition(question, index);
+
+    return {
       quizId: persistedQuiz.id,
-      questionText: question.text,
-      answers: question.options,
-      correctAnswer: question.correct,
+      questionText: balancedQuestion.text,
+      answers: balancedQuestion.options,
+      correctAnswer: balancedQuestion.correct,
       position: index + 1,
-      points: question.points ?? 100,
-    }))
-    .filter((question) => !existingPositions.has(question.position));
+      points: balancedQuestion.points ?? 100,
+    };
+  });
 
-  if (missingQuestions.length > 0) {
-    await prisma.quizQuestion.createMany({
-      data: missingQuestions,
+  for (const question of questions) {
+    await prisma.quizQuestion.upsert({
+      where: {
+        quizId_position: {
+          quizId: question.quizId,
+          position: question.position,
+        },
+      },
+      update: {
+        questionText: question.questionText,
+        answers: question.answers,
+        correctAnswer: question.correctAnswer,
+        points: question.points,
+      },
+      create: question,
     });
   }
 
+  const addedQuestionCount = Math.max(0, questions.length - existingQuestionCount);
+
   console.log(
-    `[seed] Quiz "${quiz.title}": +${missingQuestions.length} question(s), ${existingQuestions.length + missingQuestions.length} total.`,
+    `[seed] Quiz "${quiz.title}": +${addedQuestionCount} question(s), ${questions.length} total, answers balanced.`,
   );
 }
 

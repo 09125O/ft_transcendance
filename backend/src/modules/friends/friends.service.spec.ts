@@ -3,9 +3,15 @@
 import { ConflictException, UnauthorizedException } from "@nestjs/common";
 import { FriendsService } from "./friends.service";
 
+const presence = {
+  hasActiveSockets: jest.fn().mockReturnValue(false),
+};
+
+const createService = (prisma: any) => new FriendsService(prisma, presence as any);
+
 describe("FriendsService", () => {
   it("rejects sending a friend request to self", async () => {
-    const service = new FriendsService({} as any);
+    const service = createService({} as any);
 
     await expect(service.sendRequest(7, 7)).rejects.toBeInstanceOf(ConflictException);
   });
@@ -25,7 +31,7 @@ describe("FriendsService", () => {
       },
     } as any;
 
-    const service = new FriendsService(prisma);
+    const service = createService(prisma);
 
     await expect(service.acceptRequest(99, 42)).rejects.toBeInstanceOf(UnauthorizedException);
     expect(prisma.client.friendRequests.update).not.toHaveBeenCalled();
@@ -58,7 +64,7 @@ describe("FriendsService", () => {
       },
     } as any;
 
-    const service = new FriendsService(prisma);
+    const service = createService(prisma);
     const result = await service.sendRequest(7, 8);
 
     expect(prisma.client.$transaction).toHaveBeenCalledTimes(1);
@@ -95,7 +101,7 @@ describe("FriendsService", () => {
       },
     } as any;
 
-    const service = new FriendsService(prisma);
+    const service = createService(prisma);
 
     await expect(service.declineRequest(11, 55)).rejects.toBeInstanceOf(ConflictException);
     expect(prisma.client.friendRequests.update).not.toHaveBeenCalled();
@@ -128,7 +134,7 @@ describe("FriendsService", () => {
       },
     } as any;
 
-    const service = new FriendsService(prisma);
+    const service = createService(prisma);
 
     await expect(service.sendRequest(7, 8)).rejects.toBeInstanceOf(ConflictException);
     expect(tx.friendRequests.create).not.toHaveBeenCalled();

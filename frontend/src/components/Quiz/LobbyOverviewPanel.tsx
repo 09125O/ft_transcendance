@@ -218,11 +218,11 @@ export default function LobbyOverviewPanel({
         </div>
       </Panel>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <Panel className="flex h-full flex-col px-6 py-6 sm:px-8">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <Panel className="flex h-full min-w-0 flex-col px-6 py-6 sm:px-8">
           <div id="ready-to-play" />
           <SectionHeader title="Quiz prêts à lancer" />
-          <div className="flex h-full flex-col gap-4">
+          <div className="flex h-full min-w-0 flex-col gap-4">
             {quizzesLoading ? (
               <p className="m-0 rounded-3xl border border-primary/25 bg-background px-4 py-4 text-sm text-text/80">
                 Chargement des quiz...
@@ -236,7 +236,7 @@ export default function LobbyOverviewPanel({
 
             {!quizzesLoading && !quizzesError && slides.length > 0 ? (
               <div
-                className="relative min-h-[32rem] overflow-hidden bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_24%,transparent)_0%,transparent_24%,color-mix(in_srgb,var(--color-background)_18%,transparent)_100%)] px-2 py-8 sm:px-4 sm:py-10"
+                className="relative min-w-0 min-h-[32rem] overflow-hidden bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-surface)_24%,transparent)_0%,transparent_24%,color-mix(in_srgb,var(--color-background)_18%,transparent)_100%)] px-2 py-8 sm:px-4 sm:py-10"
                 tabIndex={0}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowLeft") {

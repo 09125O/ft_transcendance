@@ -21,7 +21,7 @@ Il explique :
   - `db`
   - `backup`
 - Volumes Docker pour conserver les donnees PostgreSQL
-- Healthchecks sur les 3 services pour verifier qu'ils sont vraiment operationnels
+- Healthchecks sur les 4 services pour verifier qu'ils sont vraiment operationnels
 
 ### Frontend
 
@@ -33,7 +33,7 @@ Il explique :
 
 Role actuel :
 
-- gerer les routes `home`, `room`, `login`, `register`, `profile`, `friends`, `privacy`, `terms`
+- gerer les routes `home`, `room`, `login`, `register`, `profile`, `friends`, `leaderboard`, `quiz-ready`, `quiz-create`, `status`, `privacy`, `terms`
 - afficher le lobby, la room realtime, le chat et les ecrans social
 - permettre la creation de quiz et la creation de room depuis un quiz
 - proxifier les appels `/api`, `/health`, `/auth`, `/users`, `/rooms`, `/game`, `/scores`, `/quizzes`, `/friends` et `/notifications` vers le backend via Webpack Dev Server
@@ -701,8 +701,8 @@ Fonctions importantes :
   - calcule les options du cookie `access_token`
   - `httpOnly: true` pour empecher la lecture JS cote navigateur
   - `path: "/"` pour rendre le cookie valable sur toute l'app
-  - `sameSite` passe a `"none"` si `FRONTEND_ORIGIN` est en `https://`, sinon `"lax"`
-  - `secure` est active seulement en HTTPS
+  - `sameSite` vient de `AUTH_COOKIE_SAMESITE` avec defaut `"lax"` et garde seulement les valeurs `lax`, `strict` ou `none`
+  - `secure` vient de `AUTH_COOKIE_SECURE`; en mode `auto`, il est active si `sameSite="none"`, si `FRONTEND_ORIGIN` est en `https://`, ou si `APP_PROTOCOL=https`
 - `login(user, res)` :
   - met le user en `status: "online"`
   - construit le payload JWT `{ sub, email, username }`

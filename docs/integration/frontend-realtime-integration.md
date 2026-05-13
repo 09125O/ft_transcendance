@@ -1,6 +1,6 @@
 # Front2 Realtime Integration
 
-Version: etat actuel de `dev` au 2026-05-05
+Version: etat actuel de `dev` au 2026-05-13, rafraichi par lecture statique code/doc
 Namespace WS: `/ws`
 Transport: `socket.io`
 
@@ -29,6 +29,7 @@ Transport: `socket.io`
 - listen `room:create:error`
 - quand la room est creee depuis un quiz, envoyer `quizId` pour lier la partie aux questions persistantes
 - `questionDurationMs` permet de personnaliser la duree par question de la room
+- `questionDurationMs` est borne cote backend entre `5000` et `30000` ms; si absent, le backend utilise `GAME_QUESTION_DURATION_MS`
 - sans `quizId`, le code tente d'utiliser un quiz par defaut `"Culture générale"`
 - le seed courant ne cree pas ce titre; en pratique il faut fournir `quizId` ou accepter un echec possible au `room:start`
 
@@ -82,6 +83,7 @@ Transport: `socket.io`
   - `question: { id, text, options[] }`
   - `questionNumber`, `totalQuestions`, `durationMs`, `startsAt`, `endsAt`
 - si la room a un `quizId`, `question` provient des `QuizQuestion` du quiz
+- l'ordre de partie est melange au lancement, puis persiste pour la room en cours
 - listen `game:timer`
 - listen `game:question:timeout`
 - attention: la question suivante peut aussi partir immediatement si tous les joueurs ont repondu (sans attendre le timeout)

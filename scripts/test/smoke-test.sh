@@ -24,6 +24,7 @@ fi
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 BACKEND_BASE_URL="${APP_PROTOCOL}://localhost:${BACKEND_PORT}"
 FRONTEND_BASE_URL="${FRONTEND_ORIGIN:-${APP_PROTOCOL}://localhost:${FRONTEND_PORT}}"
+FRONTEND_BASE_URL="${FRONTEND_BASE_URL%/}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ft_transcendance_smoke.XXXXXX")"
 MKCERT_CA_FILE="${ROOT_DIR}/.local/certs/mkcert-rootCA.pem"
 COOKIE_JAR="${TMP_DIR}/cookies.txt"
@@ -68,8 +69,18 @@ compose() {
 	fi
 }
 
+container_runtime() {
+	if command -v podman >/dev/null 2>&1 && docker --version 2>/dev/null | grep -qi podman; then
+		printf '%s\n' podman
+	else
+		printf '%s\n' docker
+	fi
+}
+
+CONTAINER_RUNTIME="$(container_runtime)"
+
 container_health() {
-	docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$1" 2>/dev/null
+	"$CONTAINER_RUNTIME" inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$1" 2>/dev/null
 }
 
 check_container() {
@@ -112,9 +123,9 @@ check_http_inside_container() {
 	expected="$3"
 
 	if printf '%s' "$url" | grep -Eq '^https://'; then
-		body="$(docker exec "$container" sh -lc "NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node -e \"fetch('${url}').then(async (response) => { if (!response.ok) process.exit(1); process.stdout.write(await response.text()); }).catch(() => process.exit(1))\"")" || return 1
+		body="$("$CONTAINER_RUNTIME" exec "$container" sh -lc "NODE_EXTRA_CA_CERTS=/certs/mkcert-rootCA.pem node -e \"fetch('${url}').then(async (response) => { if (!response.ok) process.exit(1); process.stdout.write(await response.text()); }).catch(() => process.exit(1))\"")" || return 1
 	else
-		body="$(docker exec "$container" sh -lc "wget -qO- '$url'")" || return 1
+		body="$("$CONTAINER_RUNTIME" exec "$container" sh -lc "wget -qO- '$url'")" || return 1
 	fi
 
 	printf '%s' "$body" | grep -F -q "$expected" || fail "Reponse inattendue depuis $container sur $url"
@@ -124,7 +135,7 @@ check_http_inside_container() {
 run_database_query() {
 	query="$1"
 
-	docker exec -i quiz_db sh -lc \
+	"$CONTAINER_RUNTIME" exec -i quiz_db sh -lc \
 		"PGPASSWORD=\"\$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -t -A -c \"$query\""
 }
 

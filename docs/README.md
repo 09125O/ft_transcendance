@@ -1,6 +1,6 @@
 # Documentation Map
 
-Date: 2026-05-05
+Date: 2026-05-13
 Statut: index de navigation du dossier `docs` pour l'etat courant de `dev`
 
 ## 1. Ordre de lecture recommande

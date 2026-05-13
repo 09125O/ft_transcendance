@@ -163,12 +163,6 @@ Preuves modules :
 
 ## 9. Modules a ne pas sur-promettre
 
-Ne pas faire reposer la demo principale sur :
-
-- `2FA`
-- `SSR`
-- spectator mode cote UI
-
 Vous pouvez aussi garder en reserve :
 
 - notification system

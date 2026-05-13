@@ -1,6 +1,6 @@
 # API Front Contract (Dev3)
 
-Version: v1 (etat actuel de `dev` au 2026-05-05)
+Version: v1 (etat actuel de `dev` au 2026-05-13, rafraichi par lecture statique code/doc)
 Scope: contrat front-back MVP pour auth, users, rooms, game, scores, friends, notifications
 
 ## Etat de persistance (important)
@@ -285,6 +285,7 @@ Note:
 `GET /health`
 - Reponse: `200` si backend et DB sont OK
 - Reponse: `503` si le backend ne peut plus joindre correctement la DB
+- Attention: en cas de `503`, le filtre d'erreur HTTP global enveloppe aujourd'hui la reponse sous forme `ApiResponse` d'erreur. Le `HealthStatus` complet n'est pas preserve comme payload `data` dans ce cas.
 
 Shape actuelle:
 
@@ -464,8 +465,10 @@ type FriendRequestEntry = {
 - Reponse: `200`, `ApiResponse<Room[]>`
 
 `GET /rooms/:roomId`
+- Auth: cookie `access_token` requis
 - Reponse: `200`, `ApiResponse<Room>`
 - Erreurs:
+  - `401 UNAUTHORIZED`
   - `400 BAD_REQUEST` si `roomId` non numerique
   - `404 NOT_FOUND` si room absente
 
@@ -538,6 +541,29 @@ type FriendRequestEntry = {
 `GET /game/:roomId/state`
 - Auth: cookie `access_token` requis
 - Reponse: `200`, `ApiResponse<GameState>`
+- Erreurs:
+  - `400 BAD_REQUEST`
+  - `401 UNAUTHORIZED` si user hors room
+  - `404 NOT_FOUND` si room absente
+
+`GET /game/:roomId/active-question`
+- Auth: cookie `access_token` requis
+- Reponse: `200`, `ApiResponse<ActiveQuestionSnapshot>`
+
+```ts
+type ActiveQuestionSnapshot = {
+  state: GameState;
+  question: {
+    id: number;
+    text: string;
+    options: string[];
+  } | null;
+};
+```
+
+- Usage actuel:
+  - le frontend l'appelle apres un refresh ou une arrivee directe sur `/room/:roomId`
+  - permet de reconstruire l'etat UI sans exposer la bonne reponse
 - Erreurs:
   - `400 BAD_REQUEST`
   - `401 UNAUTHORIZED` si user hors room

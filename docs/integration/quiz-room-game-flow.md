@@ -1,6 +1,6 @@
 # Quiz Room Game Integration
 
-Date: 2026-04-18
+Date: 2026-05-13
 
 ## Resume
 
@@ -26,7 +26,7 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 
 5. Le backend verifie que le quiz existe et contient au moins une question.
 6. Le backend stocke `quizId` sur la room.
-7. Au lancement de la room, le runtime lit les questions du quiz dans l'ordre `QuizQuestion.position`.
+7. Au lancement de la room, le runtime lit les questions du quiz ordonnees par `QuizQuestion.position`, puis selectionne l'ordre effectif de partie de facon aleatoire.
 8. Les events `game:question:started` exposent seulement `{ id, text, options }`.
 9. Les reponses sont validees contre `QuizQuestion.correctAnswer`.
 10. Les points viennent de `QuizQuestion.points`.
@@ -47,6 +47,7 @@ Quand une room est creee depuis l'interface quiz, le front envoie `quizId` dans 
 - Si `quizId` est fourni et invalide, la creation de room echoue.
 - Si le quiz ne contient aucune question, la creation de room echoue.
 - `rounds` est limite au nombre de questions disponibles dans le quiz.
+- l'ordre des questions pendant une partie est melange au lancement, puis conserve dans les `GameQuestion.position` de la partie persistante.
 - `questionDurationMs` personnalise le timer par question au niveau room.
 - si `questionDurationMs` est absent, le backend retombe sur `GAME_QUESTION_DURATION_MS`.
 - Le seed courant ne cree pas ce titre par defaut; sur une base seedee standard, omettre `quizId` peut donc faire echouer `room:start` (`409 CONFLICT`).

@@ -23,10 +23,20 @@ compose() {
 	fi
 }
 
+container_runtime() {
+	if command -v podman >/dev/null 2>&1 && docker --version 2>/dev/null | grep -qi podman; then
+		printf '%s\n' podman
+	else
+		printf '%s\n' docker
+	fi
+}
+
+CONTAINER_RUNTIME="$(container_runtime)"
+
 run_database_query() {
 	query="$1"
 
-	docker exec -i quiz_db sh -lc \
+	"$CONTAINER_RUNTIME" exec -i quiz_db sh -lc \
 		"PGPASSWORD=\"\$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -t -A -c \"$query\""
 }
 

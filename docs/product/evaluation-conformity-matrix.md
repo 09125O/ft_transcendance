@@ -1,12 +1,14 @@
 # Sujet -> Conformite -> Preuves
 
-Date: 2026-05-05
+Date: 2026-05-13
 Sources:
 
 - `srcs_subject/en.subject.pdf`
 - `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
 
-Derniere verification: lecture interne du projet a partir des PDFs officiels, de l'etat courant de `dev`, des smoke tests, du browser test et du workflow CI vert
+Derniere verification documentaire: 2026-05-13, par lecture statique de l'implementation courante et des contrats versionnes.
+
+Derniere verification executable referencee par le repo: smoke tests, browser test et workflow CI vert documentes dans les preuves de soutenance.
 
 Important:
 

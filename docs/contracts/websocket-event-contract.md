@@ -1,6 +1,6 @@
 # WebSocket Event Contract
 
-Version: `v1` (etat actuel de `dev` au 2026-05-05)
+Version: `v1` (etat actuel de `dev` au 2026-05-13, rafraichi par lecture statique code/doc)
 Namespace: `/ws`  
 Transport: `socket.io`
 
@@ -45,6 +45,7 @@ Erreur:
   "ownerUserId": 1,
   "quizId": 1,
   "rounds": 5,
+  "questionDurationMs": 10000,
   "isPrivate": false,
   "status": "waiting",
   "players": [{ "userId": 1, "joinedAt": "2026-04-08T10:00:00.000Z" }],
@@ -106,6 +107,7 @@ Payload: none
 {
   "name": "Lobby #1",
   "rounds": 5,
+  "questionDurationMs": 10000,
   "isPrivate": false,
   "password": "room1234",
   "quizId": 1,
@@ -116,6 +118,7 @@ Payload: none
 Notes:
 - `password` requis seulement si `isPrivate=true`.
 - `quizId` optionnel, mais recommande pour les rooms creees depuis l'interface quiz.
+- `questionDurationMs` optionnel, borne par le backend entre `5000` et `30000`; si absent, fallback sur `GAME_QUESTION_DURATION_MS`.
 - Si `quizId` est fourni, les questions de la partie viennent de ce quiz.
 - `userId` optionnel; l'identite est derivee du socket JWT et verifiee.
 - `quizId` invalide => `room:create:error` (`NOT_FOUND`), quiz vide => `CONFLICT`.

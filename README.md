@@ -55,9 +55,30 @@ Modules non implémentés ou non retenus dans le plan courant :
 - `SSR`
 - mode spectateur côté UI
 
-### 2.1 Verification actuelle
+### 2.1 Equipe, roles et contributions
 
-Verification reussie sur l'etat courant de `dev` :
+Repartition retenue pour la soutenance Intra :
+
+| Membre | Role Intra | Zone principale | Contributions a presenter |
+|---|---|---|---|
+| Driss | Developer backend | Backend NestJS, Prisma, API, realtime server | Auth locale/guest/OAuth 42, rooms, game loop, WebSocket, scores, tests backend et smoke tests |
+| Tommy | Developer frontend | Frontend React, UX, pages et integration API/WS | Pages `login`, `profile`, `friends`, `leaderboard`, `status`, lobby quiz, room/game UI, responsive et parcours joueur |
+| Bastien | Project Manager + QA/DevOps | Organisation, verification, exploitation locale | Coordination des lots, checklist de demo, Makefile/Docker/Podman, smoke tests, browser tests, status/backup et runbooks |
+| Sofian | Product Owner + gameplay/content | Cadrage produit, modules, parcours de jeu | Choix des modules revendiques, parcours de demo, catalogue de quiz, regles de room, duree de question, scoring et experience joueur |
+| Giovanni | Tech Lead integration | Architecture fullstack et coherence contrats | Contrats HTTP/WS, integration frontend-backend, coherence schema DB, revue des flux realtime, validation multi-joueurs et coherence documentation |
+
+Organisation de travail defendable :
+
+- decoupage par lots fonctionnels : auth, social, quiz/rooms/game, stats, status/backup, QA
+- validation par preuves : smoke tests, tests WebSocket, tests sociaux, lint/build, tests navigateurs
+- documentation synchronisee avec les contrats HTTP/WS et la matrice de conformite
+- revue finale centree sur la grille Intra : README, modules, securite, responsive, deploiement et stabilite
+
+Chaque membre doit pouvoir expliquer sa zone principale, mais aussi le parcours global : `frontend -> backend -> database -> websocket -> tests`.
+
+### 2.2 Verification de reference
+
+Verification de reference documentee pour `dev` :
 
 - `make smoke-test` en `HTTPS local`
 - `make smoke-test` en `HTTP/LAN`
@@ -123,9 +144,9 @@ Preuves techniques :
 - `PATCH /users/me`
 - `POST /users/me/avatar`
 - service statique `/uploads`
-- [backend/src/modules/users/users.controller.ts](/Users/d9125/Downloads/transcendance-dev/backend/src/modules/users/users.controller.ts)
-- [frontend/src/pages/ProfilePage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/ProfilePage.tsx)
-- [frontend/src/pages/FriendsPage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/FriendsPage.tsx)
+- [backend/src/modules/users/users.controller.ts](backend/src/modules/users/users.controller.ts)
+- [frontend/src/pages/ProfilePage.tsx](frontend/src/pages/ProfilePage.tsx)
+- [frontend/src/pages/FriendsPage.tsx](frontend/src/pages/FriendsPage.tsx)
 
 Ce qui est effectivement démontrable :
 
@@ -146,10 +167,10 @@ Preuves techniques :
 
 - `GET /health`
 - page publique `/status`
-- sidecar `backup` dans [docker-compose.yml](/Users/d9125/Downloads/transcendance-dev/docker-compose.yml)
-- script [scripts/ops/auto-backup.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/auto-backup.sh)
-- scripts [scripts/ops/backup-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/backup-db.sh) et [scripts/ops/restore-db.sh](/Users/d9125/Downloads/transcendance-dev/scripts/ops/restore-db.sh)
-- runbook [status-backup-recovery-runbook.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/status-backup-recovery-runbook.md)
+- sidecar `backup` dans [docker-compose.yml](docker-compose.yml)
+- script [scripts/ops/auto-backup.sh](scripts/ops/auto-backup.sh)
+- scripts [scripts/ops/backup-db.sh](scripts/ops/backup-db.sh) et [scripts/ops/restore-db.sh](scripts/ops/restore-db.sh)
+- runbook [status-backup-recovery-runbook.md](docs/operations/status-backup-recovery-runbook.md)
 
 Ce qui est effectivement démontrable :
 
@@ -173,9 +194,9 @@ Preuves techniques :
 
 Points d'entrée utiles :
 
-- [websocket-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/websocket-event-contract.md)
-- [frontend-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/frontend-realtime-integration.md)
-- [quiz-room-game-flow.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/quiz-room-game-flow.md)
+- [websocket-event-contract.md](docs/contracts/websocket-event-contract.md)
+- [frontend-realtime-integration.md](docs/integration/frontend-realtime-integration.md)
+- [quiz-room-game-flow.md](docs/integration/quiz-room-game-flow.md)
 
 ### 4.4 Stats and match history
 
@@ -184,8 +205,8 @@ Preuves techniques :
 - `GET /scores/leaderboard`
 - `GET /scores/users/:userId`
 - `GET /scores/users/:userId/history`
-- [frontend/src/pages/LeaderboardPage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/LeaderboardPage.tsx)
-- [frontend/src/pages/ProfilePage.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/pages/ProfilePage.tsx)
+- [frontend/src/pages/LeaderboardPage.tsx](frontend/src/pages/LeaderboardPage.tsx)
+- [frontend/src/pages/ProfilePage.tsx](frontend/src/pages/ProfilePage.tsx)
 
 ### 4.5 Game customization options
 
@@ -198,14 +219,14 @@ Preuves techniques :
 
 Points d'entrée utiles :
 
-- [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](/Users/d9125/Downloads/transcendance-dev/frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
-- [http-api-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/http-api-contract.md)
+- [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
+- [http-api-contract.md](docs/contracts/http-api-contract.md)
 
 ## 5. Parcours de démo recommandés
 
 Checklist de démo détaillée :
 
-- [demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/product/demo-checklist.md)
+- [demo-checklist.md](docs/product/demo-checklist.md)
 
 Parcours courts à préparer :
 
@@ -343,30 +364,27 @@ Notes d'exploitation :
 
 Documents de reference a utiliser pour la soutenance :
 
-- [docs/README.md](/Users/d9125/Downloads/transcendance-dev/docs/README.md)
-- [evaluation-conformity-matrix.md](/Users/d9125/Downloads/transcendance-dev/docs/product/evaluation-conformity-matrix.md)
-- [demo-checklist.md](/Users/d9125/Downloads/transcendance-dev/docs/product/demo-checklist.md)
-- [status-backup-recovery-runbook.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/status-backup-recovery-runbook.md)
-- [http-api-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/http-api-contract.md)
-- [websocket-event-contract.md](/Users/d9125/Downloads/transcendance-dev/docs/contracts/websocket-event-contract.md)
-- [frontend-realtime-integration.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/frontend-realtime-integration.md)
-- [quiz-room-game-flow.md](/Users/d9125/Downloads/transcendance-dev/docs/integration/quiz-room-game-flow.md)
-- [developer-guide.md](/Users/d9125/Downloads/transcendance-dev/docs/operations/developer-guide.md)
+- [docs/README.md](docs/README.md)
+- [evaluation-conformity-matrix.md](docs/product/evaluation-conformity-matrix.md)
+- [demo-checklist.md](docs/product/demo-checklist.md)
+- [status-backup-recovery-runbook.md](docs/operations/status-backup-recovery-runbook.md)
+- [http-api-contract.md](docs/contracts/http-api-contract.md)
+- [websocket-event-contract.md](docs/contracts/websocket-event-contract.md)
+- [frontend-realtime-integration.md](docs/integration/frontend-realtime-integration.md)
+- [quiz-room-game-flow.md](docs/integration/quiz-room-game-flow.md)
+- [developer-guide.md](docs/operations/developer-guide.md)
 
 ## 9. Elements Intra encore a completer manuellement
 
-Le repo permet aujourd'hui de documenter l'état technique et les modules revendiqués, mais certains éléments demandés par l'Intra ne sont pas encore tracés de façon complète ici.
+Le repo documente l'état technique, les modules revendiqués, la répartition d'équipe et les parcours de démonstration.
 
-A completer avant soutenance si vous voulez un dossier Intra propre :
+A personnaliser avant soutenance pour un dossier Intra encore plus solide :
 
-- noms exacts des membres du groupe
-- roles explicites par membre
-- organisation du travail / methode de coordination
-- contribution individuelle par feature
-- schema DB lisible a joindre si vous voulez une piece visuelle dediee
+- noms complets exacts des membres, si vous voulez les afficher au format administratif 42
+- exemples personnels precis par membre : une feature, un bug difficile, un choix technique assume
+- captures ou schema visuel DB si vous voulez une piece projetable pendant la soutenance
 
 Important :
 
-- cette section est volontairement explicite
-- elle signale ce qui manque encore au dossier
-- elle n'invente aucune information absente du repo
+- les roles ci-dessus sont une repartition de soutenance coherente avec l'implementation
+- chaque membre doit pouvoir expliquer concretement sa zone et le flux global

@@ -46,6 +46,7 @@ describe("UsersService", () => {
             avatar_url: null,
             createdAt: new Date(),
           }),
+          findFirst: jest.fn().mockResolvedValue(null),
           update: jest.fn().mockResolvedValue({
             id: 1,
             email: "user@test.com",
