@@ -9,7 +9,6 @@ ACTION="${1:-up}"
 COMPOSE_CMD=""
 COMPOSE_WAIT_FLAG=""
 COMPOSE_WAIT_ARGS=()
-COMPOSE_QUIET_FLAGS=""
 COMPOSE_QUIET_ARGS=()
 STACK_OUTPUT_MODE="${STACK_OUTPUT_MODE:-status}"
 COMPOSE_DISPLAY_CMD=""
@@ -48,10 +47,8 @@ detect_compose() {
   fi
 
   if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--quiet-build'; then
-    COMPOSE_QUIET_FLAGS="--quiet-build --quiet-pull"
     COMPOSE_QUIET_ARGS=(--quiet-build --quiet-pull)
   else
-    COMPOSE_QUIET_FLAGS=""
     COMPOSE_QUIET_ARGS=()
   fi
 }
