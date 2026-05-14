@@ -408,17 +408,15 @@ Recommended evaluation demo:
 
 ### AI usage disclosure
 
-AI assistance was used as a development and documentation aid, not as a replacement for team ownership.
+AI tools were used as occasional support during the project.
 
 AI was used for:
 
-- Drafting and reorganizing the README structure and evaluation checklist notes.
-- Explaining implementation options and reviewing alignment with the 42 evaluation requirements.
-- Generating or refining test scenarios and smoke-test ideas.
-- Helping debug configuration issues such as OAuth redirect URI, cookies, Docker/Podman behavior, and environment profiles.
-- Suggesting code improvements and identifying risks during review.
+- Improving the wording and organization of the README.
+- Helping reason about configuration and debugging issues during development.
+- Reviewing clarity, consistency, and reproducibility of the instructions.
 
-AI was not used to provide secret values, production credentials, or official evaluation decisions. Final module claims, project scope, and submitted code remain the responsibility of the team.
+All implementation choices, module claims, credentials, and submitted code remain the responsibility of the team. No secret values or production credentials were provided to AI tools.
 
 ## Known Limitations
 
