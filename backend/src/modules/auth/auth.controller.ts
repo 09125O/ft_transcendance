@@ -5,6 +5,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Query,
   Req,
@@ -18,6 +19,8 @@ import { resolveFrontendOriginFromRequest } from "@/config/runtime";
 
 @Controller("auth")
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post("login")
@@ -84,6 +87,7 @@ export class AuthController {
       this.authService.clearOauth42State(res);
       const message =
         error instanceof Error ? error.message : "oauth_42_failed";
+      this.logger.warn(`OAuth 42 callback failed: ${message}`);
       res.redirect(
         `${frontendOrigin}/login?oauth_error=${encodeURIComponent(message)}`,
       );

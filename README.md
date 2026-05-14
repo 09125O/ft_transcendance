@@ -1,260 +1,288 @@
-# ft_transcendance
-
-README de soutenance et d'exploitation locale pour l'etat courant de `dev`.
-
-## 1. Sources officielles
-
-Les seules sources officielles pour la liste des modules, leur nature `Major` ou `Minor`, et le cadre d'évaluation sont :
-
-- `srcs_subject/en.subject.pdf`
-- `srcs_subject/Intra Projects ft_transcendence Edit.pdf`
-
-Ce README ne remplace pas ces PDFs. Il sert à :
-
-- décrire l'implémentation effectivement présente dans le repo
-- expliciter la lecture interne retenue pour la soutenance
-- fournir des parcours de démo reproductibles
-
-## 2. État actuel du projet
-
-Le projet est aujourd'hui :
-
-- lançable en stack Docker locale
-- jouable en multijoueur local ou distant
-- démonstrable sur les flux auth, social, room, game, stats et status
-
-Services de la stack locale :
-
-- `frontend`: React + TypeScript + Webpack Dev Server, `localhost:3000`
-- `backend`: NestJS + TypeScript + Prisma, `localhost:4000`
-- `db`: PostgreSQL, `localhost:5432`
-- `backup`: sidecar de sauvegarde PostgreSQL automatisée, sans port exposé
-
-Profils d'execution supportes :
-
-- `HTTPS local` pour le developpement mono-poste et la demo locale avec certificat de dev
-- `HTTP/LAN` pour tester plusieurs postes sur le meme reseau sans trust store local
-
-Fonctionnalités produit démontrables :
-
-- auth locale, guest et OAuth 42
-- pages `profile`, `friends`, `leaderboard`, `status`
-- upload natif d'avatar avec fallback par défaut
-- demandes d'amis, acceptation, refus, suppression d'ami
-- notifications sociales en temps réel avec lecture et suppression
-- lobby quiz/rooms avec création, jointure et démarrage
-- partie realtime avec timer serveur, réponses, leaderboard et chat
-- création de quiz et création de room depuis un quiz
-- historique de parties et stats joueur
-- status page lisant `/health`
-- sauvegarde PostgreSQL automatisée locale + restauration manuelle
-
-Modules non implémentés ou non retenus dans le plan courant :
-
-- `2FA`
-- `SSR`
-- mode spectateur côté UI
-
-### 2.1 Equipe, roles et contributions
-
-Repartition retenue pour la soutenance Intra :
-
-| Membre | Role Intra | Zone principale | Contributions a presenter |
-|---|---|---|---|
-| Driss | Developer backend | Backend NestJS, Prisma, API, realtime server | Auth locale/guest/OAuth 42, rooms, game loop, WebSocket, scores, tests backend et smoke tests |
-| Tommy | Developer frontend | Frontend React, UX, pages et integration API/WS | Pages `login`, `profile`, `friends`, `leaderboard`, `status`, lobby quiz, room/game UI, responsive et parcours joueur |
-| Bastien | Project Manager + QA/DevOps | Organisation, verification, exploitation locale | Coordination des lots, checklist de demo, Makefile/Docker/Podman, smoke tests, browser tests, status/backup et runbooks |
-| Sofian | Product Owner + gameplay/content | Cadrage produit, modules, parcours de jeu | Choix des modules revendiques, parcours de demo, catalogue de quiz, regles de room, duree de question, scoring et experience joueur |
-| Giovanni | Tech Lead integration | Architecture fullstack et coherence contrats | Contrats HTTP/WS, integration frontend-backend, coherence schema DB, revue des flux realtime, validation multi-joueurs et coherence documentation |
-
-Organisation de travail defendable :
-
-- decoupage par lots fonctionnels : auth, social, quiz/rooms/game, stats, status/backup, QA
-- validation par preuves : smoke tests, tests WebSocket, tests sociaux, lint/build, tests navigateurs
-- documentation synchronisee avec les contrats HTTP/WS et la matrice de conformite
-- revue finale centree sur la grille Intra : README, modules, securite, responsive, deploiement et stabilite
-
-Chaque membre doit pouvoir expliquer sa zone principale, mais aussi le parcours global : `frontend -> backend -> database -> websocket -> tests`.
-
-### 2.2 Verification de reference
-
-Verification de reference documentee pour `dev` :
-
-- `make smoke-test` en `HTTPS local`
-- `make smoke-test` en `HTTP/LAN`
-- `make browser-test` en `HTTPS local`
-- `make browser-test` en `HTTP/LAN`
-- workflow GitHub Actions `CI` passe au vert sur `dev`
-
-## 3. Lecture interne du score
-
-Rappels issus des PDFs officiels :
-
-- `Major = 2 points`
-- `Minor = 1 point`
-- minimum requis : `14 points`
-- seul un module pleinement fonctionnel et correctement implémenté compte
-- le bonus au-delà de `14` est plafonné à `+5`
-
-Lecture interne retenue aujourd'hui :
-
-- estimation interne defendable : `19 / 14`
-- cette estimation n'est pas une vérité officielle
-- la décision finale appartient aux évaluateurs
-
-### 3.1 Chemin principal defendu vers `19`
-
-Chemin que la documentation et la démo doivent privilégier :
-
-- `[Major][2]` Use a framework for both frontend and backend
-- `[Major][2]` Implement real-time features
-- `[Major][2]` Allow users to interact with other users
-- `[Major][2]` Standard user management and authentication
-- `[Major][2]` Web-based game
-- `[Major][2]` Remote players
-- `[Major][2]` Multiplayer `> 2`
-- `[Minor][1]` Use an ORM
-- `[Minor][1]` Remote authentication
-- `[Minor][1]` Game customization options
-- `[Minor][1]` Game statistics and match history
-- `[Minor][1]` Health check and status page
-
-Total interne defendu par ce chemin : `19`
-
-### 3.2 Modules implémentés mais non nécessaires à ce `19`
-
-Ces modules existent dans le repo, mais ne sont pas indispensables à l'argumentaire principal :
-
-- `[Minor][1]` Notification system
-- `[Minor][1]` Support for additional browsers
-
-### 3.3 Modules explicitement non revendiqués
-
-- `[Minor][1]` Two-factor authentication
-- `[Minor][1]` SSR
-- `[Minor][1]` Spectator mode côté UI
-
-## 4. Modules revendicables et preuves
-
-### 4.1 Standard user management and authentication
-
-Preuves techniques :
-
-- `GET /users/me`
-- `PATCH /users/me`
-- `POST /users/me/avatar`
-- service statique `/uploads`
-- [backend/src/modules/users/users.controller.ts](backend/src/modules/users/users.controller.ts)
-- [frontend/src/pages/ProfilePage.tsx](frontend/src/pages/ProfilePage.tsx)
-- [frontend/src/pages/FriendsPage.tsx](frontend/src/pages/FriendsPage.tsx)
-
-Ce qui est effectivement démontrable :
-
-- inscription
-- login
-- session anonyme ou authentifiee
-- logout
-- guest login
-- édition de profil
-- upload avatar natif
-- retour a l'avatar par defaut
-- affichage des amis et du statut en ligne / hors ligne
-- nettoyage d'une session invalide sans erreur frontale
-
-### 4.2 Health check and status page
-
-Preuves techniques :
-
-- `GET /health`
-- page publique `/status`
-- sidecar `backup` dans [docker-compose.yml](docker-compose.yml)
-- script [scripts/ops/auto-backup.sh](scripts/ops/auto-backup.sh)
-- scripts [scripts/ops/backup-db.sh](scripts/ops/backup-db.sh) et [scripts/ops/restore-db.sh](scripts/ops/restore-db.sh)
-- runbook [status-backup-recovery-runbook.md](docs/operations/status-backup-recovery-runbook.md)
-
-Ce qui est effectivement démontrable :
-
-- frontend actif
-- backend actif
-- base joignable
-- état de sauvegarde automatisée visible
-- backup manuel
-- restauration manuelle documentée
-
-### 4.3 Realtime multiplayer web game
-
-Preuves techniques :
-
-- namespace Socket.IO `/ws`
-- creation / join / leave / start de room
-- timer de question serveur
-- answers realtime
-- leaderboard room
-- smoke tests WebSocket et smoke global
-
-Points d'entrée utiles :
-
-- [websocket-event-contract.md](docs/contracts/websocket-event-contract.md)
-- [frontend-realtime-integration.md](docs/integration/frontend-realtime-integration.md)
-- [quiz-room-game-flow.md](docs/integration/quiz-room-game-flow.md)
-
-### 4.4 Stats and match history
-
-Preuves techniques :
-
-- `GET /scores/leaderboard`
-- `GET /scores/users/:userId`
-- `GET /scores/users/:userId/history`
-- [frontend/src/pages/LeaderboardPage.tsx](frontend/src/pages/LeaderboardPage.tsx)
-- [frontend/src/pages/ProfilePage.tsx](frontend/src/pages/ProfilePage.tsx)
-
-### 4.5 Game customization options
-
-Preuves techniques :
-
-- `POST /rooms` accepte `questionDurationMs`
-- room privée / publique
-- room liée à un quiz via `quizId`
-- affichage de la durée configurée dans le flux room / pre-match / game
-
-Points d'entrée utiles :
-
-- [frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx](frontend/src/components/Quiz/RoomCreateFromQuizPanel.tsx)
-- [http-api-contract.md](docs/contracts/http-api-contract.md)
-
-## 5. Parcours de démo recommandés
-
-Checklist de démo détaillée :
-
-- [demo-checklist.md](docs/product/demo-checklist.md)
-
-Parcours courts à préparer :
-
-1. `Auth`
-   connexion locale, guest ou OAuth 42, puis verification de session.
-2. `User management`
-   profil, upload avatar, avatar visible sur profil et amis.
-3. `Social`
-   demande d'ami, acceptation, notification, suppression.
-4. `Game`
-   quiz -> room -> join -> start -> réponse -> leaderboard.
-5. `Stats`
-   leaderboard globale + historique utilisateur.
-6. `Status`
-   page `/status`, `make test-stack`, `make smoke-test`, backup auto visible, `make backup-db`.
-
-## 6. Profils d'execution
-
-Deux modes sont supportes sans changement de code :
-
-### 6.1 `HTTPS local`
-
-Cas d'usage :
-
-- developpement perso sur une machine
-- demo locale avec certificat de dev
-
-Variables cle :
+*This project has been created as part of the 42 curriculum by douzgane, trischma, besch, siligh, gicomlan.*
+
+# ft_transcendance - Quiz Arena
+
+## Description
+
+`ft_transcendance` is a full-stack web application built for the 42 `ft_transcendence` project. Our project name is **Quiz Arena**: a real-time multiplayer quiz platform where users can create accounts, manage profiles, interact socially, create or join quiz rooms, chat, play timed matches, and track scores.
+
+The goal of the project is to demonstrate a complete web application with authentication, a persistent database, real-time gameplay, user interaction, operational checks, and a reproducible local setup.
+
+Key features:
+
+- Local, guest, and OAuth 42 authentication.
+- Profile management with avatar upload.
+- Friends, friend requests, user status, and social notifications.
+- Quiz catalogue, quiz creation, public/private rooms, configurable question duration.
+- Real-time multiplayer game loop with Socket.IO, server-side timer, answers, chat, and room leaderboard.
+- Global leaderboard, user statistics, and match history.
+- Health/status page, PostgreSQL automated backup sidecar, smoke tests, and browser compatibility checks.
+
+## Team Information
+
+| Member | Assigned role(s) | Main responsibilities |
+|---|---|---|
+| douzgane | Backend Developer | NestJS modules, authentication, OAuth 42, Prisma data access, rooms, game loop, scores, backend tests, smoke tests. |
+| trischma | Frontend Developer | React pages and components, user flows, API/WebSocket integration, responsive UI, login/profile/friends/leaderboard/status/game screens. |
+| besch | Project Manager, QA, DevOps | Work coordination, demo checklist, Makefile, Docker/Podman workflow, smoke tests, browser tests, status/backup operations. |
+| siligh | Product Owner, Gameplay/Content | Product scope, defended modules, quiz catalogue, gameplay rules, question duration, scoring, demo path and user experience. |
+| gicomlan | Tech Lead, Integration | Full-stack architecture, HTTP/WebSocket contracts, schema consistency, realtime integration, multiplayer validation, README coherence. |
+
+Each member is expected to understand the complete path `frontend -> backend -> database -> websocket -> tests`, even if they had a main ownership area.
+
+## Project Management
+
+The work was organized by functional blocks:
+
+- Authentication and user management.
+- Social interactions and notifications.
+- Quiz catalogue, rooms, and real-time game loop.
+- Scores, leaderboard, and match history.
+- Operations, health checks, backups, and verification.
+- Evaluation preparation.
+
+Project management approach:
+
+- Tasks were split by feature ownership and reviewed against the 42 subject modules.
+- The team used GitHub branches/issues and shared checklists to track implementation and evaluation readiness.
+- Coordination was done through regular team syncs, Discord/voice communication, and repository reviews.
+- Verification was based on concrete evidence: endpoints, WebSocket events, tests, demo routes, and validated integration behavior.
+
+## Technical Stack
+
+| Area | Technologies | Justification |
+|---|---|---|
+| Frontend | React, TypeScript, Webpack Dev Server, React Router | React gives a component model suited to stateful pages. TypeScript improves API/WS contract safety. Webpack Dev Server provides local proxying for HTTP and Socket.IO. |
+| Backend | Node.js, NestJS, TypeScript, Socket.IO | NestJS gives a modular backend architecture with controllers/services. Socket.IO is used for reliable real-time rooms, chat, reconnect handling, and gameplay events. |
+| Database | PostgreSQL | PostgreSQL is robust, relational, easy to run locally with containers, and well suited for users, rooms, games, answers, scores, and relationships. |
+| ORM | Prisma | Prisma provides a typed schema, migrations, generated client, and safer database access from TypeScript. |
+| Infrastructure | Docker Compose or Podman-compatible Compose, Makefile, shell scripts | Compose keeps the frontend, backend, database, and backup sidecar reproducible. The Makefile provides a single entry point for setup, run, logs, tests, backups, and restore. |
+| Security and auth | JWT HTTP-only cookie, bcrypt, OAuth 42, helmet, rate limiting | HTTP-only cookies reduce token exposure in JavaScript, bcrypt stores passwords safely, OAuth 42 supports remote authentication, and rate limiting protects sensitive endpoints. |
+| Testing and QA | Jest, Playwright, smoke scripts, WebSocket scenarios | Unit and scenario tests cover backend logic, browser compatibility, authentication, social flows, WebSocket rooms, and stack health. |
+
+Local services:
+
+| Service | Purpose | Default URL/port |
+|---|---|---|
+| `frontend` | React application and dev proxy | `https://localhost:3000` or `http://localhost:3000` |
+| `backend` | NestJS API and WebSocket server | `https://localhost:4000` or `http://localhost:4000` |
+| `db` | PostgreSQL database | `localhost:5432` |
+| `backup` | PostgreSQL automated backup sidecar | no public port |
+
+## Database Schema
+
+The persistence layer is PostgreSQL managed through Prisma. Main relationships:
+
+```text
+User
+ |--< FriendRequests >-- User
+ |--< Notification
+ |--< RoomPlayer >-- Room --< Messages
+ |                    |--< RoomGameState
+ |                    |--< Game >-- Quiz --< QuizQuestion
+ |                              |--< GameQuestion >-- QuizQuestion
+ |                              |--< PlayerAnswer >-- User
+ |                              |--< Leaderboard >-- User
+ |--< UserAggregateScore
+```
+
+Main tables:
+
+| Table | Key fields | Purpose |
+|---|---|---|
+| `User` | `id Int`, `email String @unique`, `username String`, `password String`, `avatar_url String?`, `status UserStatus`, `createdAt DateTime` | Accounts, profile data, auth identity, online/offline status. |
+| `FriendRequests` | `senderId Int`, `receiverId Int`, `status FriendshipStatus`, `receiverReadAt DateTime?`, `receiverDeletedAt DateTime?` | Friend request lifecycle. |
+| `Notification` | `userId Int`, `type NotificationType`, `title String`, `payload Json`, `readAt DateTime?` | User-facing social notifications. |
+| `Room` | `id Int`, `name String`, `ownerId Int?`, `quizId Int?`, `status RoomStatus`, `rounds Int`, `questionDurationMs Int`, `isPrivate Boolean`, `passwordHash String?` | Public/private multiplayer rooms linked optionally to a quiz. |
+| `RoomPlayer` | composite key `[userId, roomId]`, `score Int`, `joinedAt DateTime` | Players currently associated with a room. |
+| `Messages` | `senderId Int`, `roomId Int`, `content String`, `sendAt DateTime`, `read Boolean` | Room chat messages. |
+| `RoomGameState` | `roomId Int`, `status RoomStatus`, `currentQuestionId Int?`, `questionStartedAt DateTime?`, `questionEndsAt DateTime?`, `scoresByUser Json?` | Runtime state persisted for active/recent games. |
+| `Quiz` | `id Int`, `title String`, `createdAt DateTime` | Quiz catalogue and custom quizzes. |
+| `QuizQuestion` | `quizId Int`, `questionText String`, `answers Json`, `correctAnswer String`, `position Int`, `points Int` | Questions and answers for a quiz. |
+| `Game` | `roomId Int`, `quizId Int`, `status GameStatus`, `winnerUserId Int?`, `startedAt DateTime?`, `finishedAt DateTime?` | Persisted match instance. |
+| `GameQuestion` | `gameId Int`, `questionId Int`, `position Int`, `startedAt DateTime?`, `endedAt DateTime?` | Questions selected for a match. |
+| `PlayerAnswer` | `gameId Int`, `gameQuestionId Int`, `userId Int`, `answer String`, `isCorrect Boolean`, `pointsEarned Int` | Player answers and scoring. |
+| `Leaderboard` | `gameId Int`, `userId Int`, `finalScore Int`, `rank Int?`, `isWinner Boolean` | Final per-game results. |
+| `UserAggregateScore` | `userId Int`, `score Int`, `wins Int` | Aggregated user statistics. |
+
+The full schema is available in [backend/prisma/schema.prisma](backend/prisma/schema.prisma).
+
+## Features List
+
+| Feature | Member(s) | Description |
+|---|---|---|
+| Local authentication | douzgane, trischma | Register, login, logout, session check, JWT HTTP-only cookie, password hashing. |
+| Guest authentication | douzgane, trischma | One-click guest session for demos and local multiplayer testing. |
+| OAuth 42 authentication | douzgane | OAuth 42 start/callback flow, state cookie, token exchange, profile creation/update. |
+| Profile management | trischma, douzgane | View/update profile, user status, avatar upload, default avatar fallback. |
+| Friends system | trischma, douzgane | Send, accept, decline, and remove friend requests. |
+| Notifications | trischma, douzgane | Social notifications, read/delete actions, realtime sync event. |
+| Quiz catalogue | siligh, trischma, douzgane | Seeded quiz content, quiz listing, quiz detail, play count and active room count. |
+| Custom quiz creation | trischma, douzgane, siligh | Authenticated users can create quizzes and questions. |
+| Room creation and joining | douzgane, trischma, siligh | Public/private rooms, optional password, room owner, quiz-linked rooms. |
+| Game customization | siligh, douzgane, trischma | Configurable question duration, room privacy, quiz selection, rounds bounded by quiz. |
+| Real-time game loop | douzgane, gicomlan, trischma | Socket.IO room events, start game, server-side timer, submit answers, state broadcasts. |
+| Room chat | douzgane, trischma | WebSocket chat messages scoped to a room. |
+| Multiplayer and remote players | gicomlan, douzgane, trischma | Multiple clients can join from the same host or LAN clients through the exposed frontend. |
+| Leaderboard and history | douzgane, trischma | Global leaderboard, user score, wins/losses, match history and recent games. |
+| Health and status page | besch, trischma, douzgane | `/health`, frontend `/status`, DB status, backup status, periodic refresh. |
+| Backup and restore | besch | Automated backup sidecar, manual backup, restore command. |
+| Smoke tests and browser tests | besch, douzgane, trischma | Stack smoke test, WebSocket smoke test, social integration test, Playwright browser compatibility. |
+| Evaluation and demo preparation | besch, siligh, gicomlan | README, evaluation checklist, demo path, verification commands. |
+
+## Chosen Modules and Points
+
+Official scoring reminder:
+
+- Major module = 2 points.
+- Minor module = 1 point.
+- Required minimum = 14 points.
+- Only fully functional and demonstrable modules should be counted by evaluators.
+
+Defended internal score: **19 / 14**.
+
+| Module | Type | Points | Status | Justification and implementation | Member(s) |
+|---|---:|---:|---|---|---|
+| Use a framework for frontend and backend | Major | 2 | Done | React frontend and NestJS backend, both in TypeScript. | trischma, douzgane, gicomlan |
+| Real-time features | Major | 2 | Done | Socket.IO events for room list, room create/join/leave/start, answer submission, chat, notifications, reconnect handling. | douzgane, gicomlan, trischma |
+| User interaction | Major | 2 | Done | Profiles, friends, requests, status, chat, notifications. | trischma, douzgane |
+| Standard user management and authentication | Major | 2 | Done | Register, login, logout, session, guest login, avatar/profile management, password hashing, JWT cookie. | douzgane, trischma |
+| Web-based game | Major | 2 | Done | Browser-based quiz game, realtime state, timer, answers, scores, results. | douzgane, trischma, siligh |
+| Remote players | Major | 2 | Done | Client/server architecture supports players from separate browsers or LAN machines through the frontend proxy and WebSocket server. | gicomlan, douzgane, besch |
+| Multiplayer greater than 2 players | Major | 2 | Done | Rooms support several players, room leaderboard, game state and answer tracking per player. | douzgane, trischma |
+| Use an ORM | Minor | 1 | Done | Prisma schema, migrations, generated typed client, PostgreSQL datasource. | douzgane |
+| Remote authentication | Minor | 1 | Done | OAuth 42 flow using `/auth/42/start` and `/auth/42/callback`. | douzgane |
+| Game customization options | Minor | 1 | Done | Private/public rooms, optional password, quiz-linked rooms, configurable `questionDurationMs`. | siligh, douzgane, trischma |
+| Game statistics and match history | Minor | 1 | Done | Global leaderboard, aggregate score, wins/losses, user history endpoints and UI. | douzgane, trischma |
+| Health check and status page | Minor | 1 | Done | `/health`, `/status`, DB check, backup check, stack verification commands. | besch, trischma, douzgane |
+
+Total defended: `7 Major * 2 + 5 Minor * 1 = 19 points`.
+
+Additional implemented work not claimed for the defended 19-point module path:
+
+| Area | Status | Notes |
+|---|---|---|
+| Social notifications | Implemented, not claimed as a module | Implemented through `Notification` table, HTTP routes, realtime `notification:new`, and UI. It supports the user interaction feature but is not counted as an additional Minor module in the defended score. |
+| Support for additional browsers | Implemented, not claimed as a module | Playwright browser compatibility checks are present, but this is not counted in the defended score. |
+
+Explicitly not claimed:
+
+- Two-factor authentication.
+- Server-side rendering.
+- Spectator mode in the user interface.
+
+## Individual Contributions
+
+### douzgane
+
+- Implemented the NestJS backend structure and main modules.
+- Implemented local, guest, and OAuth 42 authentication.
+- Added Prisma/PostgreSQL persistence for users, rooms, game state, scores, friends, notifications, and quizzes.
+- Implemented the WebSocket game runtime: room lifecycle, server timer, answer handling, chat, and score updates.
+- Added backend tests and smoke scenarios.
+- Challenge: keeping HTTP session auth and WebSocket auth consistent. Solution: centralized cookie/JWT validation and shared HTTP/WebSocket test coverage.
+
+### trischma
+
+- Built the React/TypeScript user interface.
+- Implemented login, register, profile, friends, leaderboard, status, lobby, room, game, and quiz creation screens.
+- Integrated frontend services with backend HTTP routes and Socket.IO events.
+- Added responsive states for loading, empty, error, and ready screens.
+- Challenge: making real-time game state understandable in the UI. Solution: dedicated hooks and room/game components aligned with the backend event contract.
+
+### besch
+
+- Coordinated planning, demo readiness, and verification.
+- Built and maintained the Makefile-driven workflow.
+- Documented Docker/Podman-compatible local execution.
+- Added smoke tests, browser test commands, stack status checks, and backup/restore scripts.
+- Challenge: supporting different school machines and developer environments. Solution: two runtime profiles, `HTTPS local` and `HTTP/LAN`, with `.env` validation and clear commands.
+
+### siligh
+
+- Defined product scope and the demo path.
+- Selected the modules defended for evaluation.
+- Prepared quiz catalogue direction, gameplay rules, room settings, question timing, and scoring expectations.
+- Helped validate the player experience from lobby to results.
+- Challenge: keeping the scope demonstrable within the subject constraints. Solution: focus on a clear real-time quiz game and keep non-claimed modules explicit.
+
+### gicomlan
+
+- Led full-stack integration and technical consistency.
+- Reviewed HTTP routes and WebSocket events.
+- Helped align frontend, backend, database schema, realtime flows, and the README.
+- Validated multiplayer behavior and cross-module dependencies.
+- Challenge: avoiding drift between UI, API, WebSocket events, and tests. Solution: route/event review during integration changes and smoke-test validation.
+
+## Instructions
+
+### Prerequisites
+
+Recommended setup:
+
+- Git.
+- GNU Make.
+- Docker Compose plugin, Docker Desktop, or a Podman setup exposing a compatible `docker compose` command.
+- A modern browser.
+
+The project can also run partly outside containers, but then you need:
+
+- Node.js and npm.
+- PostgreSQL.
+- The same environment variables as the containerized setup.
+
+Default ports:
+
+- Frontend: `3000`.
+- Backend: `4000`.
+- PostgreSQL: `5432`.
+
+### Environment setup
+
+Create `.env` from the example if it does not already exist:
+
+```bash
+make env-init
+```
+
+Then edit `.env`.
+
+Required important variables:
+
+```env
+POSTGRES_USER=...
+POSTGRES_PASSWORD=...
+POSTGRES_DB=...
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql://...
+
+APP_PROTOCOL=https
+FRONTEND_ORIGIN=https://localhost:3000
+BACKEND_PORT=4000
+FRONTEND_PORT=3000
+
+JWT_SECRET=...
+JWT_EXPIRES_IN=1d
+AUTH_COOKIE_SAMESITE=lax
+AUTH_COOKIE_SECURE=true
+
+FT_CLIENT_ID=...
+FT_CLIENT_SECRET=...
+FT_REDIRECT_URI=https://localhost:4000/auth/42/callback
+FT_SCOPE=public
+```
+
+Never commit real secrets from `.env`.
+
+Validate the configuration:
+
+```bash
+make env-check
+```
+
+### Runtime profiles
+
+`HTTPS local` is recommended for single-machine development and OAuth 42 tests:
 
 ```env
 APP_PROTOCOL=https
@@ -263,14 +291,7 @@ AUTH_COOKIE_SECURE=true
 FT_REDIRECT_URI=https://localhost:4000/auth/42/callback
 ```
 
-### 6.2 `HTTP/LAN`
-
-Cas d'usage :
-
-- test a plusieurs postes sur le meme reseau
-- pas de trust store local ni `mkcert` cote clients
-
-Variables cle :
+`HTTP/LAN` is recommended for multi-machine tests on the same local network:
 
 ```env
 APP_PROTOCOL=http
@@ -279,112 +300,136 @@ AUTH_COOKIE_SECURE=auto
 FT_REDIRECT_URI=http://localhost:4000/auth/42/callback
 ```
 
-Important :
+For LAN tests, other machines open:
 
-- pour un test LAN, les autres postes ouvrent `http://IP_DE_LA_MACHINE_HOTE:3000`
-- dans ce mode, le frontend proxy relaie deja l'API et Socket.IO
-- OAuth 42 n'est pas le bon mode de test sur une IP locale `localhost`; privilegier auth locale ou guest
+```text
+http://HOST_MACHINE_IP:3000
+```
 
-## 7. Demarrage local et verification
+OAuth 42 is usually not the best LAN test path unless the OAuth redirect URI is configured for the exact shared URL. Prefer local auth or guest auth for LAN demos.
 
-Démarrage :
+### Run the project
+
+Start the full stack:
 
 ```bash
 make
 ```
 
-La commande utilise le mode courant de `.env` :
+This command:
 
-- Docker operationnel : creation de `.env` si besoin, installation locale de `mkcert` si besoin, generation TLS locale en mode `https`, build et demarrage de la stack complete
-- Docker detecte mais non exploitable : `make` s'arrete avec un message clair
-- Docker absent : `make` bascule en mode local seulement si `node` et `npm` sont deja presents sur le poste
+- creates `.env` from `.env.example` if missing;
+- validates the environment;
+- prepares local TLS certificates when HTTPS is enabled;
+- starts `frontend`, `backend`, `db`, and `backup`;
+- waits for service health when supported by the Compose implementation.
 
-Si vous changez de profil dans `.env`, relancer :
+If you changed `.env`, restart:
 
 ```bash
 make restart
 ```
 
-Après `make` :
+Open:
 
-- en mode Docker : `make test-stack`
-- en mode local : lancer `cd backend && npm run start:dev` puis `cd frontend && npm run dev`
-
-Installation locale hors Docker :
-
-```bash
-make setup-local-deps
-make setup-local-browsers
+```text
+https://localhost:3000
 ```
 
-Notes :
+or, in HTTP mode:
 
-- ce repo n'installe pas `docker`, `node` ou `npm` au niveau systeme
-- sur un poste d'ecole sans `sudo`, la voie recommandee reste :
-  - une machine hote deja preparee avec Docker pour les tests `HTTP/LAN`
-  - ou un serveur distant partage
-- hors Docker, `node`, `npm` et PostgreSQL doivent deja etre disponibles localement
+```text
+http://localhost:3000
+```
 
-Commandes utiles :
+Useful routes:
 
-- `make logs`
-- `make logs-back`
-- `make logs-front`
-- `make logs-db`
-- `make logs-backup`
-- `make smoke-test`
-- `make smoke-test-ws`
-- `make backup-db`
-- `make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql`
-- `make browser-test`
+- `/login`
+- `/profile`
+- `/friends`
+- `/leaderboard`
+- `/quiz-ready`
+- `/quiz-create`
+- `/status`
 
-Verification code :
+### Useful commands
 
-- `cd backend && npm run lint`
-- `cd frontend && npm run lint`
-- `cd backend && npm run build`
-- `cd frontend && npm run build`
+```bash
+make ps
+make logs
+make logs-back
+make logs-front
+make logs-db
+make test-stack
+make smoke-test
+make smoke-test-ws
+make browser-test
+make backup-db
+make restore-db file=.local/backups/quiz_db-YYYYMMDD-HHMMSS.sql
+```
 
-URLs utiles :
+Code checks:
 
-- frontend : `${FRONTEND_ORIGIN}`
-- login : `${FRONTEND_ORIGIN}/login`
-- profile : `${FRONTEND_ORIGIN}/profile`
-- friends : `${FRONTEND_ORIGIN}/friends`
-- leaderboard : `${FRONTEND_ORIGIN}/leaderboard`
-- status : `${FRONTEND_ORIGIN}/status`
-- backend health : `${APP_PROTOCOL}://localhost:${BACKEND_PORT}/health`
+```bash
+cd backend && npm run lint
+cd backend && npm run build
+cd backend && npm run test
 
-Notes d'exploitation :
+cd frontend && npm run lint
+cd frontend && npm run build
+```
 
-- les certificats de dev dans `.local/certs/` sont generes localement et ne doivent pas etre consideres comme des artefacts de release
-- le mode `HTTP/LAN` sert au test multi-postes ; le mode `HTTPS local` sert au dev local et a la demo sur une machine
+### Demo path
 
-## 8. Cartographie documentaire
+Recommended evaluation demo:
 
-Documents de reference a utiliser pour la soutenance :
+1. Open `/login` and authenticate with local, guest, or OAuth 42 login.
+2. Open `/profile`, update the profile, and upload an avatar.
+3. Open `/friends`, send/accept a friend request, and show notifications.
+4. Open `/quiz-ready`, create or join a room, configure question duration, and start a game.
+5. Answer questions in real time from at least two clients, ideally more than two.
+6. Show room leaderboard, global `/leaderboard`, and user match history.
+7. Open `/status` and run `make test-stack` or `make smoke-test`.
 
-- [docs/README.md](docs/README.md)
-- [evaluation-conformity-matrix.md](docs/product/evaluation-conformity-matrix.md)
-- [demo-checklist.md](docs/product/demo-checklist.md)
-- [status-backup-recovery-runbook.md](docs/operations/status-backup-recovery-runbook.md)
-- [http-api-contract.md](docs/contracts/http-api-contract.md)
-- [websocket-event-contract.md](docs/contracts/websocket-event-contract.md)
-- [frontend-realtime-integration.md](docs/integration/frontend-realtime-integration.md)
-- [quiz-room-game-flow.md](docs/integration/quiz-room-game-flow.md)
-- [developer-guide.md](docs/operations/developer-guide.md)
+## Resources
 
-## 9. Elements Intra encore a completer manuellement
+### External references
 
-Le repo documente l'état technique, les modules revendiqués, la répartition d'équipe et les parcours de démonstration.
+- 42 ft_transcendence subject, provided through the 42 intranet.
+- React documentation: https://react.dev/
+- TypeScript documentation: https://www.typescriptlang.org/docs/
+- NestJS documentation: https://docs.nestjs.com/
+- Prisma documentation: https://www.prisma.io/docs/
+- PostgreSQL documentation: https://www.postgresql.org/docs/
+- Socket.IO documentation: https://socket.io/docs/v4/
+- Docker Compose documentation: https://docs.docker.com/compose/
+- OAuth 2.0 overview: https://oauth.net/2/
+- 42 API documentation: https://api.intra.42.fr/apidoc
 
-A personnaliser avant soutenance pour un dossier Intra encore plus solide :
+### AI usage disclosure
 
-- noms complets exacts des membres, si vous voulez les afficher au format administratif 42
-- exemples personnels precis par membre : une feature, un bug difficile, un choix technique assume
-- captures ou schema visuel DB si vous voulez une piece projetable pendant la soutenance
+AI assistance was used as a development and documentation aid, not as a replacement for team ownership.
 
-Important :
+AI was used for:
 
-- les roles ci-dessus sont une repartition de soutenance coherente avec l'implementation
-- chaque membre doit pouvoir expliquer concretement sa zone et le flux global
+- Drafting and reorganizing the README structure and evaluation checklist notes.
+- Explaining implementation options and reviewing alignment with the 42 evaluation requirements.
+- Generating or refining test scenarios and smoke-test ideas.
+- Helping debug configuration issues such as OAuth redirect URI, cookies, Docker/Podman behavior, and environment profiles.
+- Suggesting code improvements and identifying risks during review.
+
+AI was not used to provide secret values, production credentials, or official evaluation decisions. Final module claims, project scope, and submitted code remain the responsibility of the team.
+
+## Known Limitations
+
+- Two-factor authentication is not implemented and is not claimed.
+- Server-side rendering is not implemented and is not claimed.
+- Spectator mode exists only partially at backend/event level and is not claimed as a UI module.
+- OAuth 42 requires exact redirect URI configuration and valid `FT_CLIENT_ID` / `FT_CLIENT_SECRET`.
+- LAN demos should usually use local or guest authentication unless a correct public/shared OAuth callback URL is configured.
+
+## License and Credits
+
+This project was created for educational purposes as part of the 42 curriculum.
+
+Third-party technologies and documentation are credited in the Resources section. 42 names, APIs, and marks belong to their respective owners.

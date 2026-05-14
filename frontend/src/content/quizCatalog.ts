@@ -1,12 +1,12 @@
 import type { Quiz } from "../services/quizzes";
-import cFundamentalsCardImage from "../assets/quiz-cards/c-fundamentals.png";
-import culture42CardImage from "../assets/quiz-cards/culture-42.png";
-import cppEssentialsCardImage from "../assets/quiz-cards/cpp-essentials.png";
-import gamingClassicsCardImage from "../assets/quiz-cards/gaming-classics.png";
-import studiosFranchisesCardImage from "../assets/quiz-cards/studios-franchises.png";
-import startupBasicsCardImage from "../assets/quiz-cards/startup-basics.png";
-import productGrowthCardImage from "../assets/quiz-cards/product-growth.png";
-import internshipTechCardImage from "../assets/quiz-cards/internship-tech.png";
+import cFundamentalsCardImage from "../assets/quiz-cards/c-fundamentals.webp";
+import culture42CardImage from "../assets/quiz-cards/culture-42.webp";
+import cppEssentialsCardImage from "../assets/quiz-cards/cpp-essentials.webp";
+import gamingClassicsCardImage from "../assets/quiz-cards/gaming-classics.webp";
+import studiosFranchisesCardImage from "../assets/quiz-cards/studios-franchises.webp";
+import startupBasicsCardImage from "../assets/quiz-cards/startup-basics.webp";
+import productGrowthCardImage from "../assets/quiz-cards/product-growth.webp";
+import internshipTechCardImage from "../assets/quiz-cards/internship-tech.webp";
 
 export type QuizCategory = {
   id: string;

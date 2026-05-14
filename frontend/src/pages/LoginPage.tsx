@@ -20,7 +20,7 @@ export default function LoginPage() {
       "oauth_error",
     );
     if (oauthError) {
-      setError("Connexion OAuth impossible. Vérifie la configuration.");
+      setError(`Connexion OAuth impossible: ${oauthError}`);
     }
   }, []);
 

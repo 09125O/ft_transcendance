@@ -236,7 +236,7 @@ export default function StatusPage() {
 
             <Panel className="px-6 py-6 sm:px-8">
               <div>
-                <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Runbook</p>
+                <p className="font-kicker uppercase tracking-widest m-0 text-xs text-text/55">Opérations</p>
                 <h2 className="m-0 mt-2 text-2xl font-semibold text-text">Commandes utiles</h2>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -276,7 +276,7 @@ export default function StatusPage() {
                 Si la sauvegarde automatique est en attention, l'application reste utilisable mais le module backup/recovery n'est plus dans un état défendable.
               </p>
               <p className="m-0 rounded-2xl border border-text/10 bg-background/75 px-4 py-4">
-                La procédure détaillée de sauvegarde et de reprise est documentée dans <code>docs/operations/status-backup-recovery-runbook.md</code>.
+                La reprise s'appuie sur les sauvegardes automatiques, les vérifications de santé et la restauration contrôlée côté backend.
               </p>
             </div>
           </Panel>

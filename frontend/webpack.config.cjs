@@ -93,6 +93,10 @@ module.exports = {
       template: "./index.html",
     }),
   ],
+  performance: {
+    maxAssetSize: 512 * 1024,
+    maxEntrypointSize: 512 * 1024,
+  },
   devServer: {
     host: "0.0.0.0",
     port: 3000,
