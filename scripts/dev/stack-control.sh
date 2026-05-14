@@ -8,6 +8,9 @@ cd "$ROOT_DIR"
 ACTION="${1:-up}"
 COMPOSE_CMD=""
 COMPOSE_WAIT_FLAG=""
+COMPOSE_WAIT_ARGS=()
+COMPOSE_QUIET_FLAGS=""
+COMPOSE_QUIET_ARGS=()
 STACK_OUTPUT_MODE="${STACK_OUTPUT_MODE:-status}"
 COMPOSE_DISPLAY_CMD=""
 
@@ -41,12 +44,15 @@ detect_compose() {
 
   if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--wait'; then
     COMPOSE_WAIT_FLAG="--wait"
+    COMPOSE_WAIT_ARGS=(--wait)
   fi
 
   if $COMPOSE_CMD up --help 2>/dev/null | grep -q -- '--quiet-build'; then
     COMPOSE_QUIET_FLAGS="--quiet-build --quiet-pull"
+    COMPOSE_QUIET_ARGS=(--quiet-build --quiet-pull)
   else
     COMPOSE_QUIET_FLAGS=""
+    COMPOSE_QUIET_ARGS=()
   fi
 }
 
@@ -157,11 +163,11 @@ fi
 if [ "$STACK_OUTPUT_MODE" = "quiet" ]; then
   run_compose_quiet \
     "${COMPOSE_DISPLAY_CMD} up --build -d ${COMPOSE_WAIT_FLAG}" \
-    up --build ${COMPOSE_QUIET_FLAGS} -d ${COMPOSE_WAIT_FLAG}
+    up --build "${COMPOSE_QUIET_ARGS[@]}" -d "${COMPOSE_WAIT_ARGS[@]}"
 else
   run_compose_with_status \
     "${COMPOSE_DISPLAY_CMD} up --build -d ${COMPOSE_WAIT_FLAG}" \
-    up --build ${COMPOSE_QUIET_FLAGS} -d ${COMPOSE_WAIT_FLAG}
+    up --build "${COMPOSE_QUIET_ARGS[@]}" -d "${COMPOSE_WAIT_ARGS[@]}"
 fi
 
 print_summary
